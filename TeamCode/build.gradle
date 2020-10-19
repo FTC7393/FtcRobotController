@@ -20,5 +20,6 @@ repositories {
 
 dependencies {
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
-    implementation files('..\\libs\\state-machine-framework-0.7.11.jar')
+    implementation project(path: ':EVLib')
+    implementation files('../libs/state-machine-framework-0.7.11.jar')
 }
