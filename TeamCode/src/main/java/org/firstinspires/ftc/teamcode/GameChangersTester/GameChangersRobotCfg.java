@@ -1,6 +1,12 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+
+import ftc.evlib.hardware.config.RobotCfg;
+import ftc.evlib.hardware.motors.FourMotors;
+import ftc.evlib.hardware.motors.Motor;
+import ftc.evlib.hardware.motors.TwoMotors;
 import ftc.evlib.hardware.servos.ServoCfg;
 import ftc.evlib.hardware.motors.Motors;
 
@@ -15,39 +21,42 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.Map;
 
-public class GameChangersRobotCfg {
+public class GameChangersRobotCfg extends RobotCfg {
 
-    public GameChangersRobotCfg(HardwareMap hardwareMap, Map<ServoName, Enum> servoStartPresetMap) {
-//        super(hardwareMap);
-        double scaleFactor = 1.0;
-        mecanumControl = new MecanumControl(new MecanumMotors(
-                Motors.withEncoder(hardwareMap.get(DcMotorEx.class, "backLeft"), true, true, stoppers), // 0
-                Motors.withEncoder(hardwareMap.get(DcMotorEx.class, "frontLeft"), false, true, stoppers), // 1
+    private final TwoMotors twoMotors;
+    private final Velocity velocity = new Velocity(Distance.fromInches(12), Time.fromSeconds(1.0));
 
-                Motors.scale(Motors.withEncoder(hardwareMap.get(DcMotorEx.class, "frontRight"), false, true, stoppers), scaleFactor), // 2
-                Motors.scale(Motors.withEncoder(hardwareMap.get(DcMotorEx.class, "backRight"), true, true, stoppers), scaleFactor), // 3
-                true, MAX_ROBOT_SPEED, MAX_ROBOT_SPEED_SIDEWAYS));
-
-//        servos = new Servos(ServoCfg.createServoMap(hardwareMap, servoStartPresetMap));
-//
-//        gyro0 = new MRGyro(hardwareMap.get(ModernRoboticsI2cGyro.class, "mr0"));
-
-//        DcMotorEx collectorMotor = hardwareMap.get(DcMotorEx.class,"collectorMotor");
-//
-//        blockCollector = new BlockCollector(
-//                Motors.withoutEncoder(collectorMotor, false, false, stoppers), getBlockDetector()
-//        );
-
+    public TwoMotors getTwoMotors() {
+        return twoMotors;
     }
 
     public GameChangersRobotCfg(HardwareMap hardwareMap) {
-        this(hardwareMap, ServoCfg.defaultServoStartPresetMap(SkystoneServoName.values()));
+        super(hardwareMap);
+        double scaleFactor = 1.0;
+        DcMotor leftMotor = hardwareMap.get(DcMotor.class, "leftMotor");
+        DcMotor rightMotor = hardwareMap.get(DcMotor.class, "rightMotor");
+        Motor lm =  Motors.withEncoder(leftMotor, true, true, stoppers);
+        Motor rm =  Motors.withEncoder(rightMotor, false, true, stoppers);
+        twoMotors = new TwoMotors(lm, rm, true, velocity);
+
+
     }
 
-    private final MecanumControl mecanumControl;
 
-    private static final Velocity MAX_ROBOT_SPEED = new Velocity(Distance.fromInches(57 * 4), Time.fromSeconds(2.83));
-    private static final Velocity MAX_ROBOT_SPEED_SIDEWAYS = new Velocity(Distance.fromInches(21.2441207039), Time.fromSeconds(1));
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void act() {
+        twoMotors.update();
+    }
+
+    @Override
+    public void stop() {
+        twoMotors.stop();
+    }
 
 
 }
