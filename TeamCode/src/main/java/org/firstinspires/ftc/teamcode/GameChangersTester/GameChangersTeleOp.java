@@ -5,13 +5,11 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import ftc.electronvolts.util.Function;
 import ftc.electronvolts.util.Functions;
 import ftc.electronvolts.util.files.Logger;
-import ftc.evlib.driverstation.GamepadManager;
 import ftc.evlib.opmodes.AbstractTeleOp;
 
 @TeleOp(name = "anvitaTankDriveOp")
 public class GameChangersTeleOp extends AbstractTeleOp<GameChangersRobotCfg> {
 
-    public GamepadManager driver1 = new GamepadManager(gamepad1);
 
     @Override
     protected Function getJoystickScalingFunction() {
@@ -49,6 +47,10 @@ public class GameChangersTeleOp extends AbstractTeleOp<GameChangersRobotCfg> {
                 driver1.left_stick_y.getValue(),
                 driver1.right_stick_y.getValue()
         );
+
+        telemetry.addData("left stick y values", driver1.left_stick_y.getValue());
+        telemetry.addData("right stick y values", driver1.right_stick_y.getValue());
+
     }
 
     @Override

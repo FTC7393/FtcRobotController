@@ -32,11 +32,10 @@ public class GameChangersRobotCfg extends RobotCfg {
 
     public GameChangersRobotCfg(HardwareMap hardwareMap) {
         super(hardwareMap);
-        double scaleFactor = 1.0;
         DcMotor leftMotor = hardwareMap.get(DcMotor.class, "leftMotor");
         DcMotor rightMotor = hardwareMap.get(DcMotor.class, "rightMotor");
-        Motor lm =  Motors.withEncoder(leftMotor, true, true, stoppers);
-        Motor rm =  Motors.withEncoder(rightMotor, false, true, stoppers);
+        Motor lm =  Motors.withEncoder(leftMotor, false, true, stoppers);
+        Motor rm =  Motors.withEncoder(rightMotor, true, true, stoppers);
         twoMotors = new TwoMotors(lm, rm, true, velocity);
 
 
