@@ -28,7 +28,7 @@ public class GameChangersRobotCfg extends RobotCfg {
     private final MecanumControl mecanumControl;
 
 
-    // testing out the webhook pt 2
+    // testing out the webhook, this is a cool feature which will help monitor pushes and changes to code
 
     public GameChangersRobotCfg(HardwareMap hardwareMap) {
         super(hardwareMap);
