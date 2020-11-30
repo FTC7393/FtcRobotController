@@ -40,4 +40,8 @@ public class FlyWheelShooter {
         pusherServo.goToPreset(pushingPreset);
     }
 
+    public void stop() {
+        flywheelMotor.setPower(0);
+    }
+
 }
