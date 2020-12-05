@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+
+import ftc.evlib.hardware.config.RobotCfg;
 import ftc.evlib.hardware.servos.ServoCfg;
 import ftc.evlib.hardware.motors.Motors;
 
@@ -15,10 +17,10 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.Map;
 
-public class GameChangersRobotCfg {
+public class GameChangersRobotCfg extends RobotCfg  {
 
     public GameChangersRobotCfg(HardwareMap hardwareMap, Map<ServoName, Enum> servoStartPresetMap) {
-//        super(hardwareMap);
+        super(hardwareMap);
         double scaleFactor = 1.0;
         mecanumControl = new MecanumControl(new MecanumMotors(
                 Motors.withEncoder(hardwareMap.get(DcMotorEx.class, "backLeft"), true, true, stoppers), // 0
@@ -40,8 +42,23 @@ public class GameChangersRobotCfg {
 
     }
 
-    public GameChangersRobotCfg(HardwareMap hardwareMap) {
-        this(hardwareMap, ServoCfg.defaultServoStartPresetMap(SkystoneServoName.values()));
+//    public GameChangersRobotCfg(HardwareMap hardwareMap) {
+//        this(hardwareMap, ServoCfg.defaultServoStartPresetMap(SkystoneServoName.values()));
+//    }
+
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void act() {
+
+    }
+
+    @Override
+    public void stop() {
+
     }
 
     private final MecanumControl mecanumControl;
