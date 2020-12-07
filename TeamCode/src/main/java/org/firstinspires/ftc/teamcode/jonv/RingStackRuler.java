@@ -25,8 +25,11 @@ package org.firstinspires.ftc.teamcode.jonv;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.Point;
@@ -41,8 +44,14 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import ftc.evlib.util.FileUtil;
 
 /*
  * This version of the internal camera example uses EasyOpenCV's interface to the
@@ -51,7 +60,7 @@ import java.util.List;
 @TeleOp
 public class RingStackRuler extends LinearOpMode
 {
-    OpenCvCamera phoneCam;
+    OpenCvCamera camera;
 
     @Override
     public void runOpMode()
@@ -65,7 +74,13 @@ public class RingStackRuler extends LinearOpMode
          * single-parameter constructor instead (commented out below)
          */
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam1"), cameraMonitorViewId);
+
+        // OR...  Do Not Activate the Camera Monitor View
+        //webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"));
+
+//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+//        phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
 
         // OR...  Do Not Activate the Camera Monitor View
         //phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK);
@@ -75,7 +90,7 @@ public class RingStackRuler extends LinearOpMode
          * of a frame from the camera. Note that switching pipelines on-the-fly
          * (while a streaming session is in flight) *IS* supported.
          */
-        phoneCam.setPipeline(new SamplePipeline());
+        camera.setPipeline(new SamplePipeline());
 
         /*
          * Open the connection to the camera device. New in v1.4.0 is the ability
@@ -86,7 +101,7 @@ public class RingStackRuler extends LinearOpMode
          *
          * If you really want to open synchronously, the old method is still available.
          */
-        phoneCam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
             @Override
             public void onOpened()
@@ -102,7 +117,7 @@ public class RingStackRuler extends LinearOpMode
                  * For a rear facing camera or a webcam, rotation is defined assuming the camera is facing
                  * away from the user.
                  */
-                phoneCam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+                camera.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
             }
         });
 
@@ -119,12 +134,12 @@ public class RingStackRuler extends LinearOpMode
             /*
              * Send some stats to the telemetry
              */
-            telemetry.addData("Frame Count", phoneCam.getFrameCount());
-            telemetry.addData("FPS", String.format("%.2f", phoneCam.getFps()));
-            telemetry.addData("Total frame time ms", phoneCam.getTotalFrameTimeMs());
-            telemetry.addData("Pipeline time ms", phoneCam.getPipelineTimeMs());
-            telemetry.addData("Overhead time ms", phoneCam.getOverheadTimeMs());
-            telemetry.addData("Theoretical max FPS", phoneCam.getCurrentPipelineMaxFps());
+            telemetry.addData("Frame Count", camera.getFrameCount());
+            telemetry.addData("FPS", String.format("%.2f", camera.getFps()));
+            telemetry.addData("Total frame time ms", camera.getTotalFrameTimeMs());
+            telemetry.addData("Pipeline time ms", camera.getPipelineTimeMs());
+            telemetry.addData("Overhead time ms", camera.getOverheadTimeMs());
+            telemetry.addData("Theoretical max FPS", camera.getCurrentPipelineMaxFps());
             telemetry.update();
 
             /*
@@ -153,7 +168,7 @@ public class RingStackRuler extends LinearOpMode
                  * time. Of course, this comment is irrelevant in light of the use case described in
                  * the above "important note".
                  */
-                phoneCam.stopStreaming();
+                camera.stopStreaming();
                 //phoneCam.closeCameraDevice();
             }
 
@@ -184,15 +199,22 @@ public class RingStackRuler extends LinearOpMode
     class SamplePipeline extends OpenCvPipeline
     {
         Mat horizontalBoxCb, verticalBoxCb;
-        Mat imgYCrCb = new Mat();
-        Mat imgCb = new Mat();
+        Mat imgYCrCb = new Mat(320,240, CvType.CV_8UC3);
+        Mat imgCb = new Mat(320,240, CvType.CV_8UC3);
         int x0 = 60, y0 = 80;
         int nx = 200, ny = 100;
-        Mat rowCB = new Mat(nx,1);
-        Mat colCb = new Mat(1,ny);
+        Mat rowCb = new Mat(1, nx, CvType.CV_8UC3);
+        Mat colCb = new Mat(ny, 1, CvType.CV_8UC3);
         Rect insetBox = new Rect(60,80, 200, 100);
 //        Rect vertBox = new Rect(60,80, 200, 100);
+        int loopCount = 0; // increment every loop (every frame processed)
+        private final int SAVE_LOOP_INTERVAL = 30; // save every interval
         boolean viewportPaused = false;
+        private double[] horizYellow = new double[nx];
+        private double[] vertYellow = new double[ny];
+        File dataFile = FileUtil.getLogsFile("image_data.csv");
+        private FileWriter dataFileWriter;
+
         /*
          * NOTE: if you wish to use additional Mat objects in your processing pipeline, it is
          * highly recommended to declare them here as instance variables and re-use them for
@@ -232,8 +254,6 @@ public class RingStackRuler extends LinearOpMode
              */
             horizontalBoxCb = imgCb.submat(insetBox);
             verticalBoxCb = imgCb.submat(insetBox);
-            Imgproc.resize();
-
         }
 
         @Override
@@ -241,23 +261,75 @@ public class RingStackRuler extends LinearOpMode
 
             inputToCb(input);
 
-            // resize the horiz box to 1 pixel tall row:
-            int nx = horizBox.width;
-            int ny = vertBox.height;
-            Mat row = new Mat(input, rect).clone();
-            int nw = 25, nh = 1;
-            m2 = new Mat(nw, nh, input.type());
-            Size s = new Size(nw, nh);
-            Imgproc.resize(m1, m2, s);
-            Mat row =
-            Extent yellowHorizExtent = findExtend
+            if (loopCount++ > SAVE_LOOP_INTERVAL) {
+
+                // resize the horiz box to 1 pixel tall row:
+                Imgproc.resize(horizontalBoxCb, rowCb, rowCb.size(), 0, 0, Imgproc.INTER_LINEAR);
+                Imgproc.resize(verticalBoxCb, colCb, colCb.size(), 0, 0, Imgproc.INTER_LINEAR);
+
+                setHorizYellow(rowCb);
+                setVertYellow(colCb);
+                append(horizYellow);
+                append(vertYellow);
+                append("\n");
+                loopCount = 0;
+            }
             Scalar color = new Scalar(255,0,0);
             int nx = input.cols();
             int ny = input.rows();
 
-            RotatedRect rotatedRectBox = new RotatedRect(new Point(nx/2,ny/2), new Size(nx/8, ny/6), angle);
+            RotatedRect rotatedRectBox = new RotatedRect(new Point(nx/2,ny/2), new Size(nx/8, ny/6), 0);
             Imgproc.ellipse(input, rotatedRectBox, color, 2);
             return input;
+        }
+
+        private void setHorizYellow(Mat mat) {
+            int n = mat.cols();
+            for (int i=0; i<n; i++) {
+                horizYellow[i] = mat.get(0, i)[1];
+            }
+        }
+        private void setVertYellow(Mat mat) {
+            int n = mat.cols();
+            for (int i=0; i<n; i++) {
+                vertYellow[i] = mat.get(i, 0)[1];
+            }
+        }
+
+        private void open() {
+            try {
+                dataFileWriter = new FileWriter(dataFile);
+           } catch (
+                IOException e) {
+                e.printStackTrace();
+            }
+        }
+        private void close() {
+            try {
+                dataFileWriter.close();
+            } catch (
+                    IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void append(String s) {
+            try {
+                dataFileWriter.write(s);
+            } catch(IOException ioe) {
+
+            }
+        }
+
+        private void append(double [] nums) {
+            String SEP = ",";
+            try {
+                for (int i = 0; i < nums.length; i++) {
+                    dataFileWriter.write(String.format("%5.1f%s", nums[i], SEP));
+                }
+            } catch(IOException ioe) {
+
+            }
         }
         public Mat processFrame2(Mat input)
         {
@@ -294,6 +366,7 @@ public class RingStackRuler extends LinearOpMode
         @Override
         public void onViewportTapped()
         {
+            close();
             /*
              * The viewport (if one was specified in the constructor) can also be dynamically "paused"
              * and "resumed". The primary use case of this is to reduce CPU, memory, and power load
@@ -306,7 +379,9 @@ public class RingStackRuler extends LinearOpMode
              * Here we demonstrate dynamically pausing/resuming the viewport when the user taps it
              */
 
-            angle = (angle + 2) % 360;
+            // This was my addition - change the angle of the ellipse based on tapping the screen
+//            angle = (angle + 2) % 360;
+
 //            viewportPaused = !viewportPaused;
 //
 //            if(viewportPaused)
@@ -322,41 +397,41 @@ public class RingStackRuler extends LinearOpMode
 }
 
 
-class CalcHist {
-    public Mat getHistogramImg(Mat src) {
-        List<Mat> bgrPlanes = new ArrayList<>();
-        Core.split(src, bgrPlanes);
-        int histSize = 256;
-        float[] range = {0, 256}; //the upper boundary is exclusive
-        MatOfFloat histRange = new MatOfFloat(range);
-        boolean accumulate = false;
-        Mat horizHist = new Mat(), vertHist = new Mat();
-        Imgproc.calcHist(bgrPlanes, new MatOfInt(0), new Mat(), bHist, new MatOfInt(histSize), histRange, accumulate);
-        Imgproc.calcHist(bgrPlanes, new MatOfInt(1), new Mat(), gHist, new MatOfInt(histSize), histRange, accumulate);
-        Imgproc.calcHist(bgrPlanes, new MatOfInt(2), new Mat(), rHist, new MatOfInt(histSize), histRange, accumulate);
-        int histW = 512, histH = 400;
-        int binW = (int) Math.round((double) histW / histSize);
-        Mat histImage = new Mat( histH, histW, CvType.CV_8UC3, new Scalar( 0,0,0) );
-        Core.normalize(bHist, bHist, 0, histImage.rows(), Core.NORM_MINMAX);
-        Core.normalize(gHist, gHist, 0, histImage.rows(), Core.NORM_MINMAX);
-        Core.normalize(rHist, rHist, 0, histImage.rows(), Core.NORM_MINMAX);
-        float[] bHistData = new float[(int) (bHist.total() * bHist.channels())];
-        bHist.get(0, 0, bHistData);
-        float[] gHistData = new float[(int) (gHist.total() * gHist.channels())];
-        gHist.get(0, 0, gHistData);
-        float[] rHistData = new float[(int) (rHist.total() * rHist.channels())];
-        rHist.get(0, 0, rHistData);
-        for( int i = 1; i < histSize; i++ ) {
-            Imgproc.line(histImage, new Point(binW * (i - 1), histH - Math.round(bHistData[i - 1])),
-                    new Point(binW * (i), histH - Math.round(bHistData[i])), new Scalar(255, 0, 0), 2);
-            Imgproc.line(histImage, new Point(binW * (i - 1), histH - Math.round(gHistData[i - 1])),
-                    new Point(binW * (i), histH - Math.round(gHistData[i])), new Scalar(0, 255, 0), 2);
-            Imgproc.line(histImage, new Point(binW * (i - 1), histH - Math.round(rHistData[i - 1])),
-                    new Point(binW * (i), histH - Math.round(rHistData[i])), new Scalar(0, 0, 255), 2);
-        }
-        HighGui.imshow( "Source image", src );
-        HighGui.imshow( "calcHist Demo", histImage );
-        HighGui.waitKey(0);
-        System.exit(0);
-    }
-}
+//class CalcHist {
+//    public Mat getHistogramImg(Mat src) {
+//        List<Mat> bgrPlanes = new ArrayList<>();
+//        Core.split(src, bgrPlanes);
+//        int histSize = 256;
+//        float[] range = {0, 256}; //the upper boundary is exclusive
+//        MatOfFloat histRange = new MatOfFloat(range);
+//        boolean accumulate = false;
+//        Mat horizHist = new Mat(), vertHist = new Mat();
+//        Imgproc.calcHist(bgrPlanes, new MatOfInt(0), new Mat(), bHist, new MatOfInt(histSize), histRange, accumulate);
+//        Imgproc.calcHist(bgrPlanes, new MatOfInt(1), new Mat(), gHist, new MatOfInt(histSize), histRange, accumulate);
+//        Imgproc.calcHist(bgrPlanes, new MatOfInt(2), new Mat(), rHist, new MatOfInt(histSize), histRange, accumulate);
+//        int histW = 512, histH = 400;
+//        int binW = (int) Math.round((double) histW / histSize);
+//        Mat histImage = new Mat( histH, histW, CvType.CV_8UC3, new Scalar( 0,0,0) );
+//        Core.normalize(bHist, bHist, 0, histImage.rows(), Core.NORM_MINMAX);
+//        Core.normalize(gHist, gHist, 0, histImage.rows(), Core.NORM_MINMAX);
+//        Core.normalize(rHist, rHist, 0, histImage.rows(), Core.NORM_MINMAX);
+//        float[] bHistData = new float[(int) (bHist.total() * bHist.channels())];
+//        bHist.get(0, 0, bHistData);
+//        float[] gHistData = new float[(int) (gHist.total() * gHist.channels())];
+//        gHist.get(0, 0, gHistData);
+//        float[] rHistData = new float[(int) (rHist.total() * rHist.channels())];
+//        rHist.get(0, 0, rHistData);
+//        for( int i = 1; i < histSize; i++ ) {
+//            Imgproc.line(histImage, new Point(binW * (i - 1), histH - Math.round(bHistData[i - 1])),
+//                    new Point(binW * (i), histH - Math.round(bHistData[i])), new Scalar(255, 0, 0), 2);
+//            Imgproc.line(histImage, new Point(binW * (i - 1), histH - Math.round(gHistData[i - 1])),
+//                    new Point(binW * (i), histH - Math.round(gHistData[i])), new Scalar(0, 255, 0), 2);
+//            Imgproc.line(histImage, new Point(binW * (i - 1), histH - Math.round(rHistData[i - 1])),
+//                    new Point(binW * (i), histH - Math.round(rHistData[i])), new Scalar(0, 0, 255), 2);
+//        }
+//        HighGui.imshow( "Source image", src );
+//        HighGui.imshow( "calcHist Demo", histImage );
+//        HighGui.waitKey(0);
+//        System.exit(0);
+//    }
+//}

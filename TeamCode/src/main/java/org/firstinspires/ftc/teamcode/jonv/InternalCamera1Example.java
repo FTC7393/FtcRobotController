@@ -26,6 +26,7 @@ package org.firstinspires.ftc.teamcode.jonv;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.RotatedRect;
@@ -38,6 +39,13 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import ftc.evlib.util.FileUtil;
+
 /*
  * This version of the internal camera example uses EasyOpenCV's interface to the
  * original Android camera API
@@ -45,7 +53,11 @@ import org.openftc.easyopencv.OpenCvPipeline;
 @TeleOp
 public class InternalCamera1Example extends LinearOpMode
 {
-    OpenCvCamera phoneCam;
+    OpenCvCamera camera;
+    File file = FileUtil.getLogsFile("image_data.csv");
+    boolean dataWritten = false;
+    String fileStatusMsg = "none";
+    PrintWriter pw = null;
 
     @Override
     public void runOpMode()
@@ -58,8 +70,12 @@ public class InternalCamera1Example extends LinearOpMode
          * the RC phone). If no camera monitor is desired, use the alternate
          * single-parameter constructor instead (commented out below)
          */
+//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+//        camera = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
+
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam1"), cameraMonitorViewId);
+
 
         // OR...  Do Not Activate the Camera Monitor View
         //phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK);
@@ -69,7 +85,7 @@ public class InternalCamera1Example extends LinearOpMode
          * of a frame from the camera. Note that switching pipelines on-the-fly
          * (while a streaming session is in flight) *IS* supported.
          */
-        phoneCam.setPipeline(new SamplePipeline());
+        camera.setPipeline(new SamplePipeline());
 
         /*
          * Open the connection to the camera device. New in v1.4.0 is the ability
@@ -80,7 +96,7 @@ public class InternalCamera1Example extends LinearOpMode
          *
          * If you really want to open synchronously, the old method is still available.
          */
-        phoneCam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
             @Override
             public void onOpened()
@@ -96,13 +112,21 @@ public class InternalCamera1Example extends LinearOpMode
                  * For a rear facing camera or a webcam, rotation is defined assuming the camera is facing
                  * away from the user.
                  */
-                phoneCam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+                camera.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
             }
         });
 
         telemetry.addLine("Waiting for start");
         telemetry.update();
 
+        try {
+            pw = new PrintWriter(new FileWriter(file));
+            fileStatusMsg = "Opened";
+        } catch (IOException e) {
+            fileStatusMsg = "Error: " + e.getMessage();
+            pw = null;
+            // e.printStackTrace();
+        }
         /*
          * Wait for the user to press start on the Driver Station
          */
@@ -113,12 +137,13 @@ public class InternalCamera1Example extends LinearOpMode
             /*
              * Send some stats to the telemetry
              */
-            telemetry.addData("Frame Count", phoneCam.getFrameCount());
-            telemetry.addData("FPS", String.format("%.2f", phoneCam.getFps()));
-            telemetry.addData("Total frame time ms", phoneCam.getTotalFrameTimeMs());
-            telemetry.addData("Pipeline time ms", phoneCam.getPipelineTimeMs());
-            telemetry.addData("Overhead time ms", phoneCam.getOverheadTimeMs());
-            telemetry.addData("Theoretical max FPS", phoneCam.getCurrentPipelineMaxFps());
+            pw.write("Frame Count " + camera.getFrameCount());
+            telemetry.addData("Frame Count", camera.getFrameCount());
+            telemetry.addData("FPS", String.format("%.2f", camera.getFps()));
+            telemetry.addData("Total frame time ms", camera.getTotalFrameTimeMs());
+            telemetry.addData("Pipeline time ms", camera.getPipelineTimeMs());
+            telemetry.addData("Overhead time ms", camera.getOverheadTimeMs());
+            telemetry.addData("Theoretical max FPS", camera.getCurrentPipelineMaxFps());
             telemetry.update();
 
             /*
@@ -147,7 +172,7 @@ public class InternalCamera1Example extends LinearOpMode
                  * time. Of course, this comment is irrelevant in light of the use case described in
                  * the above "important note".
                  */
-                phoneCam.stopStreaming();
+                camera.stopStreaming();
                 //phoneCam.closeCameraDevice();
             }
 
@@ -157,6 +182,9 @@ public class InternalCamera1Example extends LinearOpMode
              * anyway). Of course in a real OpMode you will likely not want to do this.
              */
             sleep(100);
+        }
+        if (pw != null) {
+            pw.close();
         }
     }
 
