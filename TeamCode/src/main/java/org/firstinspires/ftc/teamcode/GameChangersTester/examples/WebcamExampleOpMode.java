@@ -17,7 +17,7 @@ import ftc.evlib.opmodes.AbstractTeleOp;
 public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
 
     OpenCvCamera webcam;
-    private OpenCvPipeline SamplePipeline = new SamplePipeline();
+    private OpenCvPipeline samplePipeline = new SamplePipeline();
 
 
     @Override
@@ -39,7 +39,7 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
     protected void setup() {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
-        webcam.setPipeline(new SamplePipeline());
+        webcam.setPipeline(samplePipeline);
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
@@ -70,10 +70,6 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
         telemetry.addData("Overhead time ms", webcam.getOverheadTimeMs());
         telemetry.addData("Theoretical max FPS", webcam.getCurrentPipelineMaxFps());
         telemetry.update();
-
-        if(driver1.dpad_up.isPressed()) {
-            webcam.pauseViewport();
-        }
 
     }
 

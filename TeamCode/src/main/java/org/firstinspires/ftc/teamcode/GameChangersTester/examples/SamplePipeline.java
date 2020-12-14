@@ -7,7 +7,7 @@ import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 public class SamplePipeline extends OpenCvPipeline {
-
+    private boolean hasSavedImage = false;
 
     @Override
     public Mat processFrame(Mat input) {
@@ -21,7 +21,10 @@ public class SamplePipeline extends OpenCvPipeline {
                         input.cols()*(3f/4f),
                         input.rows()*(3f/4f)),
                 new Scalar(0, 255, 0), 4);
-
+        if(!hasSavedImage) {
+            saveMatToDisk(input, "/images/imgae_1");
+            hasSavedImage = true;
+        }
         return input;
 
     }
