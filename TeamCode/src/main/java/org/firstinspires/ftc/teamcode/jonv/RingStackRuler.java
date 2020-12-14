@@ -61,6 +61,7 @@ import ftc.evlib.util.FileUtil;
 public class RingStackRuler extends LinearOpMode
 {
     OpenCvCamera camera;
+    private SamplePipeline pipeline;
 
     @Override
     public void runOpMode()
@@ -74,7 +75,7 @@ public class RingStackRuler extends LinearOpMode
          * single-parameter constructor instead (commented out below)
          */
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam1"), cameraMonitorViewId);
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
 
         // OR...  Do Not Activate the Camera Monitor View
         //webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"));
@@ -90,7 +91,8 @@ public class RingStackRuler extends LinearOpMode
          * of a frame from the camera. Note that switching pipelines on-the-fly
          * (while a streaming session is in flight) *IS* supported.
          */
-        camera.setPipeline(new SamplePipeline());
+        pipeline = new SamplePipeline();
+        camera.setPipeline(pipeline);
 
         /*
          * Open the connection to the camera device. New in v1.4.0 is the ability
@@ -179,6 +181,7 @@ public class RingStackRuler extends LinearOpMode
              */
             sleep(100);
         }
+        pipeline.closeFile();
     }
 
     /*
@@ -254,6 +257,7 @@ public class RingStackRuler extends LinearOpMode
              */
             horizontalBoxCb = imgCb.submat(insetBox);
             verticalBoxCb = imgCb.submat(insetBox);
+            openFile();
         }
 
         @Override
@@ -261,6 +265,7 @@ public class RingStackRuler extends LinearOpMode
 
             inputToCb(input);
 
+            System.out.println("loop count: " + loopCount); // debug
             if (loopCount++ > SAVE_LOOP_INTERVAL) {
 
                 // resize the horiz box to 1 pixel tall row:
@@ -269,8 +274,8 @@ public class RingStackRuler extends LinearOpMode
 
                 setHorizYellow(rowCb);
                 setVertYellow(colCb);
-                append(horizYellow);
-                append(vertYellow);
+                append(horizYellow+",ABC,");
+                append(vertYellow+"");
                 append("\n");
                 loopCount = 0;
             }
@@ -283,20 +288,20 @@ public class RingStackRuler extends LinearOpMode
             return input;
         }
 
-        private void setHorizYellow(Mat mat) {
-            int n = mat.cols();
+        private void setHorizYellow(Mat row) {
+            int n = row.cols();
             for (int i=0; i<n; i++) {
-                horizYellow[i] = mat.get(0, i)[1];
+                horizYellow[i] = row.get(0, i)[0];
             }
         }
-        private void setVertYellow(Mat mat) {
-            int n = mat.cols();
+        private void setVertYellow(Mat col) {
+            int n = col.rows();
             for (int i=0; i<n; i++) {
-                vertYellow[i] = mat.get(i, 0)[1];
+                vertYellow[i] = col.get(i, 0)[0];
             }
         }
 
-        private void open() {
+        private void openFile() {
             try {
                 dataFileWriter = new FileWriter(dataFile);
            } catch (
@@ -304,7 +309,7 @@ public class RingStackRuler extends LinearOpMode
                 e.printStackTrace();
             }
         }
-        private void close() {
+        private void closeFile() {
             try {
                 dataFileWriter.close();
             } catch (
@@ -366,7 +371,7 @@ public class RingStackRuler extends LinearOpMode
         @Override
         public void onViewportTapped()
         {
-            close();
+            closeFile();
             /*
              * The viewport (if one was specified in the constructor) can also be dynamically "paused"
              * and "resumed". The primary use case of this is to reduce CPU, memory, and power load
