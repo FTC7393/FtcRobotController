@@ -45,9 +45,16 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -61,7 +68,6 @@ import ftc.evlib.util.FileUtil;
 public class RingStackRuler extends LinearOpMode
 {
     OpenCvCamera camera;
-    private SamplePipeline pipeline;
 
     @Override
     public void runOpMode()
@@ -91,7 +97,7 @@ public class RingStackRuler extends LinearOpMode
          * of a frame from the camera. Note that switching pipelines on-the-fly
          * (while a streaming session is in flight) *IS* supported.
          */
-        pipeline = new SamplePipeline();
+        SamplePipeline pipeline = new SamplePipeline();
         camera.setPipeline(pipeline);
 
         /*
@@ -181,7 +187,6 @@ public class RingStackRuler extends LinearOpMode
              */
             sleep(100);
         }
-        pipeline.closeFile();
     }
 
     /*
@@ -204,8 +209,8 @@ public class RingStackRuler extends LinearOpMode
         Mat horizontalBoxCb, verticalBoxCb;
         Mat imgYCrCb = new Mat(320,240, CvType.CV_8UC3);
         Mat imgCb = new Mat(320,240, CvType.CV_8UC3);
-        int x0 = 60, y0 = 80;
-        int nx = 200, ny = 100;
+        int x0 = 90, y0 = 120;
+        int nx = 60, ny = 30;
         Mat rowCb = new Mat(1, nx, CvType.CV_8UC3);
         Mat colCb = new Mat(ny, 1, CvType.CV_8UC3);
         Rect insetBox = new Rect(60,80, 200, 100);
@@ -215,8 +220,11 @@ public class RingStackRuler extends LinearOpMode
         boolean viewportPaused = false;
         private double[] horizYellow = new double[nx];
         private double[] vertYellow = new double[ny];
-        File dataFile = FileUtil.getLogsFile("image_data.csv");
-        private FileWriter dataFileWriter;
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+        Date currentTime = new Date();
+        String dateStamp = formatter.format(currentTime);
+        File dataFile = FileUtil.getLogsFile("image_data_"+dateStamp+".csv");
+        private PrintWriter writer;
 
         /*
          * NOTE: if you wish to use additional Mat objects in your processing pipeline, it is
@@ -257,7 +265,6 @@ public class RingStackRuler extends LinearOpMode
              */
             horizontalBoxCb = imgCb.submat(insetBox);
             verticalBoxCb = imgCb.submat(insetBox);
-            openFile();
         }
 
         @Override
@@ -274,9 +281,12 @@ public class RingStackRuler extends LinearOpMode
 
                 setHorizYellow(rowCb);
                 setVertYellow(colCb);
-                append(horizYellow+",ABC,");
-                append(vertYellow+"");
+                openFile();
+                append(horizYellow);
+                append(",XYZ,");
+                append(vertYellow);
                 append("\n");
+                closeFile();
                 loopCount = 0;
             }
             Scalar color = new Scalar(255,0,0);
@@ -285,6 +295,9 @@ public class RingStackRuler extends LinearOpMode
 
             RotatedRect rotatedRectBox = new RotatedRect(new Point(nx/2,ny/2), new Size(nx/8, ny/6), 0);
             Imgproc.ellipse(input, rotatedRectBox, color, 2);
+
+            Imgproc.rectangle(input,insetBox, color,4);
+
             return input;
         }
 
@@ -303,39 +316,28 @@ public class RingStackRuler extends LinearOpMode
 
         private void openFile() {
             try {
-                dataFileWriter = new FileWriter(dataFile);
-           } catch (
-                IOException e) {
+                writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(dataFile, true)));
+                System.out.println("open.");
+           } catch (IOException e) {
+                System.out.println("error on open: " + e.getMessage());
                 e.printStackTrace();
             }
         }
         private void closeFile() {
-            try {
-                dataFileWriter.close();
-            } catch (
-                    IOException e) {
-                e.printStackTrace();
-            }
+            writer.close();
         }
 
         private void append(String s) {
-            try {
-                dataFileWriter.write(s);
-            } catch(IOException ioe) {
-
-            }
+            writer.print(s);
         }
 
         private void append(double [] nums) {
             String SEP = ",";
-            try {
-                for (int i = 0; i < nums.length; i++) {
-                    dataFileWriter.write(String.format("%5.1f%s", nums[i], SEP));
-                }
-            } catch(IOException ioe) {
-
+            for (int i = 0; i < nums.length; i++) {
+                writer.print(String.format("%5.1f%s", nums[i], SEP));
             }
         }
+
         public Mat processFrame2(Mat input)
         {
             /*
@@ -371,7 +373,6 @@ public class RingStackRuler extends LinearOpMode
         @Override
         public void onViewportTapped()
         {
-            closeFile();
             /*
              * The viewport (if one was specified in the constructor) can also be dynamically "paused"
              * and "resumed". The primary use case of this is to reduce CPU, memory, and power load
