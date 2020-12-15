@@ -86,3 +86,4 @@ lint/outputs/
 lint/tmp/
 # lint/reports/
 /.idea/
+/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/GameChangersTester/vuforiakey.txt
