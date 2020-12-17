@@ -144,10 +144,15 @@ public class RingStackRuler extends LinearOpMode
              */
             telemetry.addData("Frame Count", camera.getFrameCount());
             telemetry.addData("FPS", String.format("%.2f", camera.getFps()));
-            telemetry.addData("Total frame time ms", camera.getTotalFrameTimeMs());
-            telemetry.addData("Pipeline time ms", camera.getPipelineTimeMs());
-            telemetry.addData("Overhead time ms", camera.getOverheadTimeMs());
-            telemetry.addData("Theoretical max FPS", camera.getCurrentPipelineMaxFps());
+//            telemetry.addData("Total frame time ms", camera.getTotalFrameTimeMs());
+//            telemetry.addData("Pipeline time ms", camera.getPipelineTimeMs());
+//            telemetry.addData("Overhead time ms", camera.getOverheadTimeMs());
+//            telemetry.addData("Theoretical max FPS", camera.getCurrentPipelineMaxFps());
+
+            telemetry.addData("Avg Yellow", pipeline.getAvgCbValue());
+            telemetry.addData("Lo Yellow", pipeline.getLowYellowPixel());
+            telemetry.addData("Hi Yellow", pipeline.getHighYellowPixel());
+            telemetry.addData("Hi-Lo =", pipeline.getHighYellowPixel() - pipeline.getLowYellowPixel());
             telemetry.update();
 
             /*
@@ -209,8 +214,10 @@ public class RingStackRuler extends LinearOpMode
         Mat horizontalBoxCb, verticalBoxCb;
         Mat imgYCrCb = new Mat(320,240, CvType.CV_8UC3);
         Mat imgCb = new Mat(320,240, CvType.CV_8UC3);
+        Mat slitImgCb = new Mat();
+        Rect slitRect = new Rect(155,80,10,90);
         int x0 = 90, y0 = 120;
-        int nx = 60, ny = 30;
+        int nx = 100, ny = 50;
         Mat rowCb = new Mat(1, nx, CvType.CV_8UC3);
         Mat colCb = new Mat(ny, 1, CvType.CV_8UC3);
         Rect insetBox = new Rect(60,80, 200, 100);
@@ -225,6 +232,13 @@ public class RingStackRuler extends LinearOpMode
         String dateStamp = formatter.format(currentTime);
         File dataFile = FileUtil.getLogsFile("image_data_"+dateStamp+".csv");
         private PrintWriter writer;
+        private final int numPixelsForInitialAvg = 3;
+        private final int numPixelsForRunningAvg = 3;
+        private final double minAvgDiffForRingEdge = 15;
+        private final int minNumLowAvgPointsForEdge = 2;
+        private int lowYellowPixel = -2;
+        private int highYellowPixel = -2;
+        private int avgCbValue = -1;
 
         /*
          * NOTE: if you wish to use additional Mat objects in your processing pipeline, it is
@@ -265,12 +279,16 @@ public class RingStackRuler extends LinearOpMode
              */
             horizontalBoxCb = imgCb.submat(insetBox);
             verticalBoxCb = imgCb.submat(insetBox);
+
+            slitImgCb = imgCb.submat(slitRect);
         }
 
         @Override
         public Mat processFrame(Mat input) {
 
             inputToCb(input);
+
+            avgCbValue = (int) Core.mean(slitImgCb).val[0];
 
             System.out.println("loop count: " + loopCount); // debug
             if (loopCount++ > SAVE_LOOP_INTERVAL) {
@@ -281,6 +299,8 @@ public class RingStackRuler extends LinearOpMode
 
                 setHorizYellow(rowCb);
                 setVertYellow(colCb);
+                lowYellowPixel = findLowestYellowPixel(vertYellow);
+                highYellowPixel = findTopYellowPixel(vertYellow);
                 openFile();
                 append(horizYellow);
                 append(",XYZ,");
@@ -290,15 +310,60 @@ public class RingStackRuler extends LinearOpMode
                 loopCount = 0;
             }
             Scalar color = new Scalar(255,0,0);
+            Scalar slitColor = new Scalar(0,255,0);
             int nx = input.cols();
             int ny = input.rows();
 
-            RotatedRect rotatedRectBox = new RotatedRect(new Point(nx/2,ny/2), new Size(nx/8, ny/6), 0);
-            Imgproc.ellipse(input, rotatedRectBox, color, 2);
+//            RotatedRect rotatedRectBox = new RotatedRect(new Point(nx/2,ny/2), new Size(nx/8, ny/6), 0);
+//            Imgproc.ellipse(input, rotatedRectBox, color, 2);
 
             Imgproc.rectangle(input,insetBox, color,4);
+            Imgproc.rectangle(input,slitRect, slitColor,2);
 
             return input;
+        }
+
+        private int findLowestYellowPixel(double [] col) {
+            int numRows = col.length;
+            double initialAvg = findLocalAvg(col, 0, numPixelsForInitialAvg);
+            int dipCount = 0;
+            for (int i=numPixelsForInitialAvg; i<numRows-numPixelsForRunningAvg; i++) {
+                double thisAvg = findLocalAvg(col, i, numPixelsForRunningAvg);
+                if ((initialAvg - thisAvg) > minAvgDiffForRingEdge) {
+                    dipCount++;
+                    if (dipCount >= minNumLowAvgPointsForEdge) {
+                        return i; // this is the edge of the yellow region
+                    }
+                }
+            }
+
+            return -1; // no yellow edge found
+        }
+
+        private int findTopYellowPixel(double [] col) {
+            int numRows = col.length;
+            int i0 = numRows-numPixelsForInitialAvg;
+            double initialAvg = findLocalAvg(col, i0, numPixelsForInitialAvg);
+            int dipCount = 0;
+            for (int i=i0-numPixelsForRunningAvg; i>=0; i--) {
+                double thisAvg = findLocalAvg(col, i, numPixelsForRunningAvg);
+                if ((initialAvg - thisAvg) > minAvgDiffForRingEdge) {
+                    dipCount++;
+                    if (dipCount >= minNumLowAvgPointsForEdge) {
+                        return i; // this is the edge of the yellow region
+                    }
+                }
+            }
+
+            return -1; // no yellow edge found
+        }
+
+        private double findLocalAvg(double [] col, int i0, int n) {
+            double sum = 0;
+            for (int i=i0; i<i0+n; i++ ) {
+                sum += col[i];
+            }
+            return sum/n;
         }
 
         private void setHorizYellow(Mat row) {
@@ -398,6 +463,17 @@ public class RingStackRuler extends LinearOpMode
 //            {
 //                phoneCam.resumeViewport();
 //            }
+        }
+
+        public int getLowYellowPixel() {
+            return lowYellowPixel;
+        }
+        public int getHighYellowPixel() {
+            return highYellowPixel;
+        }
+
+        public int getAvgCbValue() {
+            return avgCbValue;
         }
     }
 }
