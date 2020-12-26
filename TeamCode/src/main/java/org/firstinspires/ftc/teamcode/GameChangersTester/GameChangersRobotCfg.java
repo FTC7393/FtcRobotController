@@ -37,8 +37,6 @@ public class GameChangersRobotCfg extends RobotCfg {
         Motor lm =  Motors.withEncoder(leftMotor, true, true, stoppers);
         Motor rm =  Motors.withEncoder(rightMotor, false, true, stoppers);
         twoMotors = new TwoMotors(lm, rm, true, velocity);
-
-
     }
 
 
