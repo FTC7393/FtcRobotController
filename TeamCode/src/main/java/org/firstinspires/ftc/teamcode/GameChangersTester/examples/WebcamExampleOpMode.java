@@ -7,7 +7,6 @@ import org.firstinspires.ftc.teamcode.GameChangersTester.GameChangersRobotCfg;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvPipeline;
 
 import ftc.electronvolts.util.Function;
 import ftc.electronvolts.util.files.Logger;
@@ -17,7 +16,7 @@ import ftc.evlib.opmodes.AbstractTeleOp;
 public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
 
     OpenCvCamera webcam;
-    private OpenCvPipeline samplePipeline = new SamplePipeline();
+    private SamplePipeline samplePipeline = new SamplePipeline();
 
 
     @Override
@@ -43,7 +42,7 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
-                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+                webcam.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
             }
         });
 
@@ -52,7 +51,14 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
 
     @Override
     protected void setup_act() {
-
+        telemetry.addData("Frame Count", webcam.getFrameCount());
+        telemetry.addData("FPS", String.format("%.2f", webcam.getFps()));
+        telemetry.addData("Total frame time ms", webcam.getTotalFrameTimeMs());
+        telemetry.addData("Pipeline time ms", webcam.getPipelineTimeMs());
+        telemetry.addData("Overhead time ms", webcam.getOverheadTimeMs());
+        telemetry.addData("Theoretical max FPS", webcam.getCurrentPipelineMaxFps());
+        telemetry.addData("avg color value", samplePipeline.getAvg1());
+        telemetry.update();
     }
 
     @Override
@@ -69,6 +75,7 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
         telemetry.addData("Pipeline time ms", webcam.getPipelineTimeMs());
         telemetry.addData("Overhead time ms", webcam.getOverheadTimeMs());
         telemetry.addData("Theoretical max FPS", webcam.getCurrentPipelineMaxFps());
+        telemetry.addData("avg color value", samplePipeline.getAvg1());
         telemetry.update();
 
     }
