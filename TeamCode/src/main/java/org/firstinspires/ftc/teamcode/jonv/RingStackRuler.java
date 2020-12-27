@@ -211,14 +211,15 @@ public class RingStackRuler extends LinearOpMode
      */
     class SamplePipeline extends OpenCvPipeline
     {
-        Mat horizontalBoxCb, verticalBoxCb;
+//        Mat horizontalBoxCb;
+        Mat verticalBoxCb;
         Mat imgYCrCb = new Mat(320,240, CvType.CV_8UC3);
         Mat imgCb = new Mat(320,240, CvType.CV_8UC3);
         Mat slitImgCb = new Mat();
-        Rect slitRect = new Rect(155,80,10,90);
+        Rect slitRect = new Rect(155,60,10,120);
         int x0 = 90, y0 = 120;
         int nx = 100, ny = 50;
-        Mat rowCb = new Mat(1, nx, CvType.CV_8UC3);
+//        Mat rowCb = new Mat(1, nx, CvType.CV_8UC3);
         Mat colCb = new Mat(ny, 1, CvType.CV_8UC3);
         Rect insetBox = new Rect(60,80, 200, 100);
 //        Rect vertBox = new Rect(60,80, 200, 100);
@@ -232,13 +233,15 @@ public class RingStackRuler extends LinearOpMode
         String dateStamp = formatter.format(currentTime);
         File dataFile = FileUtil.getLogsFile("image_data_"+dateStamp+".csv");
         private PrintWriter writer;
-        private final int numPixelsForInitialAvg = 3;
-        private final int numPixelsForRunningAvg = 3;
-        private final double minAvgDiffForRingEdge = 15;
+        private final int numPixelsForInitialAvg = 4;
+        private final int numPixelsForRunningAvg = 4;
+        private final double minAvgDiffForRingEdge = 8;
         private final int minNumLowAvgPointsForEdge = 2;
         private int lowYellowPixel = -2;
         private int highYellowPixel = -2;
         private int avgCbValue = -1;
+        Scalar boxColor = new Scalar(255,0,0);
+        Scalar slitColor = new Scalar(0,255,0);
 
         /*
          * NOTE: if you wish to use additional Mat objects in your processing pipeline, it is
@@ -254,7 +257,6 @@ public class RingStackRuler extends LinearOpMode
         {
             Imgproc.cvtColor(input, imgYCrCb, Imgproc.COLOR_RGB2YCrCb);
             Core.extractChannel(imgYCrCb, imgCb, 2);
-
         }
 
 
@@ -277,7 +279,7 @@ public class RingStackRuler extends LinearOpMode
              * buffer. Any changes to the child affect the parent, and the
              * reverse also holds true.
              */
-            horizontalBoxCb = imgCb.submat(insetBox);
+//            horizontalBoxCb = imgCb.submat(insetBox);
             verticalBoxCb = imgCb.submat(insetBox);
 
             slitImgCb = imgCb.submat(slitRect);
@@ -288,40 +290,96 @@ public class RingStackRuler extends LinearOpMode
 
             inputToCb(input);
 
-            avgCbValue = (int) Core.mean(slitImgCb).val[0];
-
             System.out.println("loop count: " + loopCount); // debug
             if (loopCount++ > SAVE_LOOP_INTERVAL) {
 
                 // resize the horiz box to 1 pixel tall row:
-                Imgproc.resize(horizontalBoxCb, rowCb, rowCb.size(), 0, 0, Imgproc.INTER_LINEAR);
+//                Imgproc.resize(horizontalBoxCb, rowCb, rowCb.size(), 0, 0, Imgproc.INTER_LINEAR);
                 Imgproc.resize(verticalBoxCb, colCb, colCb.size(), 0, 0, Imgproc.INTER_LINEAR);
 
-                setHorizYellow(rowCb);
+//                setHorizYellow(rowCb);
                 setVertYellow(colCb);
                 lowYellowPixel = findLowestYellowPixel(vertYellow);
                 highYellowPixel = findTopYellowPixel(vertYellow);
                 openFile();
-                append(horizYellow);
-                append(",XYZ,");
+//                append(horizYellow);
+//                append(",XYZ,");
                 append(vertYellow);
                 append("\n");
                 closeFile();
                 loopCount = 0;
             }
-            Scalar color = new Scalar(255,0,0);
-            Scalar slitColor = new Scalar(0,255,0);
-            int nx = input.cols();
-            int ny = input.rows();
-
+//            int nx = input.cols();
+//            int ny = input.rows();
+//
 //            RotatedRect rotatedRectBox = new RotatedRect(new Point(nx/2,ny/2), new Size(nx/8, ny/6), 0);
 //            Imgproc.ellipse(input, rotatedRectBox, color, 2);
+            avgCbValue = (int) Core.mean(slitImgCb).val[0];
 
-            Imgproc.rectangle(input,insetBox, color,4);
+            Imgproc.rectangle(input,insetBox, boxColor,4);
             Imgproc.rectangle(input,slitRect, slitColor,2);
 
             return input;
         }
+
+
+        public Mat processFrame3(Mat input) {
+
+            inputToCb(input);
+
+            System.out.println("loop count: " + loopCount); // debug
+            if (loopCount++ > SAVE_LOOP_INTERVAL) {
+
+                // resize the horiz box to 1 pixel tall row:
+//                Imgproc.resize(horizontalBoxCb, rowCb, rowCb.size(), 0, 0, Imgproc.INTER_LINEAR);
+                Imgproc.resize(verticalBoxCb, colCb, colCb.size(), 0, 0, Imgproc.INTER_LINEAR);
+
+//                setHorizYellow(rowCb);
+                setVertYellow(colCb);
+                lowYellowPixel = findLowestYellowPixel(vertYellow);
+                highYellowPixel = findTopYellowPixel(vertYellow);
+
+                try {
+                    writer = new PrintWriter(new FileOutputStream(dataFile, true));
+                    writer = new PrintWriter(dataFile);
+                    String SEP = ",";
+                    for (int i = 0; i < vertYellow.length; i++) {
+                        writer.print(String.format("%5.1f%s", vertYellow[i], SEP));
+                    }
+                    writer.print("\n");
+                    writer.close();
+                } catch (IOException e) {
+
+                }
+
+                openFile();
+//                append(horizYellow);
+//                append(",XYZ,");
+                append(vertYellow);
+                append("\n");
+                closeFile();
+
+
+
+
+
+                loopCount = 0;
+            }
+//            int nx = input.cols();
+//            int ny = input.rows();
+//
+//            RotatedRect rotatedRectBox = new RotatedRect(new Point(nx/2,ny/2), new Size(nx/8, ny/6), 0);
+//            Imgproc.ellipse(input, rotatedRectBox, color, 2);
+            avgCbValue = (int) Core.mean(slitImgCb).val[0];
+
+            Imgproc.rectangle(input,insetBox, boxColor,4);
+            Imgproc.rectangle(input,slitRect, slitColor,2);
+
+            return input;
+        }
+
+
+
 
         private int findLowestYellowPixel(double [] col) {
             int numRows = col.length;
@@ -372,6 +430,14 @@ public class RingStackRuler extends LinearOpMode
                 horizYellow[i] = row.get(0, i)[0];
             }
         }
+
+        private void setHorizYellow_old(Mat row) {
+            int n = row.cols();
+            for (int i=0; i<n; i++) {
+                horizYellow[i] = row.get(0, i)[0];
+            }
+        }
+
         private void setVertYellow(Mat col) {
             int n = col.rows();
             for (int i=0; i<n; i++) {
