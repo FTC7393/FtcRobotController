@@ -8,8 +8,13 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import ftc.evlib.util.FileUtil;
 
 public class SamplePipeline extends OpenCvPipeline {
 
@@ -23,8 +28,14 @@ public class SamplePipeline extends OpenCvPipeline {
             REGION1_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
             REGION1_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
 
+
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
+    Date currentTime = new Date();
+    String datestamp = formatter.format(currentTime);
+    File dataFile = FileUtil.getLogsFile("image_data_" + datestamp + ".csv");
+
     private int avg1;
-    private String datafile;
+    private String datafile = "/FTC";
     Mat region1;
     Mat YCrCb = new Mat();
     Mat Cb = new Mat();
