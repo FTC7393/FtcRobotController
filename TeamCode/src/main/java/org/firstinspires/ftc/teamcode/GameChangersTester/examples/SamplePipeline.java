@@ -44,6 +44,7 @@ public class SamplePipeline extends OpenCvPipeline {
 
     @Override
     public Mat processFrame(Mat input) {
+        inputToCb(input);
         Core.extractChannel(input, region1, 2);
                 Imgproc.rectangle(
                 input,
