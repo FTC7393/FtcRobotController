@@ -25,10 +25,25 @@ public class SamplePipeline extends OpenCvPipeline {
 
     private int avg1;
     private String datafile;
+    Mat region1;
+    Mat YCrCb = new Mat();
+    Mat Cb = new Mat();
+    void inputToCb(Mat input)
+    {
+        Imgproc.cvtColor(input, YCrCb, Imgproc.COLOR_RGB2YCrCb);
+        Core.extractChannel(YCrCb, Cb, 2);
+    }
+
+    @Override
+    public void init(Mat firstFrame) {
+        inputToCb(firstFrame);
+        region1 = Cb.submat(new Rect(region1_pointA, region1_pointB));
+    }
+
+
 
     @Override
     public Mat processFrame(Mat input) {
-        Mat region1 = input.submat(new Rect(region1_pointA, region1_pointB));
         Core.extractChannel(input, region1, 2);
                 Imgproc.rectangle(
                 input,
