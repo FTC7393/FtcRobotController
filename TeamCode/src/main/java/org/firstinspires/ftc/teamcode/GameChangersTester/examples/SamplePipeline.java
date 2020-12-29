@@ -32,7 +32,7 @@ public class SamplePipeline extends OpenCvPipeline {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
     Date currentTime = new Date();
     String datestamp = formatter.format(currentTime);
-    File dataFile = FileUtil.getLogsFile("image_data_" + datestamp + ".csv");
+    File dataFile = FileUtil.getLogsFile("logs_" + datestamp + ".csv");
 
     private int avg1;
     private String datafile = "/FTC";
