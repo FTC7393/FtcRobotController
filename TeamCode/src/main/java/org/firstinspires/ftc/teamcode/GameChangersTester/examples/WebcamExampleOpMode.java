@@ -58,6 +58,8 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
         telemetry.addData("Overhead time ms", webcam.getOverheadTimeMs());
         telemetry.addData("Theoretical max FPS", webcam.getCurrentPipelineMaxFps());
         telemetry.addData("avg color value", samplePipeline.getAvg1());
+        telemetry.addData("yellow difference", samplePipeline.getYellowDiff());
+        telemetry.addData("avg gray value", samplePipeline.getAvg2());
         telemetry.update();
     }
 
@@ -69,14 +71,6 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
     @Override
     protected void act() {
 
-        telemetry.addData("Frame Count", webcam.getFrameCount());
-        telemetry.addData("FPS", String.format("%.2f", webcam.getFps()));
-        telemetry.addData("Total frame time ms", webcam.getTotalFrameTimeMs());
-        telemetry.addData("Pipeline time ms", webcam.getPipelineTimeMs());
-        telemetry.addData("Overhead time ms", webcam.getOverheadTimeMs());
-        telemetry.addData("Theoretical max FPS", webcam.getCurrentPipelineMaxFps());
-        telemetry.addData("avg color value", samplePipeline.getAvg1());
-        telemetry.update();
 
     }
 
