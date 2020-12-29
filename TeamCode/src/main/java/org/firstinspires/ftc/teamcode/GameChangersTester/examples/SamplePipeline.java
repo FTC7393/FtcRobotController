@@ -32,10 +32,9 @@ public class SamplePipeline extends OpenCvPipeline {
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
     Date currentTime = new Date();
     String datestamp = formatter.format(currentTime);
-    File dataFile = FileUtil.getLogsFile("logs_" + datestamp + ".csv");
+    File datafile = FileUtil.getLogsFile("logs_" + datestamp + ".csv");
 
     private int avg1;
-    private String datafile = "/FTC";
     Mat region1;
     Mat YCrCb = new Mat();
     Mat Cb = new Mat();
@@ -56,13 +55,8 @@ public class SamplePipeline extends OpenCvPipeline {
     @Override
     public Mat processFrame(Mat input) {
         inputToCb(input);
-        Core.extractChannel(input, region1, 2);
-                Imgproc.rectangle(
-                input,
-                region1_pointA,
-                region1_pointB,
-                new Scalar(0, 255, 0), 4);
         avg1 = (int) Core.mean(region1).val[0];
+        Imgproc.rectangle( input, region1_pointA, region1_pointB, new Scalar(0, 255, 0), 4);
 
         try {
             PrintWriter writer = new PrintWriter(new FileOutputStream(datafile, true));
