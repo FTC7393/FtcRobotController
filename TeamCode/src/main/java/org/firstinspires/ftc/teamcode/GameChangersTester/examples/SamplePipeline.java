@@ -64,8 +64,8 @@ public class SamplePipeline extends OpenCvPipeline {
 
     void inputToCb(Mat input)
     {
-        Imgproc.cvtColor(input, YCrCb, Imgproc.COLOR_RGB2YCrCb);
-        Core.extractChannel(YCrCb, Cb, 2);
+        Imgproc.cvtColor(input, YCrCb, Imgproc.COLOR_RGB2HSV_FULL);
+        Core.extractChannel(YCrCb, Cb, 0);
     }
 
     @Override
@@ -87,6 +87,7 @@ public class SamplePipeline extends OpenCvPipeline {
         yellowDiff = Math.abs((avg2 - avg1));
 
         Imgproc.rectangle( input, region1_pointA, region1_pointB, new Scalar(0, 255, 0), 4);
+        Imgproc.rectangle( input, region2_pointA, region2_pointB, new Scalar(0, 255, 0), 4);
 
         try {
             PrintWriter writer = new PrintWriter(new FileOutputStream(datafile, true));
