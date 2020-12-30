@@ -65,7 +65,7 @@ public class SamplePipeline extends OpenCvPipeline {
     void inputToCb(Mat input)
     {
         Imgproc.cvtColor(input, YCrCb, Imgproc.COLOR_RGB2HSV_FULL);
-        Core.extractChannel(YCrCb, Cb, 0);
+        Core.extractChannel(YCrCb, Cb, 1); //this channel results in the most consistent
     }
 
     @Override
