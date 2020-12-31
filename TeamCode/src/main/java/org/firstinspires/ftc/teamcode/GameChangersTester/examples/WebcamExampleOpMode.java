@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.GameChangersTester.GameChangersRobotCfg;
+import org.firstinspires.ftc.teamcode.GameChangersTester.SamplePipeline;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -58,8 +59,6 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
         telemetry.addData("Overhead time ms", webcam.getOverheadTimeMs());
         telemetry.addData("Theoretical max FPS", webcam.getCurrentPipelineMaxFps());
         telemetry.addData("avg color value", samplePipeline.getAvg1());
-        telemetry.addData("yellow difference", samplePipeline.getYellowDiff());
-        telemetry.addData("avg gray value", samplePipeline.getAvg2());
         telemetry.update();
     }
 

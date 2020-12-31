@@ -1,5 +1,6 @@
-package org.firstinspires.ftc.teamcode.GameChangersTester.examples;
+package org.firstinspires.ftc.teamcode.GameChangersTester;
 
+import org.firstinspires.ftc.teamcode.GameChangersTester.RingIdentifierError;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -18,6 +19,12 @@ import ftc.evlib.util.FileUtil;
 
 public class SamplePipeline extends OpenCvPipeline {
 
+    enum RING_NUMBERS {
+        ring_4,
+        ring_1,
+        ring_0;
+    }
+
     static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(325,315);
     static final int REGION_WIDTH = 15;
     static final int REGION_HEIGHT = 75;
@@ -28,15 +35,7 @@ public class SamplePipeline extends OpenCvPipeline {
             REGION1_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
             REGION1_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
 
-    static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(425,315);
-    static final int REGION2_WIDTH = 15;
-    static final int REGION2_HEIGHT = 75;
-    Point region2_pointA = new Point(
-            REGION2_TOPLEFT_ANCHOR_POINT.x,
-            REGION2_TOPLEFT_ANCHOR_POINT.y);
-    Point region2_pointB = new Point(
-            REGION2_TOPLEFT_ANCHOR_POINT.x + REGION2_WIDTH,
-            REGION2_TOPLEFT_ANCHOR_POINT.y + REGION2_HEIGHT);
+
 
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
@@ -49,16 +48,9 @@ public class SamplePipeline extends OpenCvPipeline {
     Mat YCrCb = new Mat();
     Mat Cb = new Mat();
 
-    public int getAvg2() {
-        return avg2;
-    }
 
-    private int avg2;
-    Mat region2;
 
-    public int getYellowDiff() {
-        return yellowDiff;
-    }
+
 
     private int yellowDiff;
 
@@ -72,7 +64,6 @@ public class SamplePipeline extends OpenCvPipeline {
     public void init(Mat firstFrame) {
         inputToCb(firstFrame);
         region1 = Cb.submat(new Rect(region1_pointA, region1_pointB));
-        region2 = Cb.submat(new Rect(region2_pointA, region2_pointB));
     }
 
 
@@ -81,24 +72,31 @@ public class SamplePipeline extends OpenCvPipeline {
     public Mat processFrame(Mat input) {
         inputToCb(input);
         avg1 = (int) Core.mean(region1).val[0];
-        avg2 = (int) Core.mean(region2).val[0];
 
 
-        yellowDiff = Math.abs((avg2 - avg1));
 
         Imgproc.rectangle( input, region1_pointA, region1_pointB, new Scalar(0, 255, 0), 4);
-        Imgproc.rectangle( input, region2_pointA, region2_pointB, new Scalar(0, 255, 0), 4);
 
         try {
-            PrintWriter writer = new PrintWriter(new FileOutputStream(datafile, true));
-            writer.print(avg1);
-            writer.print("\n");
-            writer.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+            ringDecider();
+        } catch (RingIdentifierError r) {
+            r.printStackTrace();
         }
+
         return input;
 
+    }
+
+    public RING_NUMBERS ringDecider() throws RingIdentifierError {
+        if(avg1 > 165) {
+            return RING_NUMBERS.ring_4;
+        } else if (avg1 < 165 && avg1 > 80) {
+            return RING_NUMBERS.ring_1;
+        } else if (avg1 < 80 && avg1 > 0) {
+            return RING_NUMBERS.ring_0;
+        } else {
+            throw new RingIdentifierError();
+        }
     }
 
     public int getAvg1() {
