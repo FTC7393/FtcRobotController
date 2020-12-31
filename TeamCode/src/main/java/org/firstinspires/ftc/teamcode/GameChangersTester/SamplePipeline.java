@@ -8,18 +8,15 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import ftc.evlib.util.FileUtil;
-
 public class SamplePipeline extends OpenCvPipeline {
 
-    enum RING_NUMBERS {
+    private RING_NUMBERS ringValue;
+
+    public enum RING_NUMBERS {
         ring_4,
         ring_1,
-        ring_0;
+        ring_0,
+        ring_error
     }
 
     static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(325,315);
@@ -35,7 +32,7 @@ public class SamplePipeline extends OpenCvPipeline {
 
 
 
-    private int avg1;
+    private int avgSaturation;
     Mat region1;
     Mat hsv_image = new Mat();
     Mat saturation_channel = new Mat();
@@ -62,35 +59,31 @@ public class SamplePipeline extends OpenCvPipeline {
     @Override
     public Mat processFrame(Mat input) {
         inputToCb(input);
-        avg1 = (int) Core.mean(region1).val[0];
+        avgSaturation = (int) Core.mean(region1).val[0];
 
-
+        if(avgSaturation >= 165) {
+            ringValue = RING_NUMBERS.ring_4;
+        } else if (avgSaturation <= 165 && avgSaturation >= 80) {
+            ringValue = RING_NUMBERS.ring_1;
+        } else if (avgSaturation <= 80 && avgSaturation >= 0) {
+            ringValue = RING_NUMBERS.ring_0;
+        } else {
+            ringValue = RING_NUMBERS.ring_error;
+        }
 
         Imgproc.rectangle( input, region1_pointA, region1_pointB, new Scalar(0, 255, 0), 4);
 
-        try {
-            ringDecider();
-        } catch (RingIdentifierError r) {
-            r.printStackTrace();
-        }
+
 
         return input;
 
     }
 
-    public RING_NUMBERS ringDecider() throws RingIdentifierError {
-        if(avg1 > 165) {
-            return RING_NUMBERS.ring_4;
-        } else if (avg1 < 165 && avg1 > 80) {
-            return RING_NUMBERS.ring_1;
-        } else if (avg1 < 80 && avg1 > 0) {
-            return RING_NUMBERS.ring_0;
-        } else {
-            throw new RingIdentifierError();
-        }
+    public RING_NUMBERS getRingValue()  {
+        return ringValue;
     }
 
-    public int getAvg1() {
-        return avg1;
+    public int getAvgSaturation() {
+        return avgSaturation;
     }
 }
