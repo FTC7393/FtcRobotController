@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.GameChangersTester;
 
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 
@@ -15,27 +16,31 @@ import ftc.evlib.hardware.control.RotationControls;
 import ftc.evlib.hardware.control.XYRControl;
 import ftc.evlib.hardware.sensors.Gyro;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
+
 public class VuforiaRoTnCtrl extends XYRControl {
 
     private double velocityR;
     private Angle polarDirectionCorrection;
     private Vector2D translation;
-    private final VuforiaTrackable trackable;
-    private final double xDestIn;
-    private final double yDestIn;
     private double minTransSize;
     private final RotationControl roTnCtnrl;
+    private final VuCalc vuCalc;
+    
 
-    /** pass in vuforia trackable(current location) as well as the location to go to in terms of the x cord and y cord
+
+    /**
+     * pass in vuforia trackable(current location) as well as the location to go to in terms of the x cord and y cord
+     *
      * @param trackable - (current location)
-     * @param xDestIn - x cord of destination
-     * @param yDestIn - y cord of destination
+     * @param xDestIn   - x cord of destination
+     * @param yDestIn   - y cord of destination
      */
-    public VuforiaRoTnCtrl(VuforiaTrackable trackable, double xDestIn, double yDestIn) {
-        this.trackable = trackable;
-        this.xDestIn = xDestIn;
-        this.yDestIn = yDestIn;
-        roTnCtnrl = vuforiaRoCntrl();
+    public VuforiaRoTnCtrl(VuforiaTrackable trackable, double xDestIn, double yDestIn, double rotationGain, Angle targetHeading, Angle angleTolerance, double maxAngularSpeed, double minAngularSpeed) {
+        vuCalc = new VuCalc(xDestIn, yDestIn, minTransSize, trackable);
+        roTnCtnrl = RotationControls.headingSource(vuCalc, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
     }
 
     @Override
@@ -55,30 +60,14 @@ public class VuforiaRoTnCtrl extends XYRControl {
 
     @Override
     public boolean act() {
-        if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
-            // getUpdatedRobotLocation() will return null if no new information is available since
-            // the last time that call was made, or if the trackable is not currently visible.
-            OpenGLMatrix robotLocation = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
-            if (robotLocation != null) {
+        vuCalc.update();
+        this.translation = vuCalc.getTranslation();
+        roTnCtnrl.act();
 
-                // calculates the vector translation in inches
-                VectorF currentPos = robotLocation.getTranslation();
-//                translation = (xDestIn - currentPos.get(0))/(yDestIn - currentPos.get(1)));
-                double deltaX = xDestIn - currentPos.get(0);
-                double deltaY = yDestIn - currentPos.get(1);
-                Vector2D tempTrans = new Vector2D(deltaX, deltaY).normalized();
-                if(tempTrans.getLength() < minTransSize) {
-                    translation = new Vector2D(minTransSize, tempTrans.getAngle());
-                } else
-                {
-                    translation = tempTrans;
-                }
-            }
-
-
-        }
-
-
-        return false;
+        this.velocityR = roTnCtnrl.getVelocityR();
+        this.polarDirectionCorrection = roTnCtnrl.getPolarDirectionCorrection();
+        return true;
     }
 }
+
+
