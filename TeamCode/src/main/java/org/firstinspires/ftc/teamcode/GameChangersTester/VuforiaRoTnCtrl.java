@@ -6,9 +6,14 @@ import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 
+import ftc.electronvolts.util.ControlLoop;
+import ftc.electronvolts.util.ProportionalController;
 import ftc.electronvolts.util.Vector2D;
 import ftc.electronvolts.util.units.Angle;
+import ftc.evlib.hardware.control.RotationControl;
+import ftc.evlib.hardware.control.RotationControls;
 import ftc.evlib.hardware.control.XYRControl;
+import ftc.evlib.hardware.sensors.Gyro;
 
 public class VuforiaRoTnCtrl extends XYRControl {
 
@@ -18,7 +23,8 @@ public class VuforiaRoTnCtrl extends XYRControl {
     private final VuforiaTrackable trackable;
     private final double xDestIn;
     private final double yDestIn;
-    private Vector2D minTransSize;
+    private double minTransSize;
+    private final RotationControl roTnCtnrl;
 
     /** pass in vuforia trackable(current location) as well as the location to go to in terms of the x cord and y cord
      * @param trackable - (current location)
@@ -29,6 +35,7 @@ public class VuforiaRoTnCtrl extends XYRControl {
         this.trackable = trackable;
         this.xDestIn = xDestIn;
         this.yDestIn = yDestIn;
+        roTnCtnrl = vuforiaRoCntrl();
     }
 
     @Override
@@ -61,16 +68,17 @@ public class VuforiaRoTnCtrl extends XYRControl {
                 double deltaY = yDestIn - currentPos.get(1);
                 Vector2D tempTrans = new Vector2D(deltaX, deltaY).normalized();
                 if(tempTrans.getLength() < minTransSize) {
-                    translation = new Vector2D(minTransSize, tempTrans.getAngle())
+                    translation = new Vector2D(minTransSize, tempTrans.getAngle());
                 } else
                 {
                     translation = tempTrans;
                 }
-
-
             }
+
+
         }
 
 
+        return false;
     }
 }
