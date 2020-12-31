@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
-import org.firstinspires.ftc.teamcode.GameChangersTester.RingIdentifierError;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -10,8 +9,6 @@ import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -38,32 +35,26 @@ public class SamplePipeline extends OpenCvPipeline {
 
 
 
-    SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
-    Date currentTime = new Date();
-    String datestamp = formatter.format(currentTime);
-    File datafile = FileUtil.getLogsFile("logs_" + datestamp + ".csv");
-
     private int avg1;
     Mat region1;
-    Mat YCrCb = new Mat();
-    Mat Cb = new Mat();
+    Mat hsv_image = new Mat();
+    Mat saturation_channel = new Mat();
 
 
 
 
 
-    private int yellowDiff;
 
     void inputToCb(Mat input)
     {
-        Imgproc.cvtColor(input, YCrCb, Imgproc.COLOR_RGB2HSV_FULL);
-        Core.extractChannel(YCrCb, Cb, 1); //this channel results in the most consistent
+        Imgproc.cvtColor(input, hsv_image, Imgproc.COLOR_RGB2HSV_FULL);
+        Core.extractChannel(hsv_image, saturation_channel, 1); //this channel results in the most consistent
     }
 
     @Override
     public void init(Mat firstFrame) {
         inputToCb(firstFrame);
-        region1 = Cb.submat(new Rect(region1_pointA, region1_pointB));
+        region1 = saturation_channel.submat(new Rect(region1_pointA, region1_pointB));
     }
 
 
