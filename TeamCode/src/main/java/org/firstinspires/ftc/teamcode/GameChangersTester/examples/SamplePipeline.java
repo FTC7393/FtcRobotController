@@ -18,9 +18,9 @@ import ftc.evlib.util.FileUtil;
 
 public class SamplePipeline extends OpenCvPipeline {
 
-    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(250,225);
-    static final int REGION_WIDTH = 150;
-    static final int REGION_HEIGHT = 175;
+    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(250,275);
+    static final int REGION_WIDTH = 15;
+    static final int REGION_HEIGHT = 75;
     Point region1_pointA = new Point(
             REGION1_TOPLEFT_ANCHOR_POINT.x,
             REGION1_TOPLEFT_ANCHOR_POINT.y);
@@ -28,15 +28,15 @@ public class SamplePipeline extends OpenCvPipeline {
             REGION1_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
             REGION1_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
 
-    static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(450,225);
-    static final int REGION2_WIDTH = 150;
-    static final int REGION2_HEIGHT = 175;
+    static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(450,275);
+    static final int REGION2_WIDTH = 15;
+    static final int REGION2_HEIGHT = 75;
     Point region2_pointA = new Point(
             REGION2_TOPLEFT_ANCHOR_POINT.x,
             REGION2_TOPLEFT_ANCHOR_POINT.y);
     Point region2_pointB = new Point(
-            REGION2_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
-            REGION2_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
+            REGION2_TOPLEFT_ANCHOR_POINT.x + REGION2_WIDTH,
+            REGION2_TOPLEFT_ANCHOR_POINT.y + REGION2_HEIGHT);
 
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
