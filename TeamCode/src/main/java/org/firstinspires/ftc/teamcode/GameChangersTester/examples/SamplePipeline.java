@@ -18,7 +18,7 @@ import ftc.evlib.util.FileUtil;
 
 public class SamplePipeline extends OpenCvPipeline {
 
-    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(325,275);
+    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(325,315);
     static final int REGION_WIDTH = 15;
     static final int REGION_HEIGHT = 75;
     Point region1_pointA = new Point(
@@ -28,7 +28,7 @@ public class SamplePipeline extends OpenCvPipeline {
             REGION1_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
             REGION1_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
 
-    static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(525,275);
+    static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(425,315);
     static final int REGION2_WIDTH = 15;
     static final int REGION2_HEIGHT = 75;
     Point region2_pointA = new Point(
