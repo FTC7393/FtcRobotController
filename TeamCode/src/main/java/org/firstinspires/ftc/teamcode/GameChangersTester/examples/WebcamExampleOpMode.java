@@ -59,7 +59,8 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
         telemetry.addData("Overhead time ms", webcam.getOverheadTimeMs());
         telemetry.addData("Theoretical max FPS", webcam.getCurrentPipelineMaxFps());
         telemetry.addData("avg color value", samplePipeline.getAvgSaturation());
-        telemetry.addData("number of rings", samplePipeline.getRingValue().name());
+        SamplePipeline.RING_NUMBERS rv = samplePipeline.getRingValue();
+        telemetry.addData("number of rings", rv == null ? "null" : rv.name());
         telemetry.update();
     }
 
