@@ -19,6 +19,7 @@ public class VuCalc implements HeadingSource {
     private final double yDestIn;
     private final double minTransSize;
     private final VuforiaTrackable trackable;
+    private static final double mmPerInch        = 25.4f;
 
     private Vector2D translation;
     private double heading;
@@ -41,8 +42,9 @@ public class VuCalc implements HeadingSource {
                 // calculates the vector translation in inches
                 VectorF currentPos = robotLocation.getTranslation();
 //                translation = (xDestIn - currentPos.get(0))/(yDestIn - currentPos.get(1)));
-                double deltaX = xDestIn - currentPos.get(0);
-                double deltaY = yDestIn - currentPos.get(1);
+                double deltaX = xDestIn - (currentPos.get(0)/mmPerInch);
+                double deltaY = yDestIn - (currentPos.get(1)/mmPerInch);
+                // translation distance is in inches
                 translation = new Vector2D(deltaX, deltaY);
                 Orientation rotation = Orientation.getOrientation(robotLocation, EXTRINSIC, XYZ, DEGREES);
                 heading = rotation.thirdAngle;
