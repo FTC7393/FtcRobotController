@@ -6,6 +6,7 @@ import ftc.electronvolts.util.InputExtractor;
 import ftc.electronvolts.util.ProportionalController;
 import ftc.electronvolts.util.Vector2D;
 import ftc.electronvolts.util.units.Angle;
+import ftc.evlib.hardware.sensors.HeadingSource;
 
 /**
  * This file was made by the electronVolts, FTC team 7393
@@ -76,24 +77,17 @@ public class RotationControls {
     }
 
 
-
         /**
          * Controls the rotation of a mecanum robot with a gyro sensor
          *
-         * @param gyro            the gyro sensor
+         * @param headingSrc            the headingSource sensor
          * @param targetHeading   the direction to rotate to
          * @param tolerance       the deadzone
          * @param maxAngularSpeed the max speed to rotate at
          * @return the created RotationControl
          */
-    public static ftc.evlib.hardware.control.RotationControl gyro(final Gyro gyro, double gain, final Angle targetHeading, final Angle tolerance, final double maxAngularSpeed) {
-//        OptionsFile optionsFile = new OptionsFile(EVConverters.getInstance(), FileUtil.getOptionsFile("AutoOptions.txt"));
-//        double gain = optionsFile.get("gyro_gain", Double.class);
-//        double max = optionsFile.get("gyro_max", Double.class);
-//        final ControlLoop gyroControl = new ProportionalController(gain, 0.01, 0.05, max);
+    public static ftc.evlib.hardware.control.RotationControl headingSource(final HeadingSource headingSrc, double gain, final Angle targetHeading, final Angle tolerance, final double maxAngularSpeed, final double minAngularSpeed) {
 
-        double minAngularSpeed = 0.05;
-        if (maxAngularSpeed < minAngularSpeed) minAngularSpeed = maxAngularSpeed;
         //                                                         gain,      innerDeadzone,                outerDeadzone,             minOutput,       maxOutput
         final ControlLoop gyroControl = new ProportionalController(gain, tolerance.abs().radians(), minAngularSpeed, maxAngularSpeed);
 
@@ -106,8 +100,8 @@ public class RotationControls {
             @Override
             public boolean act() {
 
-                //get the gyro heading and convert it to a vector
-                gyroHeading = gyro.getHeading();
+                //get the headingSrc heading and convert it to a vector
+                gyroHeading = headingSrc.getHeading();
                 Vector2D gyroVector = new Vector2D(1, Angle.fromDegrees(gyroHeading));
 
                 //find the "signed angular separation", the magnitude and direction of the error
@@ -146,6 +140,10 @@ public class RotationControls {
         };
     }
 
+    // this method has the name "gyro" due to backwards compatibility
+    public static ftc.evlib.hardware.control.RotationControl gyro(final HeadingSource headingSrc, double gain, final Angle targetHeading, final Angle tolerance, final double maxAngularSpeed) {
+         return headingSource(headingSrc, gain, targetHeading, tolerance, maxAngularSpeed, 0.05);
+    }
 
 
     private enum TeleOpGyroMode {
