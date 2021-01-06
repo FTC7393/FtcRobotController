@@ -36,13 +36,25 @@ public class FlyWheelShooter {
     }
 
     public void goToShootingAngle() {
-        Enum shootingPreset = null;
-        elevationServo.goToPreset(shootingPreset);
+        elevationServo.goToPreset(ServoPresets.Elevation.SHOOTING);
     }
 
-    public void ejectRing() {
-        Enum pushingPreset = null;
-        pusherServo.goToPreset(pushingPreset);
+    public void goToCollectionAngle() {
+        elevationServo.goToPreset(ServoPresets.Elevation.COLLECTING);
+    }
+
+    /**
+    this method pushes the ring into the shooter
+     */
+    public void engagePusher() {
+        pusherServo.goToPreset(ServoPresets.Pusher.PUSH);
+    }
+
+    /**
+     this method moves the servo out of the way to let the next ring fall into place
+     */
+    public void disengagePusher() {
+        pusherServo.goToPreset(ServoPresets.Pusher.RELEASE);
     }
 
     public void stop() {
