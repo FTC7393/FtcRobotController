@@ -10,7 +10,7 @@ import ftc.evlib.hardware.control.RotationControl;
 import ftc.evlib.hardware.control.RotationControls;
 import ftc.evlib.hardware.control.XYRControl;
 
-public class VuforiaRoTnCtrl extends XYRControl {
+public class VuforiaRotationTranslationCntrl extends XYRControl {
 
     private double velocityR;
     private Angle polarDirectionCorrection;
@@ -20,6 +20,9 @@ public class VuforiaRoTnCtrl extends XYRControl {
     private final ProportionalController transPropCntrl;
     private final VuCalc vuCalc;
     private final double upperGainDistanceThreshold;
+    // vector from current position to target position
+    private Vector2D rawTrans;
+    private final double transDeadZone;
 
 
     /**
@@ -32,11 +35,12 @@ public class VuforiaRoTnCtrl extends XYRControl {
      * @param transMinPower -  the minimum motor power
      * @param transMaxPower -  the maximum motor power
      */
-    public VuforiaRoTnCtrl(VuforiaTrackable trackable, double xDestIn, double yDestIn, double rotationGain, Angle targetHeading, Angle angleTolerance, double maxAngularSpeed, double minAngularSpeed, double transGain, double transDeadZone, double transMinPower, double transMaxPower, double upperGainDistanceThreshold) {
+    public VuforiaRotationTranslationCntrl(VuforiaTrackable trackable, double xDestIn, double yDestIn, double rotationGain, Angle targetHeading, Angle angleTolerance, double maxAngularSpeed, double minAngularSpeed, double transGain, double transDeadZone, double transMinPower, double transMaxPower, double upperGainDistanceThreshold) {
         this.upperGainDistanceThreshold = upperGainDistanceThreshold;
         vuCalc = new VuCalc(xDestIn, yDestIn, minTransSize, trackable);
         roTnCtnrl = RotationControls.headingSource(vuCalc, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
         transPropCntrl = new ProportionalController(transGain, transDeadZone, transMinPower, transMaxPower);
+        this.transDeadZone = transDeadZone;
 
     }
 
@@ -55,10 +59,14 @@ public class VuforiaRoTnCtrl extends XYRControl {
         return translation;
     }
 
+    public boolean isDone() {
+        return rawTrans.getLength() <= transDeadZone;
+    }
+
     @Override
     public boolean act() {
         vuCalc.update();
-        Vector2D rawTrans = vuCalc.getTranslation();
+        rawTrans = vuCalc.getTranslation();
         double newMag = rawTrans.getLength();
         // have to find the upperGainDistanceThreshold
         if(newMag > upperGainDistanceThreshold){
