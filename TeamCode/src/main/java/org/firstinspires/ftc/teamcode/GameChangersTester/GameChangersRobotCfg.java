@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
@@ -7,6 +8,8 @@ import ftc.evlib.hardware.config.RobotCfg;
 import ftc.evlib.hardware.motors.FourMotors;
 import ftc.evlib.hardware.motors.Motor;
 import ftc.evlib.hardware.motors.TwoMotors;
+import ftc.evlib.hardware.sensors.AnalogSensor;
+import ftc.evlib.hardware.sensors.Sensors;
 import ftc.evlib.hardware.servos.ServoCfg;
 import ftc.evlib.hardware.motors.Motors;
 
@@ -50,17 +53,18 @@ public class GameChangersRobotCfg extends RobotCfg {
         mecanumControl = new MecanumControl(new MecanumMotors(lm,rm,blm,brm,true,velocity,velocity));
 
         //Collector Stoof (Peter is working on it)
-        DcMotor leftCollector = hardwareMap.get(DcMotor.class, "leftCollector");
-        DcMotor rightCollector = hardwareMap.get(DcMotor.class, "rightCollector");
+        DcMotor leftCollector = hardwareMap.get(DcMotor.class, "motorCollector");
+        CRServo windmill = hardwareMap.get(CRServo.class,"servoCollector");
         Motor lc =  Motors.withEncoder(leftCollector, true, true, stoppers);
-        Motor rc =  Motors.withEncoder(rightCollector, false, true, stoppers);
-        collector = Motors.combinedWithoutEncoder(lc,rc);
+        collector = new Collector(lc, windmill);
 
         //Wobble Goal Collector Stouf
         Motor rotator =  Motors.withEncoder(hardwareMap.get(DcMotor.class, "WobbleCollectorMotor"), false, true, stoppers);
         ServoControl pinchServo = getPincher();
 
-        wobbleGoal = new WobbleGoalCollector(rotator, pinchServo, WobblePincherServoPresets.CLOSED,WobblePincherServoPresets.OPENED);
+        AnalogSensor potentiometer = Sensors.analog(hardwareMap, "potentiometer");
+        wobbleGoal = new WobbleGoalCollector(rotator, pinchServo, WobblePincherServoPresets.CLOSED,WobblePincherServoPresets.OPENED, potentiometer);
+
     }
     //Servo Stuof
     public GameChangersRobotCfg(HardwareMap hardwareMap) {
@@ -120,12 +124,14 @@ public class GameChangersRobotCfg extends RobotCfg {
         //twoMotors.update();
         collector.update();
         mecanumControl.act();
+        wobbleGoal.act();
     }
 
     @Override
     public void stop() {
         //twoMotors.stop();
         mecanumControl.stop();
+        wobbleGoal.stop();
     }
 
 
