@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.hardware.CRServo;
 
 import ftc.evlib.hardware.motors.Motor;
 import ftc.evlib.hardware.motors.Motors;
-import ftc.evlib.hardware.servos.ServoControl;
 
 public class Collector {
     private Motor collectorMotor;
@@ -22,32 +21,40 @@ public class Collector {
         this.collectorServo = Motors.continuousServo(collectorServo, false);
     }
 
-    public void Ingest()
+    public void ingest()
     {
         collectorMotor.setPower(motorPower);
         collectorServo.setPower(servoPower);
     }
 
-    public void Expel()
+    public void expel()
     {
         collectorMotor.setPower(motorPowerBack);
         collectorServo.setPower(servoPowerBack);
     }
 
-    public void Stop()
+    public void stop()
     {
         collectorMotor.setPower(motorStop);
         collectorServo.setPower(servoStop);
+        act();
     }
+
+    public void act()
+    {
+        collectorServo.update();
+        collectorMotor.update();
+    }
+
     //Cause this sucks!
     public void Suck()
     {
-        Ingest();
+        ingest();
     }
     //and blows too!
     public void Spew()
     {
-        Expel();
+        expel();
     }
 
 }
