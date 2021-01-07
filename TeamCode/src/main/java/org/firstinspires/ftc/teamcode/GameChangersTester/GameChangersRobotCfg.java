@@ -132,6 +132,7 @@ public class GameChangersRobotCfg extends RobotCfg {
         //twoMotors.stop();
         mecanumControl.stop();
         wobbleGoal.stop();
+        collector.stop();
     }
 
 
