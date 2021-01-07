@@ -29,7 +29,7 @@ import java.util.Map;
 public class GameChangersRobotCfg extends RobotCfg {
 
     //private final TwoMotors twoMotors;
-    private final Motor collector;
+    private final Collector collector;
     private final MecanumControl mecanumControl;
     private final Velocity velocity = new Velocity(Distance.fromInches(12), Time.fromSeconds(1.0));
     private final Servos servos;
@@ -122,7 +122,7 @@ public class GameChangersRobotCfg extends RobotCfg {
     @Override
     public void act() {
         //twoMotors.update();
-        collector.update();
+        collector.act();
         mecanumControl.act();
         wobbleGoal.act();
     }
