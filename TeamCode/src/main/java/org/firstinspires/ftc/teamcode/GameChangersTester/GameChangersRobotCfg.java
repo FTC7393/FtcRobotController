@@ -63,7 +63,7 @@ public class GameChangersRobotCfg extends RobotCfg {
         ServoControl pinchServo = getPincher();
 
         AnalogSensor potentiometer = Sensors.analog(hardwareMap, "potentiometer");
-        wobbleGoal = new WobbleGoalCollector(rotator, pinchServo, WobblePincherServoPresets.CLOSED,WobblePincherServoPresets.OPENED, potentiometer);
+        wobbleGoal = new WobbleGoalCollector(rotator, pinchServo, ServoPresets.WobblePincher.CLOSED,ServoPresets.WobblePincher.OPENED, potentiometer);
 
     }
     //Servo Stuof
@@ -71,13 +71,16 @@ public class GameChangersRobotCfg extends RobotCfg {
         this(hardwareMap, ServoCfg.defaultServoStartPresetMap(GameChangersServoName.values()));
     }
 
-    public enum WobblePincherServoPresets {
-        CLOSED,
-        OPENED
+    public ServoControl getPincher() {
+        return getServo(GameChangersServoName.PINCH);
     }
 
-    public ServoControl getPincher() {
-        return getServo(GameChangersServoName.PINCH_SERVO);
+    public ServoControl getPusher() {
+        return getServo(GameChangersServoName.PUSHER);
+    }
+
+    public ServoControl getElevation() {
+        return getServo(GameChangersServoName.ELEVATION);
     }
 
     public Servos getServos(){
@@ -86,7 +89,9 @@ public class GameChangersRobotCfg extends RobotCfg {
 
     public enum GameChangersServoName implements ServoName {
         //enum name("hardware name", preset enum.values()),
-        PINCH_SERVO("pinchServo", WobblePincherServoPresets.values());
+        PINCH("pinchServo", ServoPresets.WobblePincher.values()),
+        PUSHER("pusherServo", ServoPresets.Pusher.values()),
+        ELEVATION("elevationServo", ServoPresets.Elevation.values());
 
 //        PUSH_SERVO("pushServo", RotateServoPresets.values());
 

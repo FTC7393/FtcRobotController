@@ -10,4 +10,11 @@ public class ServoPresets {
         SHOOTING, COLLECTING
     }
 
+    public enum WobblePincher implements Preset {
+        CLOSED,
+        OPENED
+    }
+
+
+
 }
