@@ -45,8 +45,8 @@ public class GameChangersRobotCfg extends RobotCfg {
         servos = new Servos(ServoCfg.createServoMap(hardwareMap, servoStartPresetMap));
 
         //Drive Train.
-        DcMotor leftMotor = hardwareMap.get(DcMotor.class, "leftMotor");
-        DcMotor rightMotor = hardwareMap.get(DcMotor.class, "rightMotor");
+        DcMotor leftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
+        DcMotor rightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
         DcMotor backLeftMotor = hardwareMap.get(DcMotor.class, "backLeftMotor");
         DcMotor backRightMotor = hardwareMap.get(DcMotor.class, "backRightMotor");
         Motor lm =  Motors.withEncoder(leftMotor, true, true, stoppers);
@@ -57,21 +57,23 @@ public class GameChangersRobotCfg extends RobotCfg {
         mecanumControl = new MecanumControl(new MecanumMotors(lm,rm,blm,brm,true,velocity,velocity));
 
         //Collector Stoof (Peter is working on it)
-        DcMotor leftCollector = hardwareMap.get(DcMotor.class, "motorCollector");
-        CRServo windmill = hardwareMap.get(CRServo.class,"servoCollector");
-        Motor lc =  Motors.withEncoder(leftCollector, true, true, stoppers);
+        DcMotor leftCollector = hardwareMap.get(DcMotor.class, "collectorMotor");
+        CRServo windmill = hardwareMap.get(CRServo.class,"collectorServo");
+        Motor lc =  Motors.withEncoder(leftCollector, true, false, stoppers);
         collector = new Collector(lc, windmill);
 
         // gyro
         gyro = new IMUGyro(hardwareMap.get(BNO055IMU.class, "imu0"));
 
         //Wobble Goal Collector Stouf
-        Motor rotator =  Motors.withEncoder(hardwareMap.get(DcMotor.class, "WobbleCollectorMotor"), false, true, stoppers);
+        Motor rotator =  Motors.withEncoder(hardwareMap.get(DcMotor.class, "wobbleGoalArmMotor"), false, true, stoppers);
         ServoControl pinchServo = getPincher();
 
         AnalogSensor potentiometer = Sensors.analog(hardwareMap, "potentiometer");
         wobbleGoal = new WobbleGoalCollector(rotator, pinchServo, ServoPresets.WobblePincher.CLOSED,ServoPresets.WobblePincher.OPENED, potentiometer);
 
+        //shooter
+        Motor flyWheelShooter = Motors.withEncoder(hardwareMap.get(DcMotor.class,"flyWheelShooter"), false, false, stoppers);
     }
     //Servo Stuof
     public GameChangersRobotCfg(HardwareMap hardwareMap) {
