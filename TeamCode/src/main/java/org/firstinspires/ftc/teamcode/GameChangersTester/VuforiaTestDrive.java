@@ -24,7 +24,7 @@ import ftc.evlib.statemachine.EVEndConditions;
 import ftc.evlib.statemachine.EVStateMachineBuilder;
 
 @Autonomous(name = "VuforiaTestDrive")
-@Disabled
+
 public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
 
 
