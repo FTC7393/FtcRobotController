@@ -8,6 +8,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
 import ftc.electronvolts.statemachine.EndCondition;
 import ftc.electronvolts.statemachine.StateMachine;
 import ftc.electronvolts.statemachine.StateMap;
@@ -22,10 +27,24 @@ import ftc.evlib.opmodes.AbstractAutoOp;
 import ftc.evlib.opmodes.AbstractOp;
 import ftc.evlib.statemachine.EVEndConditions;
 import ftc.evlib.statemachine.EVStateMachineBuilder;
+import ftc.evlib.util.FileUtil;
 
 @Autonomous(name = "VuforiaTestDrive")
 
 public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
+
+    private final String VUFORIA_KEY;
+
+    public VuforiaTestDrive() throws IOException {
+        super();
+        // now read Vuforia Key from file in FTC directory on ControlHub:
+        File keyFile = FileUtil.getAppFile("vuforiakey.txt");
+        BufferedReader breader = new BufferedReader(new FileReader(keyFile));
+        String line = breader.readLine();
+        breader.close();
+        VUFORIA_KEY = line + " \n";
+    }
+
 
 
     @Override
@@ -35,6 +54,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         b.addWait(S.WAIT,S.RUN_VUFORIA,3000);
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+        parameters.vuforiaLicenseKey = VUFORIA_KEY;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
         VuforiaTrackables targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
         VuforiaTrackable blueTowerGoalTarget = targetsUltimateGoal.get(0);
