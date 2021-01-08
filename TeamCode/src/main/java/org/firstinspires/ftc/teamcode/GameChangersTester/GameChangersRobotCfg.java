@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -9,6 +10,8 @@ import ftc.evlib.hardware.motors.FourMotors;
 import ftc.evlib.hardware.motors.Motor;
 import ftc.evlib.hardware.motors.TwoMotors;
 import ftc.evlib.hardware.sensors.AnalogSensor;
+import ftc.evlib.hardware.sensors.Gyro;
+import ftc.evlib.hardware.sensors.IMUGyro;
 import ftc.evlib.hardware.sensors.Sensors;
 import ftc.evlib.hardware.servos.ServoCfg;
 import ftc.evlib.hardware.motors.Motors;
@@ -34,6 +37,7 @@ public class GameChangersRobotCfg extends RobotCfg {
     private final Velocity velocity = new Velocity(Distance.fromInches(12), Time.fromSeconds(1.0));
     private final Servos servos;
     private final WobbleGoalCollector wobbleGoal;
+    private final IMUGyro gyro;
 
     public GameChangersRobotCfg(HardwareMap hardwareMap, Map<ServoName, Enum> servoStartPresetMap) {
         super(hardwareMap);
@@ -57,6 +61,9 @@ public class GameChangersRobotCfg extends RobotCfg {
         CRServo windmill = hardwareMap.get(CRServo.class,"servoCollector");
         Motor lc =  Motors.withEncoder(leftCollector, true, true, stoppers);
         collector = new Collector(lc, windmill);
+
+        // gyro
+        gyro = new IMUGyro(hardwareMap.get(BNO055IMU.class, "imu0"));
 
         //Wobble Goal Collector Stouf
         Motor rotator =  Motors.withEncoder(hardwareMap.get(DcMotor.class, "WobbleCollectorMotor"), false, true, stoppers);
@@ -85,6 +92,14 @@ public class GameChangersRobotCfg extends RobotCfg {
 
     public Servos getServos(){
         return servos;
+    }
+
+    public Gyro getGyro() {
+        return gyro;
+    }
+
+    public MecanumControl getMecanumControl() {
+        return mecanumControl;
     }
 
     public enum GameChangersServoName implements ServoName {

@@ -40,6 +40,19 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         VuforiaTrackable blueTowerGoalTarget = targetsUltimateGoal.get(0);
         blueTowerGoalTarget.setName("Blue Tower Goal Target");
         // still need to figure out the rest of the parameters
+        double xDestIn = 36; // need to test (function of which color we are, we need to have an option to choose what team we are in)
+        double yDestIn = 0; // need to test
+        double rotationGain = 0.7; // need to test
+        Angle targetHeading = Angle.fromDegrees(90); // need to test
+        Angle angleTolerance = Angle.fromDegrees(5); // need to test
+        double maxAngularSpeed = 0.7; // need to test
+        double minAngularSpeed = 0.05; // need to test
+        double transGain = 0.01; // need to test
+        double transDeadZone = 2.0; // need to test
+        double transMinPower = .15; // need to test
+        double transMaxPower = 1.0; // need to test
+        //might not need (in inches)
+        double upperGainDistanceTreshold = 12; // need to test
         final VuforiaRotationTranslationCntrl xyrControl = new VuforiaRotationTranslationCntrl(blueTowerGoalTarget, xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed, transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
         EndCondition vuforiaArrived = new EndCondition() {
             // making inline class
