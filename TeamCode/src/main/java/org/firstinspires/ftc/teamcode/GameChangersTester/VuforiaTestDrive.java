@@ -19,6 +19,7 @@ import ftc.electronvolts.statemachine.StateMap;
 import ftc.electronvolts.statemachine.StateName;
 import ftc.electronvolts.util.TeamColor;
 import ftc.electronvolts.util.files.Logger;
+import ftc.electronvolts.util.files.OptionsFile;
 import ftc.electronvolts.util.units.Angle;
 import ftc.electronvolts.util.units.Distance;
 import ftc.electronvolts.util.units.Time;
@@ -27,6 +28,7 @@ import ftc.evlib.opmodes.AbstractAutoOp;
 import ftc.evlib.opmodes.AbstractOp;
 import ftc.evlib.statemachine.EVEndConditions;
 import ftc.evlib.statemachine.EVStateMachineBuilder;
+import ftc.evlib.util.EVConverters;
 import ftc.evlib.util.FileUtil;
 
 @Autonomous(name = "VuforiaTestDrive")
@@ -34,7 +36,7 @@ import ftc.evlib.util.FileUtil;
 public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
 
     private final String VUFORIA_KEY;
-
+    private VuforiaTrackable towerGoalTarget;
     public VuforiaTestDrive() throws IOException {
         super();
         // now read Vuforia Key from file in FTC directory on ControlHub:
@@ -45,22 +47,33 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         VUFORIA_KEY = line + " \n";
     }
 
-
-
-    @Override
-    public StateMachine buildStates() {
-        EVStateMachineBuilder b = new EVStateMachineBuilder(S.DRIVE_1,TeamColor.BLUE,Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl() );
-        b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
-        b.addWait(S.WAIT,S.RUN_VUFORIA,3000);
+    private void initVuforia(TeamColor teamColor) {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
         VuforiaTrackables targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
-        VuforiaTrackable blueTowerGoalTarget = targetsUltimateGoal.get(0);
-        blueTowerGoalTarget.setName("Blue Tower Goal Target");
-        // still need to figure out the rest of the parameters
+        if(teamColor == TeamColor.BLUE) {
+            towerGoalTarget = targetsUltimateGoal.get(0);
+            towerGoalTarget.setName("Blue Tower Goal Target");
+        } else {
+            towerGoalTarget = targetsUltimateGoal.get(1);
+            towerGoalTarget.setName("Red Tower Goal Target");
+        }
+    }
+
+    @Override
+    public StateMachine buildStates() {
+        OptionsFile optionsFile = new OptionsFile(EVConverters.getInstance(), FileUtil.getOptionsFile(GameChangersOptionsOp.FILENAME));
+        TeamColor teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
+        double initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
+        EVStateMachineBuilder b = new EVStateMachineBuilder(S.DRIVE_1, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl() );
+        b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
+        b.addWait(S.WAIT,S.RUN_VUFORIA,3000);
+        initVuforia(teamColor);
+         // still need to figure out the rest of the parameters
         double xDestIn = 36; // need to test (function of which color we are, we need to have an option to choose what team we are in)
+        //if red team variable = -36
         double yDestIn = 0; // need to test
         double rotationGain = 0.7; // need to test
         Angle targetHeading = Angle.fromDegrees(90); // need to test
@@ -73,7 +86,9 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         double transMaxPower = 1.0; // need to test
         //might not need (in inches)
         double upperGainDistanceTreshold = 12; // need to test
-        final VuforiaRotationTranslationCntrl xyrControl = new VuforiaRotationTranslationCntrl(blueTowerGoalTarget, xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed, transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
+        final VuforiaRotationTranslationCntrl xyrControl = new VuforiaRotationTranslationCntrl(towerGoalTarget,
+                xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed,
+                transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
         EndCondition vuforiaArrived = new EndCondition() {
             // making inline class
             @Override
