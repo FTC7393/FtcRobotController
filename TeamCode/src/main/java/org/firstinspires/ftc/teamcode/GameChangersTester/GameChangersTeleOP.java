@@ -47,7 +47,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                 return -driver1.right_stick_x.getValue();
             }
         };
-        robotCfg.getMecanumControl().setTranslationControl(TranslationControls.inputExtractorXY(driver1.left_stick_y,driver1.left_stick_x));
+        robotCfg.getMecanumControl().setTranslationControl(TranslationControls.inputExtractorXY(driver1.left_stick_x,driver1.left_stick_y));
         robotCfg.getMecanumControl().setRotationControl(RotationControls.inputExtractor(invertedRightStick));
 
     }
