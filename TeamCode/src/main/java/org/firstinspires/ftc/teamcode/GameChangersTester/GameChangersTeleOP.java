@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import ftc.electronvolts.util.Function;
 import ftc.electronvolts.util.Functions;
+import ftc.electronvolts.util.InputExtractor;
 import ftc.electronvolts.util.files.Logger;
 import ftc.evlib.hardware.control.RotationControl;
 import ftc.evlib.hardware.control.RotationControls;
@@ -40,9 +41,14 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected void go() {
-
-        robotCfg.getMecanumControl().setTranslationControl(TranslationControls.inputExtractorXY(driver1.left_stick_y, driver1.left_stick_x));
-        robotCfg.getMecanumControl().setRotationControl(RotationControls.inputExtractor(driver1.right_stick_x));
+        InputExtractor<Double> invertedRightStick = new InputExtractor<Double>() {
+            @Override
+            public Double getValue() {
+                return -driver1.right_stick_x.getValue();
+            }
+        };
+        robotCfg.getMecanumControl().setTranslationControl(TranslationControls.inputExtractorXY(driver1.left_stick_y,driver1.left_stick_x));
+        robotCfg.getMecanumControl().setRotationControl(RotationControls.inputExtractor(invertedRightStick));
 
     }
 
