@@ -26,6 +26,7 @@ import ftc.evlib.hardware.servos.ServoName;
 import ftc.evlib.hardware.servos.Servos;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.Map;
 //Find max speed of robot.
@@ -58,7 +59,7 @@ public class GameChangersRobotCfg extends RobotCfg {
 
         //Collector Stoof (Peter is working on it)
         DcMotor leftCollector = hardwareMap.get(DcMotor.class, "collectorMotor");
-        CRServo windmill = hardwareMap.get(CRServo.class,"collectorServo");
+        Servo windmill = hardwareMap.get(Servo.class,"collectorServo");
         Motor lc =  Motors.withEncoder(leftCollector, true, false, stoppers);
         collector = new Collector(lc, windmill);
 
@@ -108,7 +109,8 @@ public class GameChangersRobotCfg extends RobotCfg {
         //enum name("hardware name", preset enum.values()),
         PINCH("pinchServo", ServoPresets.WobblePincher.values()),
         PUSHER("pusherServo", ServoPresets.Pusher.values()),
-        ELEVATION("elevationServo", ServoPresets.Elevation.values());
+        ELEVATION("elevationServo", ServoPresets.Elevation.values()),
+        COLLECTOR("collectorServo", ServoPresets.Collector.values());
 
 //        PUSH_SERVO("pushServo", RotateServoPresets.values());
 

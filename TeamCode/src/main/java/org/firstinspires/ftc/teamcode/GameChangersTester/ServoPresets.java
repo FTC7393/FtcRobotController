@@ -15,6 +15,11 @@ public class ServoPresets {
         OPENED
     }
 
+    public enum Collector implements Preset {
+        FORWARD,
+        OFF
+    }
+
 
 
 }
