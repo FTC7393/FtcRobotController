@@ -39,6 +39,11 @@ public class GameChangersRobotCfg extends RobotCfg {
     private final Servos servos;
     private final WobbleGoalCollector wobbleGoal;
     private final IMUGyro gyro;
+    private final AnalogSensor potentiometer;
+
+    public AnalogSensor getPotentiometer() {
+        return potentiometer;
+    }
 
     public GameChangersRobotCfg(HardwareMap hardwareMap, Map<ServoName, Enum> servoStartPresetMap) {
         super(hardwareMap);
@@ -70,7 +75,7 @@ public class GameChangersRobotCfg extends RobotCfg {
         Motor rotator =  Motors.withEncoder(hardwareMap.get(DcMotor.class, "wobbleGoalArmMotor"), false, true, stoppers);
         ServoControl pinchServo = getPincher();
 
-        AnalogSensor potentiometer = Sensors.analog(hardwareMap, "potentiometer");
+        potentiometer = Sensors.analog(hardwareMap, "potentiometer");
         wobbleGoal = new WobbleGoalCollector(rotator, pinchServo, ServoPresets.WobblePincher.CLOSED,ServoPresets.WobblePincher.OPENED, potentiometer);
 
         //shooter

@@ -55,7 +55,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected void act() {
-
+        telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
     }
 
     @Override
