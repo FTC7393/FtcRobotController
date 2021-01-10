@@ -16,7 +16,7 @@ public class Collector {
     final double motorStop = 0;
     final double servoStop = 0.5;
 
-    public Collector(Motor collectorMotor, Servo CollectorServo)
+    public Collector(Motor collectorMotor, Servo collectorServo)
     {
         this.collectorMotor = collectorMotor;
         this.collectorServo = collectorServo;
