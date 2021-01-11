@@ -72,7 +72,7 @@ public class GameChangersRobotCfg extends RobotCfg {
         gyro = new IMUGyro(hardwareMap.get(BNO055IMU.class, "imu0"));
 
         //Wobble Goal Collector Stouf
-        Motor rotator =  Motors.withEncoder(hardwareMap.get(DcMotor.class, "wobbleGoalArmMotor"), false, true, stoppers);
+        Motor rotator =  Motors.withoutEncoder(hardwareMap.get(DcMotor.class, "wobbleGoalArmMotor"), false, true, stoppers);
         ServoControl pinchServo = getPincher();
 
         potentiometer = Sensors.analog(hardwareMap, "potentiometer");
