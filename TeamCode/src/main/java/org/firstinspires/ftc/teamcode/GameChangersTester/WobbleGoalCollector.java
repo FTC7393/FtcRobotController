@@ -20,7 +20,7 @@ public class WobbleGoalCollector {
     private final double downPosition = 1.94;
     private final double maxPosition = 10;
     private final double minPosition = 1.1;
-    private double targetPosition = 0;
+    private double targetPosition = upPosition;
     private double currentPosition = 0;
     private double rotationPower = 0;
 
