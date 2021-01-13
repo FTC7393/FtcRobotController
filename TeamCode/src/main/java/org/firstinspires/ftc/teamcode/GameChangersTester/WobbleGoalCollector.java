@@ -33,7 +33,7 @@ public class WobbleGoalCollector {
         this.open = open;
         this.potentiometer = potentiometer;
         // NEED TO TUNE IT!!!!!!!!!!!!!!!!!!!!!!!!!
-        pidController = new PIDController(0.25,0.002,40,0.5);
+        pidController = new PIDController(0.25,0.00,40,0.5); // original iGain: 0.002
     }
 
     public void close() {
@@ -53,16 +53,16 @@ public class WobbleGoalCollector {
 
 
     public void act() {
-        currentPosition = potentiometer.getValue();
-        rotationPower = pidController.computeCorrection(targetPosition, currentPosition);
-        rotation.setPower(rotationPower);
-        rotation.update();
-
         if(targetPosition > maxPosition){
             targetPosition = maxPosition;
         } else if(targetPosition < minPosition) {
             targetPosition = minPosition;
         }
+
+        currentPosition = potentiometer.getValue();
+        rotationPower = pidController.computeCorrection(targetPosition, currentPosition);
+        rotation.setPower(rotationPower);
+        rotation.update();
     }
 
     public void stop() {
