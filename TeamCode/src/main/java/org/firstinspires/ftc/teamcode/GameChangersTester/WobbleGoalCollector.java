@@ -33,7 +33,7 @@ public class WobbleGoalCollector {
         this.open = open;
         this.potentiometer = potentiometer;
         // NEED TO TUNE IT!!!!!!!!!!!!!!!!!!!!!!!!!
-        pidController = new PIDController(0.25,0.0001,40,0.5); // original iGain: 0.002
+        pidController = new PIDController(0.35,0.0001,40,0.5); // original iGain: 0.002
     }
 
     public void close() {
