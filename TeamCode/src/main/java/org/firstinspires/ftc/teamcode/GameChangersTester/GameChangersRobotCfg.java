@@ -110,6 +110,10 @@ public class GameChangersRobotCfg extends RobotCfg {
         return mecanumControl;
     }
 
+    public WobbleGoalCollector getWobbleGoalArm() {
+        return wobbleGoal;
+    }
+
     public enum GameChangersServoName implements ServoName {
         //enum name("hardware name", preset enum.values()),
         PINCH("pinchServo", ServoPresets.WobblePincher.values()),

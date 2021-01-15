@@ -15,6 +15,8 @@ import ftc.evlib.opmodes.AbstractTeleOp;
 @TeleOp(name = "GameChangersTeleOP")
 public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
+    private boolean wobbleGoalGrabberIsUp = true; //this requires the wobble goal collector to initialize by being up
+
     @Override
     protected Function getJoystickScalingFunction() {
         return Functions.eBased(5);
@@ -50,7 +52,14 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         };
         robotCfg.getMecanumControl().setTranslationControl(TranslationControls.inputExtractorXY(InputExtractors.negative(driver1.left_stick_x), driver1.left_stick_y));
         robotCfg.getMecanumControl().setRotationControl(RotationControls.inputExtractor(invertedRightStick));
-
+        if(driver1.left_bumper.justPressed()) {
+            if(wobbleGoalGrabberIsUp) {
+                robotCfg.getWobbleGoalArm().moveArmDown();
+            } else {
+                robotCfg.getWobbleGoalArm().moveArmUp();
+            }
+            wobbleGoalGrabberIsUp = !wobbleGoalGrabberIsUp;
+        }
     }
 
     @Override
