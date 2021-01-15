@@ -52,6 +52,13 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         };
         robotCfg.getMecanumControl().setTranslationControl(TranslationControls.inputExtractorXY(InputExtractors.negative(driver1.left_stick_x), driver1.left_stick_y));
         robotCfg.getMecanumControl().setRotationControl(RotationControls.inputExtractor(invertedRightStick));
+
+    }
+
+    @Override
+    protected void act() {
+        telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
+
         if(driver1.left_bumper.justPressed()) {
             if(wobbleGoalGrabberIsUp) {
                 robotCfg.getWobbleGoalArm().moveArmDown();
@@ -60,11 +67,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             }
             wobbleGoalGrabberIsUp = !wobbleGoalGrabberIsUp;
         }
-    }
 
-    @Override
-    protected void act() {
-        telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
     }
 
     @Override
