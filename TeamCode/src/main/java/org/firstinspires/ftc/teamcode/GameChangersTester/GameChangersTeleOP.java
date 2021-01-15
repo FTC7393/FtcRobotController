@@ -16,6 +16,7 @@ import ftc.evlib.opmodes.AbstractTeleOp;
 public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     private boolean wobbleGoalGrabberIsUp = true; //this requires the wobble goal collector to initialize by being up
+    private boolean pincherIsClosed = true;
 
     @Override
     protected Function getJoystickScalingFunction() {
@@ -66,6 +67,15 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                 robotCfg.getWobbleGoalArm().moveArmUp();
             }
             wobbleGoalGrabberIsUp = !wobbleGoalGrabberIsUp;
+        }
+
+        if(driver1.right_bumper.justPressed()) {
+            if(pincherIsClosed) {
+                robotCfg.getPincher().goToPreset(ServoPresets.WobblePincher.OPENED);
+            } else {
+                robotCfg.getPincher().goToPreset(ServoPresets.WobblePincher.CLOSED);
+            }
+            pincherIsClosed = !pincherIsClosed;
         }
 
     }
