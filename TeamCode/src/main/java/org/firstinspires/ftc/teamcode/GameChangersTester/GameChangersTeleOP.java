@@ -31,7 +31,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected Logger createLogger() {
-        return new Logger("log_", "teleop", ImmutableList.of(
+        return new Logger("log_", ".csv", ImmutableList.of(
                 new Logger.Column("proportional value potentiometer", new InputExtractor<Double>() {
                     @Override
                     public Double getValue() {
@@ -66,6 +66,12 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                     @Override
                     public Double getValue() {
                         return robotCfg.getWobbleGoalArm().getPidController().getError();
+                    }
+                }),
+                new Logger.Column("target position value potentiometer", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getWobbleGoalArm().getTargetPosition();
                     }
                 })
         ));
