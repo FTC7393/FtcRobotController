@@ -42,6 +42,8 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
     //options op values
     private TeamColor teamColor = null;
     private double initialDelay = 0.0;
+    double xDestIn = 0.0;
+    double yDestIn = 0.0;
 
     private VuforiaRotationTranslationCntrl xyrControl;
 
@@ -64,31 +66,85 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
                         return stateMachine.getCurrentStateName().name();
                     }
                 }),
-                new Logger.Column("potentiometer", new InputExtractor<Double>() {
+                new Logger.Column("pot", new InputExtractor<Double>() {
                     @Override
                     public Double getValue() {
                         return robotCfg.getPotentiometer().getValue();
                     }
                 }),
-//                new Logger.Column("mecanum control speed - max velocity", new InputExtractor<Double>() {
-//                    @Override
-//                    public Double getValue() {
-//                        return robotmecanumControl.getMaxRobotSpeed().centimetersPerSecond();
-//                    }
-//                }),
-                new Logger.Column("mecanum control speed - velocity r", new InputExtractor<Double>() {
+                new Logger.Column("velocityR", new InputExtractor<Double>() {
                     @Override
                     public Double getValue() {
                         return robotCfg.getMecanumControl().getVelocityR();
                     }
                 }),
-                new Logger.Column("mecanum control speed - velocity x", new InputExtractor<Double>() {
+                new Logger.Column("velocityX", new InputExtractor<Double>() {
                     @Override
                     public Double getValue() {
                         return robotCfg.getMecanumControl().getVelocityX();
                     }
                 }),
-                new Logger.Column("mecanum control speed - velocity y", new InputExtractor<Double>() {
+                new Logger.Column("velocityX", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getMecanumControl().getVelocityX();
+                    }
+                }),
+                new Logger.Column("currentXCoord", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return xyrControl.getCurrentX();
+                    }
+                }),
+                new Logger.Column("currentYCoord", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return xyrControl.getCurrentY();
+                    }
+                }),
+                new Logger.Column("xDestIn", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return xDestIn;
+                    }
+                }),
+                new Logger.Column("yDestIn", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return yDestIn;
+                    }
+                }),
+                new Logger.Column("yDestIn", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return yDestIn;
+                    }
+                }),
+                new Logger.Column("yDestIn", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return yDestIn;
+                    }
+                }),
+                new Logger.Column("driveAngle", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        if(xyrControl.getTranslation() != null) {
+                            return xyrControl.getTranslation().getDirection().degrees();
+                        }
+                        return Double.NaN;
+                    }
+                }),
+                new Logger.Column("driveSpeed", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        if(xyrControl.getTranslation() != null) {
+                            return xyrControl.getTranslation().getLength();
+                        }
+                        return Double.NaN;
+                    }
+                }),
+                new Logger.Column("velocityY", new InputExtractor<Double>() {
                     @Override
                     public Double getValue() {
                         return robotCfg.getMecanumControl().getVelocityY();
@@ -103,6 +159,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
         initVuforia();
+        super.setup();
     }
 
     @Override
@@ -119,9 +176,13 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         if(teamColor == TeamColor.BLUE) {
             towerGoalTarget = targetsUltimateGoal.get(0);
             towerGoalTarget.setName("Blue Tower Goal Target");
+            xDestIn = -4;
+            yDestIn = 40;
         } else {
             towerGoalTarget = targetsUltimateGoal.get(1);
             towerGoalTarget.setName("Red Tower Goal Target");
+            xDestIn = -4;
+            yDestIn = -40;
         }
     }
 
@@ -130,10 +191,6 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         EVStateMachineBuilder b = new EVStateMachineBuilder(S.DRIVE_1, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl() );
         b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
         b.addWait(S.WAIT,S.RUN_VUFORIA,3000);
-         // still need to figure out the rest of the parameters
-        double xDestIn = 36; // need to test (function of which color we are, we need to have an option to choose what team we are in)
-        //if red team variable = -36
-        double yDestIn = 0; // need to test
         double rotationGain = 0.7; // need to test
         Angle targetHeading = Angle.fromDegrees(90); // need to test
         Angle angleTolerance = Angle.fromDegrees(5); // need to test

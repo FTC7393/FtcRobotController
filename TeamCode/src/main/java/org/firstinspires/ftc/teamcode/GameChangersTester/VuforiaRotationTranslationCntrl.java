@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
 
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 
 import ftc.electronvolts.util.ProportionalController;
@@ -60,32 +61,46 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
     }
 
     public boolean isDone() {
-        return rawTrans.getLength() <= transDeadZone;
+        if(rawTrans != null){
+            return rawTrans.getLength() <= transDeadZone;
+        }
+        return false;
+    }
+
+    private double getPos(int index){
+        VectorF pos = vuCalc.getCurrentPos();
+        if(pos != null){
+            return vuCalc.getCurrentPos().get(index)/25.4f;
+        }
+        return Double.NaN;
     }
 
     public double getCurrentX(){
-        return (vuCalc.getCurrentPos().get(0))/25.4f;
+        return getPos(0);
     }
 
     public double getCurrentY(){
-        return (vuCalc.getCurrentPos().get(1))/25.4f;
+        return getPos(1);
     }
 
     @Override
     public boolean act() {
         vuCalc.update();
         rawTrans = vuCalc.getTranslation();
-        double newMag = rawTrans.getLength();
-        // have to find the upperGainDistanceThreshold
-        if(newMag > upperGainDistanceThreshold){
-            newMag = upperGainDistanceThreshold;
-        }
-        double power = transPropCntrl.computeCorrection(0, newMag);
-        this.translation = new Vector2D(power, rawTrans.getDirection());
-        roTnCtnrl.act();
+        if(rawTrans != null) {
+            double newMag = rawTrans.getLength();
+            // have to find the upperGainDistanceThreshold
+            if (newMag > upperGainDistanceThreshold) {
+                newMag = upperGainDistanceThreshold;
+            }
+            double power = transPropCntrl.computeCorrection(0, newMag);
+            this.translation = new Vector2D(power, rawTrans.getDirection());
 
-        this.velocityR = roTnCtnrl.getVelocityR();
-        this.polarDirectionCorrection = roTnCtnrl.getPolarDirectionCorrection();
+            roTnCtnrl.act();
+            this.velocityR = roTnCtnrl.getVelocityR();
+            this.polarDirectionCorrection = roTnCtnrl.getPolarDirectionCorrection();
+
+        }
         return true;
     }
 }

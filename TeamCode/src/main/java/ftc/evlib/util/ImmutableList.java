@@ -48,6 +48,9 @@ public class ImmutableList {
     public static <E> List<E> of(E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8, E e9, E e10, E e11, E e12, E e13) {
         return construct(e1, e2, e3, e4,  e5,  e6, e7, e8, e9, e10, e11, e12, e13);
     }
+    public static <E> List<E> of(E e1, E e2, E e3, E e4, E e5, E e6, E e7, E e8, E e9, E e10, E e11, E e12, E e13, E e14) {
+        return construct(e1, e2, e3, e4,  e5,  e6, e7, e8, e9, e10, e11, e12, e13, e14);
+    }
 
 
     private static <E> List<E> construct(Object... elements) {
