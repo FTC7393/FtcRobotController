@@ -14,11 +14,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefau
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import ftc.evlib.util.FileUtil;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
@@ -73,11 +76,11 @@ public class VuforiaTestOp extends OpMode {
 
     public VuforiaTestOp() throws IOException {
         super();
-        // now read Vuforia Key from file on classpath:
-            InputStream in = this.getClass().getClassLoader().getResourceAsStream("vuforiakey.txt");
-            BufferedReader breader = new BufferedReader(new FileReader(String.valueOf(in)));
-            String line = breader.readLine();
-            breader.close();
+        // now read Vuforia Key from file in FTC directory on ControlHub:
+        File keyFile = FileUtil.getAppFile("vuforiakey.txt");
+        BufferedReader breader = new BufferedReader(new FileReader(keyFile));
+        String line = breader.readLine();
+        breader.close();
         VUFORIA_KEY = line + " \n";
     }
 
