@@ -63,6 +63,14 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
         return rawTrans.getLength() <= transDeadZone;
     }
 
+    public double getCurrentX(){
+        return (vuCalc.getCurrentPos().get(0))/25.4f;
+    }
+
+    public double getCurrentY(){
+        return (vuCalc.getCurrentPos().get(1))/25.4f;
+    }
+
     @Override
     public boolean act() {
         vuCalc.update();

@@ -17,6 +17,7 @@ import ftc.electronvolts.statemachine.EndCondition;
 import ftc.electronvolts.statemachine.StateMachine;
 import ftc.electronvolts.statemachine.StateMap;
 import ftc.electronvolts.statemachine.StateName;
+import ftc.electronvolts.util.InputExtractor;
 import ftc.electronvolts.util.TeamColor;
 import ftc.electronvolts.util.files.Logger;
 import ftc.electronvolts.util.files.OptionsFile;
@@ -30,6 +31,7 @@ import ftc.evlib.statemachine.EVEndConditions;
 import ftc.evlib.statemachine.EVStateMachineBuilder;
 import ftc.evlib.util.EVConverters;
 import ftc.evlib.util.FileUtil;
+import ftc.evlib.util.ImmutableList;
 
 @Autonomous(name = "VuforiaTestDrive")
 
@@ -37,6 +39,12 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
 
     private final String VUFORIA_KEY;
     private VuforiaTrackable towerGoalTarget;
+    //options op values
+    private TeamColor teamColor = null;
+    private double initialDelay = 0.0;
+
+    private VuforiaRotationTranslationCntrl xyrControl;
+
     public VuforiaTestDrive() throws IOException {
         super();
         // now read Vuforia Key from file in FTC directory on ControlHub:
@@ -47,7 +55,62 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         VUFORIA_KEY = line + " \n";
     }
 
-    private void initVuforia(TeamColor teamColor) {
+    @Override
+    protected Logger createLogger() {
+        return new Logger("log", ".csv", ImmutableList.of(
+                new Logger.Column("state", new InputExtractor<String>() {
+                    @Override
+                    public String getValue() {
+                        return stateMachine.getCurrentStateName().name();
+                    }
+                }),
+                new Logger.Column("potentiometer", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getPotentiometer().getValue();
+                    }
+                }),
+//                new Logger.Column("mecanum control speed - max velocity", new InputExtractor<Double>() {
+//                    @Override
+//                    public Double getValue() {
+//                        return robotmecanumControl.getMaxRobotSpeed().centimetersPerSecond();
+//                    }
+//                }),
+                new Logger.Column("mecanum control speed - velocity r", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getMecanumControl().getVelocityR();
+                    }
+                }),
+                new Logger.Column("mecanum control speed - velocity x", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getMecanumControl().getVelocityX();
+                    }
+                }),
+                new Logger.Column("mecanum control speed - velocity y", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getMecanumControl().getVelocityY();
+                    }
+                })
+        ));    }
+
+
+    @Override
+    public void setup() {
+        OptionsFile optionsFile = new OptionsFile(EVConverters.getInstance(), FileUtil.getOptionsFile(GameChangersOptionsOp.FILENAME));
+        teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
+        initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
+        initVuforia();
+    }
+
+    @Override
+    protected void setup_act() {
+
+    }
+
+    private void initVuforia() {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
@@ -64,13 +127,9 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
 
     @Override
     public StateMachine buildStates() {
-        OptionsFile optionsFile = new OptionsFile(EVConverters.getInstance(), FileUtil.getOptionsFile(GameChangersOptionsOp.FILENAME));
-        TeamColor teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
-        double initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
         EVStateMachineBuilder b = new EVStateMachineBuilder(S.DRIVE_1, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl() );
         b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
         b.addWait(S.WAIT,S.RUN_VUFORIA,3000);
-        initVuforia(teamColor);
          // still need to figure out the rest of the parameters
         double xDestIn = 36; // need to test (function of which color we are, we need to have an option to choose what team we are in)
         //if red team variable = -36
@@ -86,7 +145,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         double transMaxPower = 1.0; // need to test
         //might not need (in inches)
         double upperGainDistanceTreshold = 12; // need to test
-        final VuforiaRotationTranslationCntrl xyrControl = new VuforiaRotationTranslationCntrl(towerGoalTarget,
+        xyrControl = new VuforiaRotationTranslationCntrl(towerGoalTarget,
                 xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed,
                 transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
         EndCondition vuforiaArrived = new EndCondition() {
@@ -123,22 +182,14 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
     }
 
     @Override
-    protected Logger createLogger() {
-        return null;
-    }
-
-    @Override
-    protected void setup_act() {
-
+    protected void act() {
+        telemetry.addData("x", xyrControl.getCurrentX());
+        telemetry.addData("y", xyrControl.getCurrentY());
+        telemetry.addData("state", stateMachine.getCurrentStateName());
     }
 
     @Override
     protected void go() {
-
-    }
-
-    @Override
-    protected void act() {
 
     }
 
