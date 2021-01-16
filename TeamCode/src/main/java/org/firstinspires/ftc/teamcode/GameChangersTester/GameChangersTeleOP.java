@@ -11,6 +11,7 @@ import ftc.evlib.hardware.control.RotationControl;
 import ftc.evlib.hardware.control.RotationControls;
 import ftc.evlib.hardware.control.TranslationControls;
 import ftc.evlib.opmodes.AbstractTeleOp;
+import ftc.evlib.util.ImmutableList;
 
 @TeleOp(name = "GameChangersTeleOP")
 public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
@@ -30,7 +31,44 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected Logger createLogger() {
-        return null;
+        return new Logger("log_", "teleop", ImmutableList.of(
+                new Logger.Column("proportional value potentiometer", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getWobbleGoalArm().getPidController().getpTerm();
+                    }
+                }),
+                new Logger.Column("integral value potentiometer", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getWobbleGoalArm().getPidController().getiTerm();
+                    }
+                }),
+                new Logger.Column("derivative value potentiometer", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getWobbleGoalArm().getPidController().getdTerm();
+                    }
+                }),
+                new Logger.Column("input value potentiometer", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getWobbleGoalArm().getPidController().getInput();
+                    }
+                }),
+                new Logger.Column("output value potentiometer", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getWobbleGoalArm().getPidController().getOutput();
+                    }
+                }),
+                new Logger.Column("error value potentiometer", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getWobbleGoalArm().getPidController().getError();
+                    }
+                })
+        ));
     }
 
     @Override

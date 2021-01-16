@@ -25,6 +25,9 @@ public class WobbleGoalCollector {
     private double rotationPower = 0;
 
 
+    public PIDController getPidController() {
+        return pidController;
+    }
 
     public WobbleGoalCollector(Motor rotation, ServoControl pinch, Enum close, Enum open, AnalogSensor potentiometer) {
         this.rotation = rotation;

@@ -8,9 +8,15 @@ package ftc.electronvolts.util;
 public class PIDController implements ControlLoop {
     private final double pGain, iGain, dGain, maxOutput;
     private final boolean hasIOrDComponent;
+    private double pTerm = 0;
+    private double dTerm = 0;
+
+
+
     private double iTerm = 0, output = 0;
     private double input = 0, lastInput = 0;
     private long lastTime = -1;
+    private double error;
 
     /**
      * create a new PID controller
@@ -43,6 +49,8 @@ public class PIDController implements ControlLoop {
         hasIOrDComponent = (iGain != 0 || dGain != 0);
     }
 
+
+
     /**
      * @param setPoint the target value
      * @param input the actual value
@@ -61,16 +69,17 @@ public class PIDController implements ControlLoop {
             this.input = input;
 
             // Compute all the working error variables
-            double error = setPoint - input;
+            error = setPoint - input;
             iTerm += iGain * error * dTime;
             iTerm = Utility.mirrorLimit(iTerm, maxOutput);
 
             // compute dInput instead of dError to avoid spikes
             double dInput = 0;
             if (dTime > 0) dInput = (input - lastInput) / dTime;
-
+            pTerm = pGain * error;
+            dTerm = -dGain * dInput;
             // Compute PID Output
-            output = pGain * error + iTerm - dGain * dInput;
+            output = pTerm + iTerm + dTerm;
             output = Utility.mirrorLimit(output, maxOutput);
 
             // Remember some variables for next time
@@ -94,4 +103,29 @@ public class PIDController implements ControlLoop {
             output = 0;
         }
     }
+
+    public double getpTerm() {
+        return pTerm;
+    }
+
+    public double getdTerm() {
+        return dTerm;
+    }
+
+    public double getiTerm() {
+        return iTerm;
+    }
+
+    public double getOutput() {
+        return output;
+    }
+
+    public double getInput() {
+        return input;
+    }
+
+    public double getError() {
+        return error;
+    }
+
 }
