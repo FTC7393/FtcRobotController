@@ -19,7 +19,7 @@ public class SamplePipeline extends OpenCvPipeline {
         ring_error
     }
 
-    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(325,315);
+    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(520,255);
     static final int REGION_WIDTH = 15;
     static final int REGION_HEIGHT = 75;
     Point region1_pointA = new Point(
