@@ -59,6 +59,22 @@ public class Sensors {
         };
     }
 
+    public static AnalogSensor analogLinear(final AnalogInput analogInput) {
+        final double maxVoltage = analogInput.getMaxVoltage();
+
+        return new AnalogSensor() {
+            @Override
+            public Double getValue() {
+                double voltage = analogInput.getVoltage();
+                return voltage/maxVoltage;
+            }
+        };
+    }
+
+    public static AnalogSensor analogLinear(HardwareMap hardwareMap, String analogInputName) {
+        return analogLinear(hardwareMap.analogInput.get(analogInputName));
+    }
+
     /**
      * Scale an AnalogSensor by a function to get actual distance
      *

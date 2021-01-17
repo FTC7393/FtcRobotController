@@ -75,7 +75,7 @@ public class GameChangersRobotCfg extends RobotCfg {
         Motor rotator =  Motors.withoutEncoder(hardwareMap.get(DcMotor.class, "wobbleGoalArmMotor"), false, true, stoppers);
         ServoControl pinchServo = getPincher();
 
-        potentiometer = Sensors.analog(hardwareMap, "potentiometer");
+        potentiometer = Sensors.analogLinear(hardwareMap, "potentiometer");
         wobbleGoal = new WobbleGoalCollector(rotator, pinchServo, ServoPresets.WobblePincher.CLOSED,ServoPresets.WobblePincher.OPENED, potentiometer);
 
         //shooter
