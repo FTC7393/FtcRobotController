@@ -16,10 +16,10 @@ public class WobbleGoalCollector {
 
 
     //positions
-    private final double upPosition = 1.6;
-    private final double downPosition = 3.7;
-    private final double maxPosition = 17;
-    private final double minPosition = 1.2;
+    private final double upPosition = 0.8;
+    private final double downPosition = 0.3;
+    private final double maxPosition = 0.9;
+    private final double minPosition = 0.1;
 
     public double getTargetPosition() {
         return targetPosition;
@@ -41,7 +41,7 @@ public class WobbleGoalCollector {
         this.open = open;
         this.potentiometer = potentiometer;
         // NEED TO TUNE IT!!!!!!!!!!!!!!!!!!!!!!!!!
-        pidController = new PIDController(0.35,0.0001,40,0.5); // original iGain: 0.002
+        pidController = new PIDController(5,0,0,0.5); // original iGain: 0.002
     }
 
     public void close() {
@@ -68,7 +68,7 @@ public class WobbleGoalCollector {
         }
 
         currentPosition = potentiometer.getValue();
-        rotationPower = pidController.computeCorrection(targetPosition, currentPosition);
+        rotationPower = -pidController.computeCorrection(targetPosition, currentPosition);
         rotation.setPower(rotationPower);
         rotation.update();
     }
