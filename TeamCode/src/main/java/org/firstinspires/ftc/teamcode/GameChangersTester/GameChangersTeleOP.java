@@ -2,6 +2,10 @@ package org.firstinspires.ftc.teamcode.GameChangersTester;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import ftc.electronvolts.statemachine.State;
+import ftc.electronvolts.statemachine.StateMachine;
+import ftc.electronvolts.statemachine.StateMachineBuilder;
+import ftc.electronvolts.statemachine.StateName;
 import ftc.electronvolts.util.AnalogInputEdgeDetector;
 import ftc.electronvolts.util.DigitalInputEdgeDetector;
 import ftc.electronvolts.util.Function;
@@ -22,6 +26,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     private boolean pincherIsClosed = true;
     private boolean collectorIsSucking = false;
     private AnalogInputEdgeDetector collectorIntakeButton;
+    private AnalogInputEdgeDetector collectorShooterButton;
 
     @Override
     protected Function getJoystickScalingFunction() {
@@ -84,6 +89,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     @Override
     protected void setup() {
         collectorIntakeButton = new AnalogInputEdgeDetector(driver1.left_trigger, 0.3, 0.7, false);
+        collectorShooterButton = new AnalogInputEdgeDetector(driver1.right_trigger, 0.3, 0.7, false);
     }
 
     @Override
@@ -107,6 +113,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     @Override
     protected void act() {
         collectorIntakeButton.update();
+        collectorShooterButton.update();
 
         telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
 
@@ -144,5 +151,29 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     @Override
     protected void end() {
 
+    }
+
+    private StateMachine shooterStateBuilder() {
+        State idleState = new State() {
+            @Override
+            public StateName act() {
+                if (collectorShooterButton.isPressed()) {
+                    return S.SHOOTING;
+                }
+                return null;
+            }
+        };
+
+        State shootingState = new ShooterState(collectorShooterButton,robotCfg,500L,1000L);
+
+        StateMachineBuilder b = new StateMachineBuilder(S.IDLE);
+        b.add(S.IDLE, idleState);
+        b.add(S.SHOOTING, shootingState);
+
+        return b.build();
+    }
+    enum S implements StateName {
+        IDLE,
+        SHOOTING
     }
 }
