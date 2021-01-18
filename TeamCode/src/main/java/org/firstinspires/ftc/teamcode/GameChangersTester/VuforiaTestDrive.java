@@ -47,6 +47,8 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
     double xDestIn = 0.0;
     double yDestIn = 0.0;
 
+    private VuforiaTrackables targetsUltimateGoal;
+
     private VuforiaRotationTranslationCntrl xyrControl;
 
     public VuforiaTestDrive() throws IOException {
@@ -158,7 +160,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
-        VuforiaTrackables targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
+        targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
         if(teamColor == TeamColor.BLUE) {
             towerGoalTarget = targetsUltimateGoal.get(0);
             towerGoalTarget.setName("Blue Tower Goal Target");
@@ -233,11 +235,11 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
 
     @Override
     protected void go() {
-
+        targetsUltimateGoal.activate();
     }
 
     @Override
     protected void end() {
-
+        targetsUltimateGoal.deactivate();
     }
 }
