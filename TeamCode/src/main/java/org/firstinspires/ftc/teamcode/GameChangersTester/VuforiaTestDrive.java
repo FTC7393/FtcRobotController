@@ -177,7 +177,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
     @Override
     public StateMachine buildStates() {
         EVStateMachineBuilder b = new EVStateMachineBuilder(S.DRIVE_1, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl() );
-        b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
+        b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(.3), 0.3, 270, 0);
         b.addWait(S.WAIT,S.RUN_VUFORIA,3000);
         double rotationGain = 0.7; // need to test
         Angle targetHeading = Angle.fromDegrees(90); // need to test
