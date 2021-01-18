@@ -62,10 +62,10 @@ public class GameChangersRobotCfg extends RobotCfg {
         // twoMotors = new TwoMotors(lm, rm, true, velocity);
         mecanumControl = new MecanumControl(new MecanumMotors(lm,rm,blm,brm,true,velocity,velocity));
 
-        //Collector Stoof (Peter is working on it)
+        //Collector Stoof
         DcMotor leftCollector = hardwareMap.get(DcMotor.class, "collectorMotor");
         Servo windmill = hardwareMap.get(Servo.class,"collectorServo");
-        Motor lc =  Motors.withEncoder(leftCollector, true, false, stoppers);
+        Motor lc =  Motors.withEncoder(leftCollector, false, false, stoppers);
         collector = new Collector(lc, windmill);
 
         // gyro
