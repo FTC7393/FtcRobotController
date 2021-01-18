@@ -106,6 +106,8 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected void act() {
+        collectorIntakeButton.update();
+
         telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
 
         if(driver1.left_bumper.justPressed()) {
