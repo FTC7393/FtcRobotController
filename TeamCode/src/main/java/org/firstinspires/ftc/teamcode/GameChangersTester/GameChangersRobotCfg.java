@@ -90,6 +90,10 @@ public class GameChangersRobotCfg extends RobotCfg {
         return getServo(GameChangersServoName.PINCH);
     }
 
+    public Collector getCollector() {
+        return collector;
+    }
+
     public ServoControl getPusher() {
         return getServo(GameChangersServoName.PUSHER);
     }

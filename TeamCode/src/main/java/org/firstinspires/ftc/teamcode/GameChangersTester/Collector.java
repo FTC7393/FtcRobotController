@@ -27,12 +27,12 @@ public class Collector {
         collectorMotor.setPower(motorPower);
         collectorServo.setPosition(servoPower);
     }
-
-    public void expel()
-    {
-        collectorMotor.setPower(motorPowerBack);
-        collectorServo.setPosition(servoPowerBack);
-    }
+            //damages rings and possibly could break the windmill
+//    public void expel()
+//    {
+//        collectorMotor.setPower(motorPowerBack);
+//        collectorServo.setPosition(servoPowerBack);
+//    }
 
     public void stop()
     {
@@ -47,14 +47,14 @@ public class Collector {
     }
 
     //Cause this sucks!
-    public void Suck()
+    public void suck()
     {
         ingest();
     }
     //and blows too!
-    public void Spew()
-    {
-        expel();
-    }
+//    public void Spew()
+//    {
+//        expel();
+//    }
 
 }

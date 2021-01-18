@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.GameChangersTester;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import ftc.electronvolts.util.AnalogInputEdgeDetector;
+import ftc.electronvolts.util.DigitalInputEdgeDetector;
 import ftc.electronvolts.util.Function;
 import ftc.electronvolts.util.Functions;
 import ftc.electronvolts.util.InputExtractor;
@@ -18,6 +20,8 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     private boolean wobbleGoalGrabberIsUp = true; //this requires the wobble goal collector to initialize by being up
     private boolean pincherIsClosed = true;
+    private boolean collectorIsSucking = false;
+    private AnalogInputEdgeDetector collectorIntakeButton;
 
     @Override
     protected Function getJoystickScalingFunction() {
@@ -79,7 +83,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected void setup() {
-
+        collectorIntakeButton = new AnalogInputEdgeDetector(driver1.left_trigger, 0.3, 0.7, false);
     }
 
     @Override
@@ -120,6 +124,17 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                 robotCfg.getPincher().goToPreset(ServoPresets.WobblePincher.CLOSED);
             }
             pincherIsClosed = !pincherIsClosed;
+        }
+
+
+
+        if(collectorIntakeButton.justPressed()) {
+            if(collectorIsSucking) {
+                robotCfg.getCollector().stop();
+            } else {
+                robotCfg.getCollector().ingest();
+            }
+            collectorIsSucking = !collectorIsSucking;
         }
 
     }
