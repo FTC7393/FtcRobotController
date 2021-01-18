@@ -24,7 +24,9 @@ import ftc.electronvolts.statemachine.State;
 import ftc.electronvolts.statemachine.StateMachine;
 import ftc.electronvolts.statemachine.StateMap;
 import ftc.electronvolts.statemachine.StateName;
+import ftc.electronvolts.util.BasicResultReceiver;
 import ftc.electronvolts.util.InputExtractor;
+import ftc.electronvolts.util.ResultReceiver;
 import ftc.electronvolts.util.TeamColor;
 import ftc.electronvolts.util.files.Logger;
 import ftc.electronvolts.util.files.OptionsFile;
@@ -53,6 +55,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private VuforiaRotationTranslationCntrl xyrControl;
     private OpenCvWebcam webcam;
     private SamplePipeline samplePipeline = new SamplePipeline();
+    ResultReceiver<SamplePipeline.RING_NUMBERS> ringNumbersResultReceiver = new BasicResultReceiver<>();
 
     public GameChangersAutonomous() throws IOException {
         super();
@@ -150,6 +153,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
 //        initVuforia();
         super.setup();
+        samplePipeline = new SamplePipeline();
+        ringNumbersResultReceiver = new BasicResultReceiver<>();
     }
 
     @Override
@@ -194,7 +199,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
                             @Override
                             public void onOpened() {
-                                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+                                webcam.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
                                 isDone = true;
                             }
                         });
@@ -202,7 +207,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     }
                 };
 
-                new Thread(r);
+                new Thread(r).start();
             }
 
             @Override
@@ -216,6 +221,33 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             }
         };
 
+    }
+
+    private State makeOpenCVStopper(final StateName nextState) {
+        return new BasicAbstractState(){
+            private boolean isDone = false;
+            @Override
+            public void init() {
+              Runnable r = new Runnable() {
+                  @Override
+                  public void run() {
+                      webcam.stopStreaming();
+                      isDone = true;
+                  }
+              };
+              new Thread(r).start();
+            }
+
+            @Override
+            public boolean isDone() {
+                return isDone;
+            }
+
+            @Override
+            public StateName getNextStateName() {
+                return nextState;
+            }
+        };
     }
 
     @Override

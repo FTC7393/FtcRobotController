@@ -8,7 +8,12 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
+import ftc.electronvolts.util.BasicResultReceiver;
+import ftc.electronvolts.util.ResultReceiver;
+
 public class SamplePipeline extends OpenCvPipeline {
+
+    private ResultReceiver<RING_NUMBERS> resultReceiver;
 
     private RING_NUMBERS ringValue;
 
@@ -30,18 +35,14 @@ public class SamplePipeline extends OpenCvPipeline {
             REGION1_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
             REGION1_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
 
-
-
-
     private int avgSaturation;
     Mat region1;
     Mat hsv_image = new Mat();
     Mat saturation_channel = new Mat();
 
-
-
-
-
+    public SamplePipeline(ResultReceiver<RING_NUMBERS> resultReceiver) {
+        this.resultReceiver = resultReceiver;
+    }
 
     void inputToCb(Mat input)
     {
@@ -74,7 +75,7 @@ public class SamplePipeline extends OpenCvPipeline {
 
         Imgproc.rectangle( input, region1_pointA, region1_pointB, new Scalar(0, 255, 0), 4);
 
-
+        resultReceiver.setValue(ringValue);
 
         return input;
 
