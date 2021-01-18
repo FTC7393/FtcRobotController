@@ -3,16 +3,24 @@ package org.firstinspires.ftc.teamcode.GameChangersTester;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvPipeline;
+import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import ftc.electronvolts.statemachine.BasicAbstractState;
 import ftc.electronvolts.statemachine.EndCondition;
+import ftc.electronvolts.statemachine.State;
 import ftc.electronvolts.statemachine.StateMachine;
 import ftc.electronvolts.statemachine.StateMap;
 import ftc.electronvolts.statemachine.StateName;
@@ -30,7 +38,7 @@ import ftc.evlib.util.EVConverters;
 import ftc.evlib.util.FileUtil;
 import ftc.evlib.util.ImmutableList;
 
-@Autonomous(name = "VuforiaTestDrive")
+@Autonomous(name = "GameChangersAuto")
 
 
 public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg> {
@@ -43,6 +51,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     double yDestIn = 0.0;
 
     private VuforiaRotationTranslationCntrl xyrControl;
+    private OpenCvWebcam webcam;
+    private SamplePipeline samplePipeline = new SamplePipeline();
 
     public GameChangersAutonomous() throws IOException {
         super();
@@ -138,13 +148,16 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         OptionsFile optionsFile = new OptionsFile(EVConverters.getInstance(), FileUtil.getOptionsFile(GameChangersOptionsOp.FILENAME));
         teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
-        initVuforia();
+//        initVuforia();
         super.setup();
     }
 
     @Override
     protected void setup_act() {
-
+        stateMachine.act();
+        SamplePipeline.RING_NUMBERS rv = samplePipeline.getRingValue();
+        telemetry.addData("number of rings", rv == null ? "null" : rv.name());
+        telemetry.update();
     }
 
     private void initVuforia() {
@@ -166,11 +179,52 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         }
     }
 
+    private State makeOpenCvInit(final StateName nextState) {
+        return new BasicAbstractState() {
+            boolean isDone = false;
+
+            @Override
+            public void init() {
+                Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+                        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
+                        webcam.setPipeline(samplePipeline);
+                        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+                            @Override
+                            public void onOpened() {
+                                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+                                isDone = true;
+                            }
+                        });
+
+                    }
+                };
+
+                new Thread(r);
+            }
+
+            @Override
+            public boolean isDone() {
+                return isDone;
+            }
+
+            @Override
+            public StateName getNextStateName() {
+                return nextState;
+            }
+        };
+
+    }
+
     @Override
     public StateMachine buildStates() {
-        EVStateMachineBuilder b = new EVStateMachineBuilder(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.DRIVE_1, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl());
-        b.addDrive(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.DRIVE_1, org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
-        b.addWait(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.WAIT, org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.RUN_VUFORIA, 3000);
+        EVStateMachineBuilder b = new EVStateMachineBuilder(S.OPENCV_INIT, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl());
+        State openCVInit = makeOpenCvInit(S.STOP);
+        b.add(S.OPENCV_INIT, openCVInit);
+        b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
+        b.addWait(S.WAIT, S.RUN_VUFORIA, 3000);
         double rotationGain = 0.7; // need to test
         Angle targetHeading = Angle.fromDegrees(90); // need to test
         Angle angleTolerance = Angle.fromDegrees(5); // need to test
@@ -198,9 +252,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             }
         };
         // add other pairs of state name end conditions
-        b.addDrive(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.RUN_VUFORIA, StateMap.of(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.STOP, vuforiaArrived, org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
-        b.addStop(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.TIMEOUT_LINE);
-        b.addStop(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.STOP);
+        b.addDrive(S.RUN_VUFORIA, StateMap.of(S.STOP, vuforiaArrived, S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
+        b.addStop(S.TIMEOUT_LINE);
+        b.addStop(S.STOP);
         return b.build();
     }
 
@@ -210,7 +264,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         WAIT,
         RUN_VUFORIA,
         TIMEOUT_LINE,
-        STOP;
+        STOP,
+        OPENCV_INIT
     }
 
     @Override
