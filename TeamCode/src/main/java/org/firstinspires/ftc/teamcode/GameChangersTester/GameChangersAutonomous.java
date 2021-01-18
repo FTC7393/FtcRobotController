@@ -54,8 +54,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     private VuforiaRotationTranslationCntrl xyrControl;
     private OpenCvWebcam webcam;
-    private SamplePipeline samplePipeline = new SamplePipeline();
-    ResultReceiver<SamplePipeline.RING_NUMBERS> ringNumbersResultReceiver = new BasicResultReceiver<>();
+    private SamplePipeline samplePipeline;
+    ResultReceiver<SamplePipeline.RING_NUMBERS> ringNumbersResultReceiver;
 
     public GameChangersAutonomous() throws IOException {
         super();
@@ -153,8 +153,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
 //        initVuforia();
         super.setup();
-        samplePipeline = new SamplePipeline();
         ringNumbersResultReceiver = new BasicResultReceiver<>();
+        samplePipeline = new SamplePipeline(ringNumbersResultReceiver);
     }
 
     @Override

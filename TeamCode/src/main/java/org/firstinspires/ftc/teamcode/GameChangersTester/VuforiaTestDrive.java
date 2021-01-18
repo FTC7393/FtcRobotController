@@ -8,10 +8,6 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -43,7 +39,6 @@ import ftc.evlib.util.ImmutableList;
 @Autonomous(name = "VuforiaTestDrive")
 
 public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
-    OpenCvWebcam webcam;
     private final String VUFORIA_KEY;
     private VuforiaTrackable towerGoalTarget;
     //options op values
@@ -177,50 +172,9 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         }
     }
 
-    private State makeOpenCvInit(final StateName nextState) {
-        return new BasicAbstractState() {
-            boolean isDone = false;
-            @Override
-            public void init() {
-                Runnable r = new Runnable() {
-                    @Override
-                    public void run() {
-                        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-                        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
-                        webcam.setPipeline(new SamplePipeline());
-                        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-                            @Override
-                            public void onOpened()
-                            {
-                                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
-                                isDone = true;
-                            }
-                        });
-
-                    }
-                };
-
-                new Thread(r);
-            }
-
-            @Override
-            public boolean isDone() {
-                return isDone;
-            }
-
-            @Override
-            public StateName getNextStateName() {
-                return nextState;
-            }
-        };
-
-    }
-
     @Override
     public StateMachine buildStates() {
-        EVStateMachineBuilder b = new EVStateMachineBuilder(S.OPENCV_INIT, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl() );
-        State openCvInit = makeOpenCvInit(S.DRIVE_1);
-        b.add(S.OPENCV_INIT, openCvInit);
+        EVStateMachineBuilder b = new EVStateMachineBuilder(S.DRIVE_1, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl() );
         b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
         b.addWait(S.WAIT,S.RUN_VUFORIA,3000);
         double rotationGain = 0.7; // need to test
@@ -262,7 +216,6 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         WAIT,
         RUN_VUFORIA,
         TIMEOUT_LINE,
-        OPENCV_INIT,
         STOP
     }
 
