@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.GameChangersTester;
 public class ServoPresets {
 
     public enum Pusher implements Preset{
-        PUSH, RELEASE
+        RELEASE, PUSH
     }
 
     public enum Elevation implements Preset{
@@ -16,8 +16,8 @@ public class ServoPresets {
     }
 
     public enum Collector implements Preset {
-        FORWARD,
-        OFF
+        OFF,
+        FORWARD
     }
 
 
