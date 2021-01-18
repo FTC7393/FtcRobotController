@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
@@ -24,9 +23,7 @@ import ftc.electronvolts.util.files.OptionsFile;
 import ftc.electronvolts.util.units.Angle;
 import ftc.electronvolts.util.units.Distance;
 import ftc.electronvolts.util.units.Time;
-import ftc.evlib.hardware.control.XYRControl;
 import ftc.evlib.opmodes.AbstractAutoOp;
-import ftc.evlib.opmodes.AbstractOp;
 import ftc.evlib.statemachine.EVEndConditions;
 import ftc.evlib.statemachine.EVStateMachineBuilder;
 import ftc.evlib.util.EVConverters;
@@ -35,8 +32,8 @@ import ftc.evlib.util.ImmutableList;
 
 @Autonomous(name = "VuforiaTestDrive")
 
-public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
 
+public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg> {
     private final String VUFORIA_KEY;
     private VuforiaTrackable towerGoalTarget;
     //options op values
@@ -47,7 +44,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
 
     private VuforiaRotationTranslationCntrl xyrControl;
 
-    public VuforiaTestDrive() throws IOException {
+    public GameChangersAutonomous() throws IOException {
         super();
         // now read Vuforia Key from file in FTC directory on ControlHub:
         File keyFile = FileUtil.getAppFile("vuforiakey.txt");
@@ -59,7 +56,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
 
     @Override
     protected Logger createLogger() {
-        return new Logger("testdrive_log", ".csv", ImmutableList.of(
+        return new Logger("auto_log", ".csv", ImmutableList.of(
                 new Logger.Column("state", new InputExtractor<String>() {
                     @Override
                     public String getValue() {
@@ -156,7 +153,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
         VuforiaTrackables targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
-        if(teamColor == TeamColor.BLUE) {
+        if (teamColor == TeamColor.BLUE) {
             towerGoalTarget = targetsUltimateGoal.get(0);
             towerGoalTarget.setName("Blue Tower Goal Target");
             xDestIn = -4;
@@ -171,9 +168,9 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
 
     @Override
     public StateMachine buildStates() {
-        EVStateMachineBuilder b = new EVStateMachineBuilder(S.DRIVE_1, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl() );
-        b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
-        b.addWait(S.WAIT,S.RUN_VUFORIA,3000);
+        EVStateMachineBuilder b = new EVStateMachineBuilder(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.DRIVE_1, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl());
+        b.addDrive(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.DRIVE_1, org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
+        b.addWait(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.WAIT, org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.RUN_VUFORIA, 3000);
         double rotationGain = 0.7; // need to test
         Angle targetHeading = Angle.fromDegrees(90); // need to test
         Angle angleTolerance = Angle.fromDegrees(5); // need to test
@@ -201,9 +198,9 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
             }
         };
         // add other pairs of state name end conditions
-        b.addDrive(S.RUN_VUFORIA, StateMap.of(S.STOP,vuforiaArrived,S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
-        b.addStop(S.TIMEOUT_LINE);
-        b.addStop(S.STOP);
+        b.addDrive(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.RUN_VUFORIA, StateMap.of(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.STOP, vuforiaArrived, org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
+        b.addStop(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.TIMEOUT_LINE);
+        b.addStop(org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaTestDrive.S.STOP);
         return b.build();
     }
 
@@ -217,7 +214,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
     }
 
     @Override
-    protected GameChangersRobotCfg createRobotCfg(){
+    protected GameChangersRobotCfg createRobotCfg() {
         return new GameChangersRobotCfg(hardwareMap);
     }
 
@@ -238,3 +235,6 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
 
     }
 }
+
+
+
