@@ -57,6 +57,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private SamplePipeline samplePipeline;
     ResultReceiver<SamplePipeline.RING_NUMBERS> ringNumbersResultReceiver;
     ResultReceiver<VuforiaPositionHolder> vuforiaPosRR = new RepeatedResultReceiver<>(5);
+    VuforiaTrackables targetsUltimateGoal;
 
     public GameChangersAutonomous() throws IOException {
         super();
@@ -175,7 +176,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
-        VuforiaTrackables targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
+        targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
         if (teamColor == TeamColor.BLUE) {
             towerGoalTarget = targetsUltimateGoal.get(0);
             towerGoalTarget.setName("Blue Tower Goal Target");
@@ -187,6 +188,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             xDestIn = -4;
             yDestIn = -40;
         }
+        targetsUltimateGoal.activate();
     }
 
     private State makeOpenCvInit(final StateName nextState) {
