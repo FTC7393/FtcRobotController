@@ -5,10 +5,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import ftc.evlib.hardware.motors.Motor;
 import ftc.evlib.hardware.motors.Motors;
+import ftc.evlib.hardware.servos.ServoControl;
 
 public class Collector {
     private Motor collectorMotor;
-    private Servo collectorServo;
+    private ServoControl collectorServo;
     final double motorPower = 1;
     final double servoPower = 1;
     final double motorPowerBack = -1;
@@ -16,7 +17,7 @@ public class Collector {
     final double motorStop = 0;
     final double servoStop = 0.5;
 
-    public Collector(Motor collectorMotor, Servo collectorServo)
+    public Collector(Motor collectorMotor, ServoControl collectorServo)
     {
         this.collectorMotor = collectorMotor;
         this.collectorServo = collectorServo;
@@ -25,7 +26,7 @@ public class Collector {
     public void ingest()
     {
         collectorMotor.setPower(motorPower);
-        collectorServo.setPosition(servoPower);
+        collectorServo.goToPreset(ServoPresets.Collector.FORWARD);
     }
             //damages rings and possibly could break the windmill
 //    public void expel()
@@ -37,7 +38,7 @@ public class Collector {
     public void stop()
     {
         collectorMotor.setPower(motorStop);
-        collectorServo.setPosition(servoStop);
+        collectorServo.goToPreset(ServoPresets.Collector.OFF);
         act();
     }
 

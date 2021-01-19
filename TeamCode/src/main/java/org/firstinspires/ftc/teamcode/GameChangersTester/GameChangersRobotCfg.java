@@ -64,7 +64,8 @@ public class GameChangersRobotCfg extends RobotCfg {
 
         //Collector Stoof
         DcMotor leftCollector = hardwareMap.get(DcMotor.class, "collectorMotor");
-        Servo windmill = hardwareMap.get(Servo.class,"collectorServo");
+        ServoControl windmill = getServo(GameChangersServoName.COLLECTOR);
+
         Motor lc =  Motors.withEncoder(leftCollector, false, false, stoppers);
         collector = new Collector(lc, windmill);
 
