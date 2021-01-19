@@ -26,6 +26,7 @@ import ftc.electronvolts.statemachine.StateMap;
 import ftc.electronvolts.statemachine.StateName;
 import ftc.electronvolts.util.BasicResultReceiver;
 import ftc.electronvolts.util.InputExtractor;
+import ftc.electronvolts.util.RepeatedResultReceiver;
 import ftc.electronvolts.util.ResultReceiver;
 import ftc.electronvolts.util.TeamColor;
 import ftc.electronvolts.util.files.Logger;
@@ -153,15 +154,14 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
 //        initVuforia();
         super.setup();
-        ringNumbersResultReceiver = new BasicResultReceiver<>();
+        ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
         samplePipeline = new SamplePipeline(ringNumbersResultReceiver);
     }
 
     @Override
     protected void setup_act() {
         stateMachine.act();
-        SamplePipeline.RING_NUMBERS rv = samplePipeline.getRingValue();
-        telemetry.addData("number of rings", rv == null ? "null" : rv.name());
+        telemetry.addData("number of rings", ringNumbersResultReceiver.isReady() ? ringNumbersResultReceiver.getValue() : "null");
         telemetry.update();
     }
 
@@ -253,8 +253,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     @Override
     public StateMachine buildStates() {
         EVStateMachineBuilder b = new EVStateMachineBuilder(S.OPENCV_INIT, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl());
-        State openCVInit = makeOpenCvInit(S.STOP);
-        b.add(S.OPENCV_INIT, openCVInit);
+        b.add(S.OPENCV_INIT, makeOpenCvInit(S.OPENCV_RESULT));
+        b.addResultReceiverReady(S.OPENCV_RESULT, S.OPENCV_STOP, ringNumbersResultReceiver);
+        b.add(S.OPENCV_STOP, makeOpenCVStopper(S.STOP));
         b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
         b.addWait(S.WAIT, S.RUN_VUFORIA, 3000);
         double rotationGain = 0.7; // need to test
@@ -297,7 +298,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         RUN_VUFORIA,
         TIMEOUT_LINE,
         STOP,
-        OPENCV_INIT
+        OPENCV_STOP, OPENCV_RESULT, OPENCV_INIT
     }
 
     @Override
