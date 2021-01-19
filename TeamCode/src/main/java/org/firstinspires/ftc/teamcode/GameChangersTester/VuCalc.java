@@ -17,7 +17,6 @@ public class VuCalc implements HeadingSource {
 
     private final double xDestIn;
     private final double yDestIn;
-    private final double minTransSize;
     private final VuforiaTrackable trackable;
     private static final double mmPerInch        = 25.4f;
 
@@ -26,10 +25,9 @@ public class VuCalc implements HeadingSource {
 
     private VectorF currentPos;
 
-    public VuCalc(double xDestIn, double yDestIn, double minTransSize, VuforiaTrackable trackable) {
+    public VuCalc(double xDestIn, double yDestIn, VuforiaTrackable trackable) {
         this.xDestIn = xDestIn;
         this.yDestIn = yDestIn;
-        this.minTransSize = minTransSize;
         this.trackable = trackable;
     }
 

@@ -42,7 +42,7 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
     }
 
     public void setVuCalc(VuforiaTrackable trackable, double xDestIn, double yDestIn) {
-        vuCalc = new VuCalc(xDestIn, yDestIn, minTransSize, trackable);
+        vuCalc = new VuCalc(xDestIn, yDestIn, trackable);
     }
 
     @Override
