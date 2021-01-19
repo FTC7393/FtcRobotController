@@ -19,7 +19,6 @@ public class ShooterState extends BasicAbstractState {
     public ShooterState(AnalogInputEdgeDetector collectorShooterButton, GameChangersRobotCfg robotCfg, long firstPause, long secondPause) {
         this.collectorShooterButton = collectorShooterButton;
         this.robotCfg = robotCfg;
-        this.initTime = initTime;
         this.firstPause = firstPause;
         this.secondPause = secondPause;
     }
@@ -38,14 +37,13 @@ public class ShooterState extends BasicAbstractState {
             return true;
         }
 
-        long elapsedMillis = System.currentTimeMillis() - initTime;
+        long timeSinceInit = System.currentTimeMillis() - initTime;
 
-
-        if (elapsedMillis > firstPause) {
-            robotCfg.getPusher().goToPreset(ServoPresets.Pusher.RELEASE);
-        } else if (elapsedMillis > secondPause) {
+        if (timeSinceInit > secondPause) {
             robotCfg.getPusher().goToPreset(ServoPresets.Pusher.PUSH);
             initTime = System.currentTimeMillis();
+        } else if (timeSinceInit > firstPause) {
+            robotCfg.getPusher().goToPreset(ServoPresets.Pusher.RELEASE);
         }
         return false;
     }

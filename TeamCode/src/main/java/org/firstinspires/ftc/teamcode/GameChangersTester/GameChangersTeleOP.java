@@ -171,7 +171,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             }
         };
 
-        State shootingState = new ShooterState(collectorShooterButton,robotCfg,500L,1000L);
+        State shootingState = new ShooterState(collectorShooterButton,robotCfg,300L,1000L);
 
         StateMachineBuilder b = new StateMachineBuilder(S.IDLE);
         b.add(S.IDLE, idleState);
