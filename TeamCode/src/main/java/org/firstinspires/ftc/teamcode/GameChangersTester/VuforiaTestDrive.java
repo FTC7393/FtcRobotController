@@ -161,6 +161,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
         targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
+        VuLocalizer.setVuLocalizer(targetsUltimateGoal,parameters);
         if(teamColor == TeamColor.BLUE) {
             towerGoalTarget = targetsUltimateGoal.get(0);
             towerGoalTarget.setName("Blue Tower Goal Target");
@@ -190,14 +191,13 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         double transMaxPower = 1.0; // need to test
         //might not need (in inches)
         double upperGainDistanceTreshold = 12; // need to test
-        xyrControl = new VuforiaRotationTranslationCntrl(towerGoalTarget,
-                xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed,
+        xyrControl = new VuforiaRotationTranslationCntrl(rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed,
                 transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
         EndCondition vuforiaArrived = new EndCondition() {
             // making inline class
             @Override
             public void init() {
-
+                xyrControl.setVuCalc(towerGoalTarget,xDestIn,yDestIn);
             }
 
             @Override
