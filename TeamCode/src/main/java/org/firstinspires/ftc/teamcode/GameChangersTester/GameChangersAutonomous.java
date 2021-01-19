@@ -10,7 +10,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.io.BufferedReader;
@@ -24,11 +23,11 @@ import ftc.electronvolts.statemachine.State;
 import ftc.electronvolts.statemachine.StateMachine;
 import ftc.electronvolts.statemachine.StateMap;
 import ftc.electronvolts.statemachine.StateName;
-import ftc.electronvolts.util.BasicResultReceiver;
 import ftc.electronvolts.util.InputExtractor;
 import ftc.electronvolts.util.RepeatedResultReceiver;
 import ftc.electronvolts.util.ResultReceiver;
 import ftc.electronvolts.util.TeamColor;
+import ftc.electronvolts.util.Vector2D;
 import ftc.electronvolts.util.files.Logger;
 import ftc.electronvolts.util.files.OptionsFile;
 import ftc.electronvolts.util.units.Angle;
@@ -57,6 +56,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private OpenCvWebcam webcam;
     private SamplePipeline samplePipeline;
     ResultReceiver<SamplePipeline.RING_NUMBERS> ringNumbersResultReceiver;
+    ResultReceiver<VuforiaPositionHolder> vuforiaPosRR = new RepeatedResultReceiver<>(5);
 
     public GameChangersAutonomous() throws IOException {
         super();
@@ -70,6 +70,10 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     @Override
     protected Logger createLogger() {
+        return null;
+    }
+
+    protected Logger createLogger_unused() {
         return new Logger("auto_log", ".csv", ImmutableList.of(
                 new Logger.Column("state", new InputExtractor<String>() {
                     @Override
@@ -152,7 +156,6 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         OptionsFile optionsFile = new OptionsFile(EVConverters.getInstance(), FileUtil.getOptionsFile(GameChangersOptionsOp.FILENAME));
         teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
-//        initVuforia();
         ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
         samplePipeline = new SamplePipeline(ringNumbersResultReceiver);
         super.setup();
@@ -162,6 +165,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     protected void setup_act() {
         stateMachine.act();
         telemetry.addData("number of rings", ringNumbersResultReceiver.isReady() ? ringNumbersResultReceiver.getValue() : "null");
+        telemetry.addData("state", stateMachine.getCurrentStateName());
+        telemetry.addData("vuforia position", vuforiaPosRR.isReady() ? vuforiaPosRR.getValue() : "null");
         telemetry.update();
     }
 
@@ -224,18 +229,19 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     }
 
     private State makeOpenCVStopper(final StateName nextState) {
-        return new BasicAbstractState(){
+        return new BasicAbstractState() {
             private boolean isDone = false;
+
             @Override
             public void init() {
-              Runnable r = new Runnable() {
-                  @Override
-                  public void run() {
-                      webcam.stopStreaming();
-                      isDone = true;
-                  }
-              };
-              new Thread(r).start();
+                Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        webcam.stopStreaming();
+                        isDone = true;
+                    }
+                };
+                new Thread(r).start();
             }
 
             @Override
@@ -250,12 +256,53 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         };
     }
 
+    private State makeVuforiaInit(final StateName nextState) {
+        return new BasicAbstractState() {
+            private boolean isDone = false;
+            @Override
+            public void init() {
+                Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        initVuforia();
+                        isDone = true;
+                    }
+                };
+                new Thread(r).start();
+            }
+
+            @Override
+            public boolean isDone() {
+                return isDone;
+            }
+
+            @Override
+            public StateName getNextStateName() {
+                return nextState;
+            }
+        };
+    }
+
+    private State getVuforiaPosition(final VuforiaRotationTranslationCntrl xyrControl) {
+        return new State() {
+            @Override
+            public StateName act() {
+                xyrControl.act();
+                Vector2D vector = new Vector2D(xyrControl.getCurrentX(), xyrControl.getCurrentY());
+                VuforiaPositionHolder vuforiaPositionHolder = new VuforiaPositionHolder(vector);
+                vuforiaPosRR.setValue(vuforiaPositionHolder);
+                return null;
+            }
+        };
+    }
+
     @Override
     public StateMachine buildStates() {
         EVStateMachineBuilder b = new EVStateMachineBuilder(S.OPENCV_INIT, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl());
         b.add(S.OPENCV_INIT, makeOpenCvInit(S.OPENCV_RESULT));
         b.addResultReceiverReady(S.OPENCV_RESULT, S.OPENCV_STOP, ringNumbersResultReceiver);
-        b.add(S.OPENCV_STOP, makeOpenCVStopper(S.STOP));
+        b.add(S.OPENCV_STOP, makeOpenCVStopper(S.VUFORIA_INIT));
+        b.add(S.VUFORIA_INIT, makeVuforiaInit(S.VUFORIA_EXPLORE));
         b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
         b.addWait(S.WAIT, S.RUN_VUFORIA, 3000);
         double rotationGain = 0.7; // need to test
@@ -272,6 +319,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         xyrControl = new VuforiaRotationTranslationCntrl(towerGoalTarget,
                 xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed,
                 transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
+        b.add(S.VUFORIA_EXPLORE, getVuforiaPosition(xyrControl));
         EndCondition vuforiaArrived = new EndCondition() {
             // making inline class
             @Override
@@ -298,7 +346,10 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         RUN_VUFORIA,
         TIMEOUT_LINE,
         STOP,
-        OPENCV_STOP, OPENCV_RESULT, OPENCV_INIT
+        OPENCV_STOP,
+        OPENCV_RESULT,
+        VUFORIA_INIT,
+        VUFORIA_EXPLORE, OPENCV_INIT
     }
 
     @Override
