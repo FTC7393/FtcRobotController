@@ -51,7 +51,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private double initialDelay = 0.0;
     double xDestIn = 0.0;
     double yDestIn = 0.0;
-
+    private VuCalc vuCalc;
     private VuforiaRotationTranslationCntrl xyrControl;
     private OpenCvWebcam webcam;
     private SamplePipeline samplePipeline;
@@ -189,6 +189,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             yDestIn = -40;
         }
         targetsUltimateGoal.activate();
+        xyrControl.setVuCalc(towerGoalTarget, xDestIn, yDestIn);
     }
 
     private State makeOpenCvInit(final StateName nextState) {
@@ -318,8 +319,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         double transMaxPower = 1.0; // need to test
         //might not need (in inches)
         double upperGainDistanceTreshold = 12; // need to test
-        xyrControl = new VuforiaRotationTranslationCntrl(towerGoalTarget,
-                xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed,
+        xyrControl = new VuforiaRotationTranslationCntrl(rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed,
                 transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
         b.add(S.VUFORIA_EXPLORE, getVuforiaPosition(xyrControl));
         EndCondition vuforiaArrived = new EndCondition() {

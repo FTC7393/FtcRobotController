@@ -19,7 +19,7 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
     private double minTransSize;
     private final RotationControl roTnCtnrl;
     private final ProportionalController transPropCntrl;
-    private final VuCalc vuCalc;
+    private VuCalc vuCalc;
     private final double upperGainDistanceThreshold;
     // vector from current position to target position
     private Vector2D rawTrans;
@@ -28,21 +28,21 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
 
     /**
      * pass in vuforia trackable(current location) as well as the location to go to in terms of the x cord and y cord
-     * @param trackable - (current location)
-     * @param xDestIn   - x cord of destination
-     * @param yDestIn   - y cord of destination
      * @param transGain - gain for translation
      * @param transDeadZone - the close enough distance, or you would stop if you are within this zone (Inches)
      * @param transMinPower -  the minimum motor power
      * @param transMaxPower -  the maximum motor power
      */
-    public VuforiaRotationTranslationCntrl(VuforiaTrackable trackable, double xDestIn, double yDestIn, double rotationGain, Angle targetHeading, Angle angleTolerance, double maxAngularSpeed, double minAngularSpeed, double transGain, double transDeadZone, double transMinPower, double transMaxPower, double upperGainDistanceThreshold) {
+    public VuforiaRotationTranslationCntrl( double rotationGain, Angle targetHeading, Angle angleTolerance, double maxAngularSpeed, double minAngularSpeed, double transGain, double transDeadZone, double transMinPower, double transMaxPower, double upperGainDistanceThreshold) {
         this.upperGainDistanceThreshold = upperGainDistanceThreshold;
-        vuCalc = new VuCalc(xDestIn, yDestIn, minTransSize, trackable);
         roTnCtnrl = RotationControls.headingSource(vuCalc, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
         transPropCntrl = new ProportionalController(transGain, transDeadZone, transMinPower, transMaxPower);
         this.transDeadZone = transDeadZone;
 
+    }
+
+    public void setVuCalc(VuforiaTrackable trackable, double xDestIn, double yDestIn) {
+        vuCalc = new VuCalc(xDestIn, yDestIn, minTransSize, trackable);
     }
 
     @Override
