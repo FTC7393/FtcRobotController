@@ -9,7 +9,9 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
+import ftc.electronvolts.util.BasicResultReceiver;
 import ftc.electronvolts.util.Function;
+import ftc.electronvolts.util.ResultReceiver;
 import ftc.electronvolts.util.files.Logger;
 import ftc.evlib.opmodes.AbstractTeleOp;
 
@@ -17,7 +19,8 @@ import ftc.evlib.opmodes.AbstractTeleOp;
 public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
 
     OpenCvCamera webcam;
-    private SamplePipeline samplePipeline = new SamplePipeline();
+    ResultReceiver resultReceiver = new BasicResultReceiver();
+    private SamplePipeline samplePipeline = new SamplePipeline(resultReceiver);
 
 
     @Override
