@@ -28,6 +28,10 @@ public class RepeatedResultReceiver<T> implements ResultReceiver<T> {
 
     @Override
     public void setValue(T value) {
+        if(this.value == null) {
+            this.value = value;
+            counter++;
+        }
         if(this.value.equals(value)){
             counter++;
         } else {

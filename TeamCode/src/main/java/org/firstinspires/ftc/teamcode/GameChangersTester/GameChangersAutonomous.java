@@ -153,9 +153,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
 //        initVuforia();
-        super.setup();
         ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
         samplePipeline = new SamplePipeline(ringNumbersResultReceiver);
+        super.setup();
     }
 
     @Override
