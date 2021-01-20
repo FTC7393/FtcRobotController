@@ -90,9 +90,11 @@ public class GameChangersRobotCfg extends RobotCfg {
         this(hardwareMap, ServoCfg.defaultServoStartPresetMap(GameChangersServoName.values()));
     }
 
+    public ftc.evlib.hardware.motors.MotorEnc getFlyWheelShooter() { return flyWheelShooter; }
+
     public int getFlywheelEncoderValue() { return flyWheelShooter.getEncoderPosition();}
 
-    public void startFlyWheel() { flyWheelShooter.setPower(flyWheelMotorSpeed);}
+    public void startFlyWheel() { flyWheelShooter.setSpeed(flyWheelMotorSpeed);}
 
     public void stopFlyWheel() { flyWheelShooter.setSpeed(0);}
 

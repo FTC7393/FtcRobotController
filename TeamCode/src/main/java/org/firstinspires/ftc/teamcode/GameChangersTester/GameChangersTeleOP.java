@@ -100,7 +100,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected void setup_act() {
-
+        robotCfg.getFlyWheelShooter().update();
     }
 
     @Override
@@ -118,6 +118,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected void act() {
+        robotCfg.getFlyWheelShooter().update();
         collectorIntakeButton.update();
         collectorShooterButton.update();
         shooterStateMachine.act();
