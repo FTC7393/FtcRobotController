@@ -123,6 +123,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         shooterStateMachine.act();
 
         telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
+        telemetry.addData("Motor Encoder Valies", robotCfg.getFlywheelEncoderValue());
 
         if(driver1.left_bumper.justPressed()) {
             if(wobbleGoalGrabberIsUp) {
