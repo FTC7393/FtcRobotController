@@ -101,7 +101,7 @@ public class VuforiaTestOp extends OpMode {
 
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
-
+        targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
         allTrackables = VuLocalizer.setVuLocalizer(targetsUltimateGoal,parameters);
 
         // WARNING:
