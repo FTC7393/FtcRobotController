@@ -7,13 +7,11 @@ import ftc.electronvolts.statemachine.StateMachine;
 import ftc.electronvolts.statemachine.StateMachineBuilder;
 import ftc.electronvolts.statemachine.StateName;
 import ftc.electronvolts.util.AnalogInputEdgeDetector;
-import ftc.electronvolts.util.DigitalInputEdgeDetector;
 import ftc.electronvolts.util.Function;
 import ftc.electronvolts.util.Functions;
 import ftc.electronvolts.util.InputExtractor;
 import ftc.electronvolts.util.InputExtractors;
 import ftc.electronvolts.util.files.Logger;
-import ftc.evlib.hardware.control.RotationControl;
 import ftc.evlib.hardware.control.RotationControls;
 import ftc.evlib.hardware.control.TranslationControls;
 import ftc.evlib.opmodes.AbstractTeleOp;
@@ -25,8 +23,14 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     private boolean wobbleGoalGrabberIsUp = true; //this requires the wobble goal collector to initialize by being up
     private boolean pincherIsClosed = true;
     private boolean collectorIsSucking = false;
+    private StateMachine shooterStateMachine;
+
     private AnalogInputEdgeDetector collectorIntakeButton;
     private AnalogInputEdgeDetector collectorShooterButton;
+
+    public GameChangersTeleOP() {
+
+    }
 
     @Override
     protected Function getJoystickScalingFunction() {
@@ -90,6 +94,8 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     protected void setup() {
         collectorIntakeButton = new AnalogInputEdgeDetector(driver1.left_trigger, 0.3, 0.7, false);
         collectorShooterButton = new AnalogInputEdgeDetector(driver1.right_trigger, 0.3, 0.7, false);
+        
+        shooterStateMachine = buildShooterStateMachine();
     }
 
     @Override
@@ -114,6 +120,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     protected void act() {
         collectorIntakeButton.update();
         collectorShooterButton.update();
+        shooterStateMachine.act();
 
         telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
 
@@ -153,7 +160,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     }
 
-    private StateMachine shooterStateBuilder() {
+    private StateMachine buildShooterStateMachine() {
         State idleState = new State() {
             @Override
             public StateName act() {
@@ -164,11 +171,13 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             }
         };
 
-        State shootingState = new ShooterState(collectorShooterButton,robotCfg,500L,1000L);
+        State shootingState = new ShooterState(collectorShooterButton,robotCfg,200L,1000L);
 
         StateMachineBuilder b = new StateMachineBuilder(S.IDLE);
         b.add(S.IDLE, idleState);
         b.add(S.SHOOTING, shootingState);
+
+
 
         return b.build();
     }
