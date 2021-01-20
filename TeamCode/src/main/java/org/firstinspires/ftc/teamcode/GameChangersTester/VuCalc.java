@@ -7,6 +7,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 
 import ftc.electronvolts.util.Vector2D;
+import ftc.electronvolts.util.units.Angle;
 import ftc.evlib.hardware.sensors.HeadingSource;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
@@ -45,24 +46,26 @@ public class VuCalc implements HeadingSource {
                 double deltaX = xDestIn - (currentPos.get(0)/mmPerInch);
                 double deltaY = yDestIn - (currentPos.get(1)/mmPerInch);
                 // translation distance is in inches
-                translation = new Vector2D(deltaX, deltaY);
+                Vector2D vuVec = new Vector2D(deltaX, deltaY);
+                translation = new Vector2D(vuVec.getLength(), Angle.fromDegrees(vuVec.getDirection().degrees()-90));
                 Orientation rotation = Orientation.getOrientation(robotLocation, EXTRINSIC, XYZ, DEGREES);
-                heading = rotation.thirdAngle;
+                heading = rotation.thirdAngle - 90;
             }
         }
 
     }
 
     @Override
+    // robot frame heading
     public double getHeading() {
         return heading;
     }
-
+    // robot frame translation
     public Vector2D getTranslation(){
         return  translation;
     }
-
-    public VectorF getCurrentPos(){
+    //vuforia frame pos
+    public VectorF getVuCurrentPos(){
         return currentPos;
     }
 }
