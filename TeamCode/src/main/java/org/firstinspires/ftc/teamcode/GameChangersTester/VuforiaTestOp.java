@@ -102,7 +102,7 @@ public class VuforiaTestOp extends OpMode {
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
 
-        VuLocalizer.setVuLocalizer(targetsUltimateGoal,parameters);
+        allTrackables = VuLocalizer.setVuLocalizer(targetsUltimateGoal,parameters);
 
         // WARNING:
         // In this sample, we do not wait for PLAY to be pressed.  Target Tracking is started immediately when INIT is pressed.
