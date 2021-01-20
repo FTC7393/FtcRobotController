@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import ftc.evlib.hardware.config.RobotCfg;
 import ftc.evlib.hardware.motors.FourMotors;
 import ftc.evlib.hardware.motors.Motor;
+import ftc.evlib.hardware.motors.MotorEnc;
 import ftc.evlib.hardware.motors.TwoMotors;
 import ftc.evlib.hardware.sensors.AnalogSensor;
 import ftc.evlib.hardware.sensors.Gyro;
@@ -40,6 +41,8 @@ public class GameChangersRobotCfg extends RobotCfg {
     private final WobbleGoalCollector wobbleGoal;
     private final IMUGyro gyro;
     private final AnalogSensor potentiometer;
+    private final MotorEnc flyWheelShooter;
+    private final double flyWheelMotorSpeed = 0.9;
 
     public AnalogSensor getPotentiometer() {
         return potentiometer;
@@ -80,12 +83,16 @@ public class GameChangersRobotCfg extends RobotCfg {
         wobbleGoal = new WobbleGoalCollector(rotator, pinchServo, ServoPresets.WobblePincher.CLOSED,ServoPresets.WobblePincher.OPENED, potentiometer);
 
         //shooter
-        Motor flyWheelShooter = Motors.withEncoder(hardwareMap.get(DcMotor.class,"flyWheelShooter"), false, false, stoppers);
+        flyWheelShooter = Motors.withEncoder(hardwareMap.get(DcMotor.class,"flyWheelShooter"), false, false, stoppers);
     }
     //Servo Stuof
     public GameChangersRobotCfg(HardwareMap hardwareMap) {
         this(hardwareMap, ServoCfg.defaultServoStartPresetMap(GameChangersServoName.values()));
     }
+
+    public void startFlyWheel() { flyWheelShooter.setSpeed(flyWheelMotorSpeed);}
+
+    public void stopFlyWheel() { flyWheelShooter.setSpeed(0);}
 
     public ServoControl getPincher() {
         return getServo(GameChangersServoName.PINCH);

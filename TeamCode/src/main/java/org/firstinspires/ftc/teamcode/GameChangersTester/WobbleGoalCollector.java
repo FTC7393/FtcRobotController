@@ -9,8 +9,8 @@ public class WobbleGoalCollector {
 
     private final Motor rotation;
     private final ServoControl pinch;
-    private Enum close;
-    private Enum open;
+    private Preset close;
+    private Preset open;
     private AnalogSensor potentiometer;
     private PIDController pidController;
 
@@ -34,21 +34,21 @@ public class WobbleGoalCollector {
         return pidController;
     }
 
-    public WobbleGoalCollector(Motor rotation, ServoControl pinch, Enum close, Enum open, AnalogSensor potentiometer) {
+    public WobbleGoalCollector(Motor rotation, ServoControl pinch, Preset close, Preset open, AnalogSensor potentiometer) {
         this.rotation = rotation;
         this.pinch = pinch;
         this.close = close;
         this.open = open;
         this.potentiometer = potentiometer;
         // NEED TO TUNE IT!!!!!!!!!!!!!!!!!!!!!!!!!
-        pidController = new PIDController(5,0,0,0.5); // original iGain: 0.002
+        pidController = new PIDController(4,0,0,0.5); // original iGain: 0.002
     }
 
     public void close() {
-        pinch.goToPreset(close);
+        pinch.goToPreset((Enum) close);
     }
     public void open() {
-        pinch.goToPreset(open);
+        pinch.goToPreset((Enum) open);
     }
 
     public void moveArmUp() {
