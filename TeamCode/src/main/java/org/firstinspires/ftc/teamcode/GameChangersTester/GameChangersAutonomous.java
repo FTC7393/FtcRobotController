@@ -47,6 +47,7 @@ import ftc.evlib.util.ImmutableList;
 public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg> {
     private final String VUFORIA_KEY;
     private VuforiaTrackable towerGoalTarget;
+    private WebcamName webcamName = robotCfg.getWebcam();
     //options op values
     private TeamColor teamColor = null;
     private double initialDelay = 0.0;
@@ -177,19 +178,19 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     private void initVuforia() {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
+        parameters.cameraName = webcamName;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
         targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
         allTrackables = VuLocalizer.setVuLocalizer(targetsUltimateGoal, parameters);
         if (teamColor == TeamColor.BLUE) {
             towerGoalTarget = allTrackables.get(0);
-            towerGoalTarget.setName("Blue Tower Goal Target");
             xDestIn = -4;
             yDestIn = 40;
         } else {
             towerGoalTarget = allTrackables.get(1);
-            towerGoalTarget.setName("Red Tower Goal Target");
             xDestIn = -4;
             yDestIn = -40;
         }
@@ -213,7 +214,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     @Override
                     public void run() {
                         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-                        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
+                        webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
                         webcam.setPipeline(samplePipeline);
                         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
                             @Override
@@ -381,6 +382,3 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     }
 }
-
-
-
