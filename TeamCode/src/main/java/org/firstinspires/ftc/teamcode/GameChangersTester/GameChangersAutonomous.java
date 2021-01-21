@@ -167,6 +167,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         stateMachine.act();
         telemetry.addData("number of rings", ringNumbersResultReceiver.isReady() ? ringNumbersResultReceiver.getValue() : "null");
         telemetry.addData("state", stateMachine.getCurrentStateName());
+        telemetry.addData("xyrControl current x", xyrControl.getCurrentX());
+        telemetry.addData("xyrControl current y", xyrControl.getCurrentY());
         telemetry.addData("vuforia position", vuforiaPosRR.isReady() ? vuforiaPosRR.getValue() : "null");
         telemetry.update();
     }
