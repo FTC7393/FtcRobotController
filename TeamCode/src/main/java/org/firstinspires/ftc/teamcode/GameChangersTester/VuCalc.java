@@ -21,6 +21,8 @@ public class VuCalc implements HeadingSource {
     private final double yDestIn;
     private final VuforiaTrackable trackable;
     private static final double mmPerInch = 25.4f;
+    //offset between vuforia frame and robot frame
+    public static final double orientationTransformation = -90;
 
     private Vector2D translation;
     private double heading;
@@ -51,9 +53,9 @@ public class VuCalc implements HeadingSource {
                 Vector2D vuVec = new Vector2D(deltaX, deltaY);
                 // transform the vector that is in the vuforia frame of reference to the robot frame of reference
                 // transforming the heading as well to the robot frame, you have to translate by 90 to the left to go to the robot frame, heavily dependent on robot location
-                translation = new Vector2D(vuVec.getLength(), Angle.fromDegrees(vuVec.getDirection().degrees()-90));
+                translation = new Vector2D(vuVec.getLength(), Angle.fromDegrees(vuVec.getDirection().degrees() + orientationTransformation));
                 Orientation rotation = Orientation.getOrientation(robotLocation, EXTRINSIC, XYZ, DEGREES);
-                heading = rotation.thirdAngle - 90;
+                heading = rotation.thirdAngle + orientationTransformation;
             }
         }
 
