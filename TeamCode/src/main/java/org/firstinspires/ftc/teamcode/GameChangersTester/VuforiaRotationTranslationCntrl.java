@@ -68,6 +68,9 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
     }
 
     private double getPos(int index){
+        if(vuCalc == null) {
+            return Double.NaN;
+        }
         VectorF pos = vuCalc.getVuCurrentPos();
         if(pos != null){
             return vuCalc.getVuCurrentPos().get(index)/25.4f;

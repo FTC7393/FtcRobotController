@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 
 import ftc.electronvolts.statemachine.BasicAbstractState;
 import ftc.electronvolts.statemachine.EndCondition;
@@ -58,6 +59,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     ResultReceiver<SamplePipeline.RING_NUMBERS> ringNumbersResultReceiver;
     ResultReceiver<VuforiaPositionHolder> vuforiaPosRR = new RepeatedResultReceiver<>(5);
     VuforiaTrackables targetsUltimateGoal;
+    private List<VuforiaTrackable> allTrackables;
 
     public GameChangersAutonomous() throws IOException {
         super();
@@ -179,14 +181,14 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
         targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
-        VuLocalizer.setVuLocalizer(targetsUltimateGoal, parameters);
+        allTrackables = VuLocalizer.setVuLocalizer(targetsUltimateGoal, parameters);
         if (teamColor == TeamColor.BLUE) {
-            towerGoalTarget = targetsUltimateGoal.get(0);
+            towerGoalTarget = allTrackables.get(0);
             towerGoalTarget.setName("Blue Tower Goal Target");
             xDestIn = -4;
             yDestIn = 40;
         } else {
-            towerGoalTarget = targetsUltimateGoal.get(1);
+            towerGoalTarget = allTrackables.get(1);
             towerGoalTarget.setName("Red Tower Goal Target");
             xDestIn = -4;
             yDestIn = -40;
@@ -289,7 +291,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         };
     }
 
-    private State getVuforiaPosition(final VuforiaRotationTranslationCntrl xyrControl) {
+    private State getVuforiaPosition() {
         return new State() {
             @Override
             public StateName act() {
@@ -324,7 +326,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         double upperGainDistanceTreshold = 12; // need to test
         xyrControl = new VuforiaRotationTranslationCntrl(rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed,
                 transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
-        b.add(S.VUFORIA_EXPLORE, getVuforiaPosition(xyrControl));
+        b.add(S.VUFORIA_EXPLORE, getVuforiaPosition());
         EndCondition vuforiaArrived = new EndCondition() {
             // making inline class
             @Override
