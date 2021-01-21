@@ -29,6 +29,8 @@ import ftc.evlib.hardware.servos.Servos;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+
 import java.util.Map;
 //Find max speed of robot.
 public class GameChangersRobotCfg extends RobotCfg {
@@ -43,6 +45,10 @@ public class GameChangersRobotCfg extends RobotCfg {
     private final AnalogSensor potentiometer;
     private final MotorEnc flyWheelShooter;
     private final double flyWheelMotorSpeed = -0.9;
+
+
+
+    private final WebcamName webcamName;
 
     public AnalogSensor getPotentiometer() {
         return potentiometer;
@@ -84,6 +90,9 @@ public class GameChangersRobotCfg extends RobotCfg {
 
         //shooter
         flyWheelShooter = Motors.withEncoder(hardwareMap.get(DcMotor.class,"flyWheelShooter"), false, false, stoppers);
+
+        //webcam
+        webcamName = hardwareMap.get(WebcamName.class, "Webcam");
     }
     //Servo Stuof
     public GameChangersRobotCfg(HardwareMap hardwareMap) {
@@ -129,6 +138,8 @@ public class GameChangersRobotCfg extends RobotCfg {
     public WobbleGoalCollector getWobbleGoalArm() {
         return wobbleGoal;
     }
+
+    public WebcamName getWebcamName() { return webcamName; }
 
     public enum GameChangersServoName implements ServoName {
         //enum name("hardware name", preset enum.values()),

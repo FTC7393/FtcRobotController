@@ -194,7 +194,12 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             yDestIn = -40;
         }
         targetsUltimateGoal.activate();
-        xyrControl.setVuCalc(towerGoalTarget, xDestIn, yDestIn);
+        double rotationGain = 0.5; // need to test
+        Angle targetHeading = Angle.fromDegrees(0); // need to test
+        Angle angleTolerance = Angle.fromDegrees(2); // need to test
+        double maxAngularSpeed = .5; // need to test
+        double minAngularSpeed = 0.05; // need to test
+        xyrControl.setVuCalc(towerGoalTarget, xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
     }
 
     private State makeOpenCvInit(final StateName nextState) {
@@ -313,19 +318,13 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         b.add(S.VUFORIA_INIT, makeVuforiaInit(S.VUFORIA_EXPLORE));
         b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
         b.addWait(S.WAIT, S.RUN_VUFORIA, 3000);
-        double rotationGain = 0.7; // need to test
-        Angle targetHeading = Angle.fromDegrees(90); // need to test
-        Angle angleTolerance = Angle.fromDegrees(5); // need to test
-        double maxAngularSpeed = 0.7; // need to test
-        double minAngularSpeed = 0.05; // need to test
         double transGain = 0.01; // need to test
         double transDeadZone = 2.0; // need to test
         double transMinPower = .15; // need to test
         double transMaxPower = 1.0; // need to test
         //might not need (in inches)
         double upperGainDistanceTreshold = 12; // need to test
-        xyrControl = new VuforiaRotationTranslationCntrl(rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed,
-                transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
+        xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
         b.add(S.VUFORIA_EXPLORE, getVuforiaPosition());
         EndCondition vuforiaArrived = new EndCondition() {
             // making inline class

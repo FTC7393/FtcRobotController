@@ -17,7 +17,7 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
     private Angle polarDirectionCorrection;
     private Vector2D translation;
     private double minTransSize;
-    private final RotationControl roTnCtnrl;
+    private RotationControl roTnCtnrl;
     private final ProportionalController transPropCntrl;
     private VuCalc vuCalc;
     private final double upperGainDistanceThreshold;
@@ -33,16 +33,16 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
      * @param transMinPower -  the minimum motor power
      * @param transMaxPower -  the maximum motor power
      */
-    public VuforiaRotationTranslationCntrl( double rotationGain, Angle targetHeading, Angle angleTolerance, double maxAngularSpeed, double minAngularSpeed, double transGain, double transDeadZone, double transMinPower, double transMaxPower, double upperGainDistanceThreshold) {
+    public VuforiaRotationTranslationCntrl(double transGain, double transDeadZone, double transMinPower, double transMaxPower, double upperGainDistanceThreshold) {
         this.upperGainDistanceThreshold = upperGainDistanceThreshold;
-        roTnCtnrl = RotationControls.headingSource(vuCalc, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
         transPropCntrl = new ProportionalController(transGain, transDeadZone, transMinPower, transMaxPower);
         this.transDeadZone = transDeadZone;
 
     }
 
-    public void setVuCalc(VuforiaTrackable trackable, double xDestIn, double yDestIn) {
+    public void setVuCalc(VuforiaTrackable trackable, double xDestIn, double yDestIn,  double rotationGain, Angle targetHeading, Angle angleTolerance, double maxAngularSpeed, double minAngularSpeed) {
         vuCalc = new VuCalc(xDestIn, yDestIn, trackable);
+        roTnCtnrl = RotationControls.headingSource(vuCalc, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
             if (newMag > upperGainDistanceThreshold) {
                 newMag = upperGainDistanceThreshold;
             }
-            double power = transPropCntrl.computeCorrection(0, newMag);
+            double power = Math.abs(transPropCntrl.computeCorrection(0, newMag));
             this.translation = new Vector2D(power, rawTrans.getDirection());
 
             roTnCtnrl.act();

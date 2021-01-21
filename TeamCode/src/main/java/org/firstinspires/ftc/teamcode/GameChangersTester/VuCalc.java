@@ -19,7 +19,7 @@ public class VuCalc implements HeadingSource {
     private final double xDestIn;
     private final double yDestIn;
     private final VuforiaTrackable trackable;
-    private static final double mmPerInch        = 25.4f;
+    private static final double mmPerInch = 25.4f;
 
     private Vector2D translation;
     private double heading;

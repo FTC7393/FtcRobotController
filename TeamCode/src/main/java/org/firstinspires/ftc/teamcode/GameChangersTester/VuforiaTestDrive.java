@@ -160,6 +160,9 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
+        parameters.cameraName = robotCfg.getWebcamName();
+        //tries to estimate robot position if image is out of view, may need to tweak later
+        parameters.useExtendedTracking = false;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
         targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
         VuLocalizer.setVuLocalizer(targetsUltimateGoal,parameters);
@@ -181,24 +184,24 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         EVStateMachineBuilder b = new EVStateMachineBuilder(S.DRIVE_1, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl() );
         b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(.3), 0.3, 270, 0);
         b.addWait(S.WAIT,S.RUN_VUFORIA,3000);
-        double rotationGain = 0.7; // need to test
-        Angle targetHeading = Angle.fromDegrees(90); // need to test
-        Angle angleTolerance = Angle.fromDegrees(5); // need to test
-        double maxAngularSpeed = 0.7; // need to test
-        double minAngularSpeed = 0.05; // need to test
+        final double rotationGain = 0.5; // need to test
+        final Angle targetHeading = Angle.fromDegrees(0); // need to test
+        final Angle angleTolerance = Angle.fromDegrees(2); // need to test
+        final double maxAngularSpeed = 0.5; // need to test
+        final double minAngularSpeed = 0.05; // need to test
         double transGain = 0.01; // need to test
         double transDeadZone = 2.0; // need to test
-        double transMinPower = .15; // need to test
+        double transMinPower = .1; // need to test
         double transMaxPower = 1.0; // need to test
         //might not need (in inches)
         double upperGainDistanceTreshold = 12; // need to test
-        xyrControl = new VuforiaRotationTranslationCntrl(rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed,
+        xyrControl = new VuforiaRotationTranslationCntrl(
                 transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
         EndCondition vuforiaArrived = new EndCondition() {
             // making inline class
             @Override
             public void init() {
-                xyrControl.setVuCalc(towerGoalTarget,xDestIn,yDestIn);
+                xyrControl.setVuCalc(towerGoalTarget,xDestIn,yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
             }
 
             @Override
