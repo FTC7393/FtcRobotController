@@ -188,7 +188,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         final Angle angleTolerance = Angle.fromDegrees(2); // need to test
         final double maxAngularSpeed = 0.5; // need to test
         final double minAngularSpeed = 0.05; // need to test
-        double transGain = 0.1; // need to test
+        double transGain = 0.03; // need to test
         double transDeadZone = 2.0; // need to test
         double transMinPower = .1; // need to test
         double transMaxPower = 1.0; // need to test
