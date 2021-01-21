@@ -169,8 +169,8 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         VuLocalizer.setVuLocalizer(targetsUltimateGoal,parameters);
         if(teamColor == TeamColor.BLUE) {
             towerGoalTarget = targetsUltimateGoal.get(0);
-            xDestIn = -4;
-            yDestIn = 40;
+            xDestIn = -2;
+            yDestIn = 30;
         } else {
             towerGoalTarget = targetsUltimateGoal.get(1);
             xDestIn = -4;
@@ -188,7 +188,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         final Angle angleTolerance = Angle.fromDegrees(2); // need to test
         final double maxAngularSpeed = 0.5; // need to test
         final double minAngularSpeed = 0.05; // need to test
-        double transGain = 0.01; // need to test
+        double transGain = 0.1; // need to test
         double transDeadZone = 2.0; // need to test
         double transMinPower = .1; // need to test
         double transMaxPower = 1.0; // need to test
@@ -209,7 +209,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
             }
         };
         // add other pairs of state name end conditions
-        b.addDrive(S.RUN_VUFORIA, StateMap.of(S.STOP,vuforiaArrived,S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
+        b.addDrive(S.RUN_VUFORIA, StateMap.of(S.STOP,vuforiaArrived,S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(10))), xyrControl);
         b.addStop(S.TIMEOUT_LINE);
         b.addStop(S.STOP);
         return b.build();
