@@ -199,6 +199,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         Angle angleTolerance = Angle.fromDegrees(2); // need to test
         double maxAngularSpeed = .5; // need to test
         double minAngularSpeed = 0.05; // need to test
+        // heavy dependency on robot orientation, refer to vuCalc class at the end of it
         xyrControl.setVuCalc(towerGoalTarget, xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
     }
 

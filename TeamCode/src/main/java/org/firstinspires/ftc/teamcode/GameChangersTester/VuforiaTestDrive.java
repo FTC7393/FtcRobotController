@@ -44,6 +44,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
     //options op values
     private TeamColor teamColor = null;
     private double initialDelay = 0.0;
+    // xDestIn and yDestIn are both in the vuforia frame of reference and are vuforia coords
     double xDestIn = 0.0;
     double yDestIn = 0.0;
 
@@ -168,12 +169,10 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         VuLocalizer.setVuLocalizer(targetsUltimateGoal,parameters);
         if(teamColor == TeamColor.BLUE) {
             towerGoalTarget = targetsUltimateGoal.get(0);
-            towerGoalTarget.setName("Blue Tower Goal Target");
             xDestIn = -4;
             yDestIn = 40;
         } else {
             towerGoalTarget = targetsUltimateGoal.get(1);
-            towerGoalTarget.setName("Red Tower Goal Target");
             xDestIn = -4;
             yDestIn = -40;
         }
