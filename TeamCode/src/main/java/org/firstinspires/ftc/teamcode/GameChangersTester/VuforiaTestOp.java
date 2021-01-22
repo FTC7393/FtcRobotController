@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import ftc.electronvolts.util.TeamColor;
 import ftc.evlib.util.FileUtil;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
@@ -50,6 +51,7 @@ public class VuforiaTestOp extends OpMode {
     // Class Members
     private OpenGLMatrix lastLocation = null;
     private VuforiaLocalizer vuforia = null;
+    private TeamColor tc = TeamColor.BLUE;
 
     /**
      * This is the webcam we are to use. As with other hardware devices such as motors and
@@ -102,7 +104,7 @@ public class VuforiaTestOp extends OpMode {
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
         targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
-        allTrackables = VuLocalizer.setVuLocalizer(targetsUltimateGoal,parameters);
+        allTrackables = VuLocalizer.setVuLocalizer(tc, targetsUltimateGoal,parameters);
 
         // WARNING:
         // In this sample, we do not wait for PLAY to be pressed.  Target Tracking is started immediately when INIT is pressed.

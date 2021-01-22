@@ -231,7 +231,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         parameters.cameraName = webcamName;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
         targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
-        allTrackables = VuLocalizer.setVuLocalizer(targetsUltimateGoal, parameters);
+        allTrackables = VuLocalizer.setVuLocalizer(teamColor,targetsUltimateGoal, parameters);
         if (teamColor == TeamColor.BLUE) {
             towerGoalTarget = allTrackables.get(0);
             xDestIn = -4;
