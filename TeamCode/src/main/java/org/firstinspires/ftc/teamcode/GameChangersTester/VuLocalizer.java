@@ -10,6 +10,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import java.util.ArrayList;
 import java.util.List;
 
+import ftc.electronvolts.util.TeamColor;
+
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
@@ -18,12 +20,6 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
 public class VuLocalizer {
-
-    // the order of the rotations/transformations are the same order we wanna transfrom the coords of the camera
-    private static float phoneZRotate  = -90;
-    private static float phoneXRotate  = -85;
-    private static float phoneYRotate  = 0;
-
 
     private static final VuforiaLocalizer.CameraDirection CAMERA_CHOICE = BACK;
     private static final boolean PHONE_IS_PORTRAIT = false  ;
@@ -39,7 +35,24 @@ public class VuLocalizer {
 
 
 
-    public static List<VuforiaTrackable> setVuLocalizer(VuforiaTrackables targetsUltimateGoal, VuforiaLocalizer.Parameters parameters ) {
+    public static List<VuforiaTrackable> setVuLocalizer(TeamColor tc, VuforiaTrackables targetsUltimateGoal, VuforiaLocalizer.Parameters parameters ) {
+
+        // the order of the rotations/transformations are the same order we wanna transfrom the coords of the camera
+        float phoneZRotate  = 0;
+        float phoneXRotate  = 0;
+        float phoneYRotate  = 0;
+
+         if(tc == TeamColor.BLUE){
+             phoneZRotate = 0;
+             phoneXRotate  = 0;
+             phoneYRotate  = -90;
+         }
+         else if(tc == TeamColor.RED){
+             phoneZRotate  = 0;
+             phoneXRotate  = 0;
+             phoneYRotate  = 90;
+         }
+
         VuforiaTrackable blueTowerGoalTarget = targetsUltimateGoal.get(0);
         blueTowerGoalTarget.setName("Blue Tower Goal Target");
         VuforiaTrackable redTowerGoalTarget = targetsUltimateGoal.get(1);

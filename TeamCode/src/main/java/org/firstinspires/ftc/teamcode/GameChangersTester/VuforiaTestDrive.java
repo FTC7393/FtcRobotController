@@ -166,15 +166,15 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         parameters.useExtendedTracking = false;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
         targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
-        VuLocalizer.setVuLocalizer(targetsUltimateGoal,parameters);
+        VuLocalizer.setVuLocalizer(teamColor,targetsUltimateGoal,parameters);
         if(teamColor == TeamColor.BLUE) {
-            towerGoalTarget = targetsUltimateGoal.get(0);
+            towerGoalTarget = targetsUltimateGoal.get(3);
             xDestIn = -2;
             yDestIn = 30;
         } else {
-            towerGoalTarget = targetsUltimateGoal.get(1);
-            xDestIn = -4;
-            yDestIn = -40;
+            towerGoalTarget = targetsUltimateGoal.get(2);
+            xDestIn = -2;
+            yDestIn = -30;
         }
     }
 
