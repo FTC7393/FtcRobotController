@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.GameChangersTester.GameChangersRobotCfg;
 import org.firstinspires.ftc.teamcode.GameChangersTester.RingPipeline;
+import org.firstinspires.ftc.teamcode.GameChangersTester.StartingPosition;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -21,7 +22,7 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
 
     OpenCvCamera webcam;
     ResultReceiver resultReceiver = new BasicResultReceiver();
-    private RingPipeline samplePipeline = new RingPipeline(resultReceiver, new BasicResultReceiver<Boolean>());
+    private RingPipeline samplePipeline = new RingPipeline(resultReceiver, new BasicResultReceiver<Boolean>(), StartingPosition.LEFT);
 
 
     @Override
