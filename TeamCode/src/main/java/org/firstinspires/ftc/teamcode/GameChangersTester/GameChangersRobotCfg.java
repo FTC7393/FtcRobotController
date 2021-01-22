@@ -48,15 +48,17 @@ public class GameChangersRobotCfg extends RobotCfg {
 
 
 
-    public WebcamName getWebcam() {
-        return webcam;
-    }
 
     private final WebcamName webcam;
 
     public AnalogSensor getPotentiometer() {
         return potentiometer;
     }
+
+    public WebcamName getWebcamName() {
+        return webcam;
+    }
+
 
     public GameChangersRobotCfg(HardwareMap hardwareMap, Map<ServoName, Enum> servoStartPresetMap) {
         super(hardwareMap);

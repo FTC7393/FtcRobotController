@@ -48,7 +48,7 @@ import ftc.evlib.util.ImmutableList;
 public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg> {
     private final String VUFORIA_KEY;
     private VuforiaTrackable towerGoalTarget;
-    private WebcamName webcamName = robotCfg.getWebcam();
+    private WebcamName webcamName;
     //options op values
     private TeamColor teamColor = null;
     private double initialDelay = 0.0;
@@ -169,6 +169,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
         ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
         ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR);
+        webcamName = robotCfg.getWebcamName();
         super.setup();
     }
 
