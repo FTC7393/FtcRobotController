@@ -61,7 +61,7 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
                 }
             }
 
-            if (driver1.right_bumper.justPressed()) {
+            if (driver1.right_bumper.justPressed() || driver1.left_bumper.justPressed()) {
                 if (values[index] == Opts.TEAM_COLOR) {
                     TeamColor teamColor = optionsFile.get(Opts.TEAM_COLOR.s, teamColorDefault);
                     if (teamColor == TeamColor.BLUE) {
@@ -75,24 +75,24 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
             }
 
             if(driver1.right_bumper.justPressed()) {
-                if(values[index] == Opts.INITTIAL_AUTO_DELAY) {
-                    double initialAutoDelay = optionsFile.get(Opts.INITTIAL_AUTO_DELAY.s, initialAutoDelayDefault);
+                if(values[index] == Opts.INITIAL_AUTO_DELAY) {
+                    double initialAutoDelay = optionsFile.get(Opts.INITIAL_AUTO_DELAY.s, initialAutoDelayDefault);
                     initialAutoDelay +=1;
                     Utility.limit(initialAutoDelay, 0, 15);
-                    optionsFile.set(Opts.INITTIAL_AUTO_DELAY.s, initialAutoDelay);
+                    optionsFile.set(Opts.INITIAL_AUTO_DELAY.s, initialAutoDelay);
                     saveOptionsFile();
                 }
             }
             if(driver1.left_bumper.justPressed()) {
-                if(values[index] == Opts.INITTIAL_AUTO_DELAY) {
-                    double initialAutoDelay = optionsFile.get(Opts.INITTIAL_AUTO_DELAY.s, initialAutoDelayDefault);
+                if(values[index] == Opts.INITIAL_AUTO_DELAY) {
+                    double initialAutoDelay = optionsFile.get(Opts.INITIAL_AUTO_DELAY.s, initialAutoDelayDefault);
                     initialAutoDelay -=1;
                     Utility.limit(initialAutoDelay, 0, 15);
-                    optionsFile.set(Opts.INITTIAL_AUTO_DELAY.s, initialAutoDelay);
+                    optionsFile.set(Opts.INITIAL_AUTO_DELAY.s, initialAutoDelay);
                     saveOptionsFile();
                 }
             }
-            if(driver1.right_bumper.justPressed()) {
+            if(driver1.right_bumper.justPressed() || driver1.left_bumper.justPressed()) {
                 if(values[index] == Opts.START_POSITION) {
                     StartingPosition startingPosition = optionsFile.get(Opts.START_POSITION.s, startingPositionDefault);
                     if (startingPosition == StartingPosition.LEFT) {
@@ -125,7 +125,7 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
 
 
 
-            telemetry.addData(initialAutoDelayTag, optionsFile.get(Opts.INITTIAL_AUTO_DELAY.s, initialAutoDelayDefault));
+            telemetry.addData(initialAutoDelayTag, optionsFile.get(Opts.INITIAL_AUTO_DELAY.s, initialAutoDelayDefault));
 
 
 
@@ -141,7 +141,7 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
         }
 
         public enum Opts {
-            TEAM_COLOR(teamColorTag), INITTIAL_AUTO_DELAY(initialAutoDelayTag), START_POSITION(startingPositionTag);
+            TEAM_COLOR(teamColorTag), INITIAL_AUTO_DELAY(initialAutoDelayTag), START_POSITION(startingPositionTag);
 
             //        public boolean b;
 //        public double f;
