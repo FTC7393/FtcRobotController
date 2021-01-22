@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
+import java.util.HashMap;
+
 public class ServoPresets {
 
     public enum Pusher implements Preset{
@@ -18,6 +20,12 @@ public class ServoPresets {
     public enum Collector implements Preset {
         OFF,
         FORWARD
+    }
+
+    public enum Camera implements Preset {
+        BLUE,
+        MIDDLE,
+        RED
     }
 
 }

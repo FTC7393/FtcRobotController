@@ -99,6 +99,8 @@ public class GameChangersRobotCfg extends RobotCfg {
 
         //camera
         webcam = hardwareMap.get(WebcamName.class, "Webcam");
+
+
     }
     //Servo Stuof
     public GameChangersRobotCfg(HardwareMap hardwareMap) {
@@ -129,6 +131,10 @@ public class GameChangersRobotCfg extends RobotCfg {
         return getServo(GameChangersServoName.ELEVATION);
     }
 
+    public ServoControl getCameraServo() {
+        return getServo(GameChangersServoName.CAMERA);
+    }
+
     public Servos getServos(){
         return servos;
     }
@@ -150,7 +156,8 @@ public class GameChangersRobotCfg extends RobotCfg {
         PINCH("pinchServo", ServoPresets.WobblePincher.values()),
         PUSHER("pusherServo", ServoPresets.Pusher.values()),
         ELEVATION("elevationServo", ServoPresets.Elevation.values()),
-        COLLECTOR("collectorServo", ServoPresets.Collector.values());
+        COLLECTOR("collectorServo", ServoPresets.Collector.values()),
+        CAMERA("cameraRotationServo", ServoPresets.Camera.values());
 
 //        PUSH_SERVO("pushServo", RotateServoPresets.values());
 
