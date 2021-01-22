@@ -25,25 +25,34 @@ public class RingPipeline extends OpenCvPipeline {
         ring_error
     }
 
-    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(520,255); //inner edge of the right wheels are on left tape
+    private final Point REGION1_TOPLEFT_ANCHOR_POINT; //inner edge of the right wheels are on left tape
 //    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(1,255); //inner edge of the right wheels are on right tape
-    static final int REGION_WIDTH = 15;
-    static final int REGION_HEIGHT = 75;
-    Point region1_pointA = new Point(
-            REGION1_TOPLEFT_ANCHOR_POINT.x,
-            REGION1_TOPLEFT_ANCHOR_POINT.y);
-    Point region1_pointB = new Point(
-            REGION1_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
-            REGION1_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
+    private final int REGION_WIDTH = 15;
+    private final int REGION_HEIGHT = 75;
+    private final Point region1_pointA;
+    private final Point region1_pointB;
 
     private int avgSaturation;
     Mat region1;
     Mat hsv_image = new Mat();
     Mat saturation_channel = new Mat();
 
-    public RingPipeline(ResultReceiver<RING_NUMBERS> resultReceiver, ResultReceiver<Boolean> waitForStartRR) {
+    public RingPipeline(ResultReceiver<RING_NUMBERS> resultReceiver, ResultReceiver<Boolean> waitForStartRR, StartingPosition startingPosition) {
         this.resultReceiver = resultReceiver;
         this.waitForStartRR = waitForStartRR;
+        if(startingPosition == StartingPosition.LEFT) {
+            REGION1_TOPLEFT_ANCHOR_POINT = new Point(520, 255);
+        } else {
+            REGION1_TOPLEFT_ANCHOR_POINT = new Point(1, 255);
+        }
+
+        region1_pointA = new Point(
+                REGION1_TOPLEFT_ANCHOR_POINT.x,
+                REGION1_TOPLEFT_ANCHOR_POINT.y);
+        region1_pointB = new Point(
+                REGION1_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
+                REGION1_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
+
     }
 
     void inputToCb(Mat input)

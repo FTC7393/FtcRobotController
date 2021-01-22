@@ -63,6 +63,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     ResultReceiver<Boolean> waitForStartRR = new BasicResultReceiver<>();
     VuforiaTrackables targetsUltimateGoal;
     private List<VuforiaTrackable> allTrackables;
+    private StartingPosition startingPosition;
 
     public GameChangersAutonomous() throws IOException {
         super();
@@ -167,8 +168,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         OptionsFile optionsFile = new OptionsFile(EVConverters.getInstance(), FileUtil.getOptionsFile(GameChangersOptionsOp.FILENAME));
         teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
+        startingPosition = optionsFile.get(GameChangersOptionsOp.startingPositionTag, GameChangersOptionsOp.startingPositionDefault);
         ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
-        ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR);
+        ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR, startingPosition);
         webcamName = robotCfg.getWebcamName();
         super.setup();
     }
@@ -190,7 +192,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         b.addResultReceiverReady(S.WAIT_FOR_START, S.OPENCV_RESULT, waitForStartRR);
         b.addResultReceiverReady(S.OPENCV_RESULT, S.OPENCV_STOP, ringNumbersResultReceiver);
         b.add(S.OPENCV_STOP, makeOpenCVStopper(S.VUFORIA_INIT));
-        b.add(S.VUFORIA_INIT, makeVuforiaInit(S.VUFORIA_EXPLORE));
+        b.add(S.VUFORIA_INIT, makeVuforiaInit(S.WAIT_FOR_OTHER_TEAM));
+        b.addWait(S.WAIT_FOR_OTHER_TEAM, S.VUFORIA_EXPLORE, Time.fromSeconds(initialDelay));
         b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
         b.addWait(S.WAIT, S.RUN_VUFORIA, 3000);
         double transGain = 0.03; // need to test
@@ -364,7 +367,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         OPENCV_STOP,
         OPENCV_RESULT,
         VUFORIA_INIT,
-        VUFORIA_EXPLORE, WAIT_FOR_START, OPENCV_INIT
+        VUFORIA_EXPLORE, WAIT_FOR_START, WAIT_FOR_OTHER_TEAM, OPENCV_INIT
     }
 
 

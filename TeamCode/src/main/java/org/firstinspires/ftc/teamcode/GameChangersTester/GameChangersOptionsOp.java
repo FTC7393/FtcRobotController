@@ -15,6 +15,8 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
      */
         public static final String FILENAME = "options_gamechangers.txt";
         public static final String teamColorTag = "teamColor";
+        public static final String startingPositionTag = "startPosition";
+        public static final StartingPosition startingPositionDefault = StartingPosition.LEFT;
         public static final TeamColor teamColorDefault = TeamColor.BLUE;
         public static final String initialAutoDelayTag = "initialAutoDelay";
         private int index = 0;
@@ -90,6 +92,18 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
                     saveOptionsFile();
                 }
             }
+            if(driver1.right_bumper.justPressed()) {
+                if(values[index] == Opts.START_POSITION) {
+                    StartingPosition startingPosition = optionsFile.get(Opts.START_POSITION.s, startingPositionDefault);
+                    if (startingPosition == StartingPosition.LEFT) {
+                        startingPosition = StartingPosition.RIGHT;
+                    } else {
+                        startingPosition = StartingPosition.LEFT;
+                    }
+                    optionsFile.set(Opts.START_POSITION.s, startingPosition);
+                    saveOptionsFile();
+                }
+            }
 //        if(driver1.right_bumper.justPressed()) {
 //            if (values[index] == Opts.WAIT_TIME) {
 //                double waitTime = optionsFile.get(wait, waitDefault);
@@ -127,7 +141,7 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
         }
 
         public enum Opts {
-            TEAM_COLOR(teamColorTag), INITTIAL_AUTO_DELAY(initialAutoDelayTag);
+            TEAM_COLOR(teamColorTag), INITTIAL_AUTO_DELAY(initialAutoDelayTag), START_POSITION(startingPositionTag);
 
             //        public boolean b;
 //        public double f;
