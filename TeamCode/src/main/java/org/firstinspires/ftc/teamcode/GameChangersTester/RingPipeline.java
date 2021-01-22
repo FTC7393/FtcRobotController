@@ -11,9 +11,10 @@ import org.openftc.easyopencv.OpenCvPipeline;
 import ftc.electronvolts.util.BasicResultReceiver;
 import ftc.electronvolts.util.ResultReceiver;
 
-public class SamplePipeline extends OpenCvPipeline {
+public class RingPipeline extends OpenCvPipeline {
 
-    private ResultReceiver<RING_NUMBERS> resultReceiver;
+    private final ResultReceiver<RING_NUMBERS> resultReceiver;
+    private final ResultReceiver<Boolean> waitForStartRR;
 
     private RING_NUMBERS ringValue;
 
@@ -40,8 +41,9 @@ public class SamplePipeline extends OpenCvPipeline {
     Mat hsv_image = new Mat();
     Mat saturation_channel = new Mat();
 
-    public SamplePipeline(ResultReceiver<RING_NUMBERS> resultReceiver) {
+    public RingPipeline(ResultReceiver<RING_NUMBERS> resultReceiver, ResultReceiver<Boolean> waitForStartRR) {
         this.resultReceiver = resultReceiver;
+        this.waitForStartRR = waitForStartRR;
     }
 
     void inputToCb(Mat input)
@@ -75,13 +77,14 @@ public class SamplePipeline extends OpenCvPipeline {
 
         Imgproc.rectangle( input, region1_pointA, region1_pointB, new Scalar(0, 255, 0), 4);
 
-        resultReceiver.setValue(ringValue);
-
+        if(waitForStartRR.isReady()) {
+            resultReceiver.setValue(ringValue);
+        }
         return input;
 
     }
 
-    public RING_NUMBERS getRingValue()  {
+    public RING_NUMBERS getRingNumber()  {
         return ringValue;
     }
 

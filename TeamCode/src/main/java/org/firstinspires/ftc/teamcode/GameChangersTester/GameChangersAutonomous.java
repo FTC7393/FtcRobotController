@@ -24,6 +24,7 @@ import ftc.electronvolts.statemachine.State;
 import ftc.electronvolts.statemachine.StateMachine;
 import ftc.electronvolts.statemachine.StateMap;
 import ftc.electronvolts.statemachine.StateName;
+import ftc.electronvolts.util.BasicResultReceiver;
 import ftc.electronvolts.util.InputExtractor;
 import ftc.electronvolts.util.RepeatedResultReceiver;
 import ftc.electronvolts.util.ResultReceiver;
@@ -56,9 +57,10 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private VuCalc vuCalc;
     private VuforiaRotationTranslationCntrl xyrControl;
     private OpenCvWebcam webcam;
-    private SamplePipeline samplePipeline;
-    ResultReceiver<SamplePipeline.RING_NUMBERS> ringNumbersResultReceiver;
+    private RingPipeline ringPipeline;
+    ResultReceiver<RingPipeline.RING_NUMBERS> ringNumbersResultReceiver;
     ResultReceiver<VuforiaPositionHolder> vuforiaPosRR = new RepeatedResultReceiver<>(5);
+    ResultReceiver<Boolean> waitForStartRR = new BasicResultReceiver<>();
     VuforiaTrackables targetsUltimateGoal;
     private List<VuforiaTrackable> allTrackables;
 
@@ -70,6 +72,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         String line = breader.readLine();
         breader.close();
         VUFORIA_KEY = line + " \n";
+    }
+
+    @Override
+    protected GameChangersRobotCfg createRobotCfg() {
+        return new GameChangersRobotCfg(hardwareMap);
     }
 
     @Override
@@ -161,19 +168,55 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
         ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
-        samplePipeline = new SamplePipeline(ringNumbersResultReceiver);
+        ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR);
         super.setup();
     }
 
     @Override
     protected void setup_act() {
         stateMachine.act();
-        telemetry.addData("number of rings", ringNumbersResultReceiver.isReady() ? ringNumbersResultReceiver.getValue() : "null");
         telemetry.addData("state", stateMachine.getCurrentStateName());
-        telemetry.addData("xyrControl current x", xyrControl.getCurrentX());
-        telemetry.addData("xyrControl current y", xyrControl.getCurrentY());
-        telemetry.addData("vuforia position", vuforiaPosRR.isReady() ? vuforiaPosRR.getValue() : "null");
+        telemetry.addData("number of rings", ringPipeline.getRingNumber());
         telemetry.update();
+    }
+
+
+
+    @Override
+    public StateMachine buildStates() {
+        EVStateMachineBuilder b = new EVStateMachineBuilder(S.OPENCV_INIT, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl());
+        b.add(S.OPENCV_INIT, makeOpenCvInit(S.WAIT_FOR_START));
+        b.addResultReceiverReady(S.WAIT_FOR_START, S.OPENCV_RESULT, waitForStartRR);
+        b.addResultReceiverReady(S.OPENCV_RESULT, S.OPENCV_STOP, ringNumbersResultReceiver);
+        b.add(S.OPENCV_STOP, makeOpenCVStopper(S.VUFORIA_INIT));
+        b.add(S.VUFORIA_INIT, makeVuforiaInit(S.VUFORIA_EXPLORE));
+        b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
+        b.addWait(S.WAIT, S.RUN_VUFORIA, 3000);
+        double transGain = 0.03; // need to test
+        double transDeadZone = 2.0; // need to test
+        double transMinPower = .15; // need to test
+        double transMaxPower = 1.0; // need to test
+        //might not need (in inches)
+        double upperGainDistanceTreshold = 12; // need to test
+        xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
+        b.add(S.VUFORIA_EXPLORE, getVuforiaPosition());
+        EndCondition vuforiaArrived = new EndCondition() {
+            // making inline class
+            @Override
+            public void init() {
+
+            }
+
+            @Override
+            public boolean isDone() {
+                return xyrControl.isDone();
+            }
+        };
+        // add other pairs of state name end conditions
+        b.addDrive(S.RUN_VUFORIA, StateMap.of(S.STOP, vuforiaArrived, S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
+        b.addStop(S.TIMEOUT_LINE);
+        b.addStop(S.STOP);
+        return b.build();
     }
 
     private void initVuforia() {
@@ -215,7 +258,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     public void run() {
                         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
                         webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
-                        webcam.setPipeline(samplePipeline);
+                        webcam.setPipeline(ringPipeline);
                         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
                             @Override
                             public void onOpened() {
@@ -311,43 +354,6 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         };
     }
 
-    @Override
-    public StateMachine buildStates() {
-        EVStateMachineBuilder b = new EVStateMachineBuilder(S.OPENCV_INIT, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl());
-        b.add(S.OPENCV_INIT, makeOpenCvInit(S.OPENCV_RESULT));
-        b.addResultReceiverReady(S.OPENCV_RESULT, S.OPENCV_STOP, ringNumbersResultReceiver);
-        b.add(S.OPENCV_STOP, makeOpenCVStopper(S.VUFORIA_INIT));
-        b.add(S.VUFORIA_INIT, makeVuforiaInit(S.VUFORIA_EXPLORE));
-        b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
-        b.addWait(S.WAIT, S.RUN_VUFORIA, 3000);
-        double transGain = 0.01; // need to test
-        double transDeadZone = 2.0; // need to test
-        double transMinPower = .15; // need to test
-        double transMaxPower = 1.0; // need to test
-        //might not need (in inches)
-        double upperGainDistanceTreshold = 12; // need to test
-        xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
-        b.add(S.VUFORIA_EXPLORE, getVuforiaPosition());
-        EndCondition vuforiaArrived = new EndCondition() {
-            // making inline class
-            @Override
-            public void init() {
-
-            }
-
-            @Override
-            public boolean isDone() {
-                return xyrControl.isDone();
-            }
-        };
-        // add other pairs of state name end conditions
-        b.addDrive(S.RUN_VUFORIA, StateMap.of(S.STOP, vuforiaArrived, S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
-        b.addStop(S.TIMEOUT_LINE);
-        b.addStop(S.STOP);
-        return b.build();
-    }
-
-
     public enum S implements StateName {
         DRIVE_1,
         WAIT,
@@ -357,25 +363,26 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         OPENCV_STOP,
         OPENCV_RESULT,
         VUFORIA_INIT,
-        VUFORIA_EXPLORE, OPENCV_INIT
+        VUFORIA_EXPLORE, WAIT_FOR_START, OPENCV_INIT
     }
 
+
+
     @Override
-    protected GameChangersRobotCfg createRobotCfg() {
-        return new GameChangersRobotCfg(hardwareMap);
+    protected void go() {
+        waitForStartRR.setValue(true);
     }
 
     @Override
     protected void act() {
+        telemetry.addData("state", stateMachine.getCurrentStateName());
+        telemetry.addData("number of rings", ringNumbersResultReceiver.isReady() ? ringNumbersResultReceiver.getValue() : "null");
+        telemetry.addData("vuforia position", vuforiaPosRR.isReady() ? vuforiaPosRR.getValue() : "null");
         telemetry.addData("x", xyrControl.getCurrentX());
         telemetry.addData("y", xyrControl.getCurrentY());
-        telemetry.addData("state", stateMachine.getCurrentStateName());
     }
 
-    @Override
-    protected void go() {
 
-    }
 
     @Override
     protected void end() {

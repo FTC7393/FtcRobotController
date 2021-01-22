@@ -32,4 +32,9 @@ public class VuforiaPositionHolder {
     public int hashCode() {
         return Objects.hash(vuforiaPosition);
     }
+
+    @Override
+    public String toString() {
+        return String.format("%5.1f", vuforiaPosition.getX()) + ":" + String.format("%5.1f", vuforiaPosition.getY());
+    }
 }

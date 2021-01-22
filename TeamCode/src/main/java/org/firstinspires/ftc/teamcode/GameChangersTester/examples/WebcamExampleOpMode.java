@@ -1,10 +1,11 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester.examples;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.GameChangersTester.GameChangersRobotCfg;
-import org.firstinspires.ftc.teamcode.GameChangersTester.SamplePipeline;
+import org.firstinspires.ftc.teamcode.GameChangersTester.RingPipeline;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -14,13 +15,13 @@ import ftc.electronvolts.util.Function;
 import ftc.electronvolts.util.ResultReceiver;
 import ftc.electronvolts.util.files.Logger;
 import ftc.evlib.opmodes.AbstractTeleOp;
-
+@Disabled
 @TeleOp(name = "webcamTestOp")
 public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
 
     OpenCvCamera webcam;
     ResultReceiver resultReceiver = new BasicResultReceiver();
-    private SamplePipeline samplePipeline = new SamplePipeline(resultReceiver);
+    private RingPipeline samplePipeline = new RingPipeline(resultReceiver, new BasicResultReceiver<Boolean>());
 
 
     @Override
@@ -62,7 +63,7 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
         telemetry.addData("Overhead time ms", webcam.getOverheadTimeMs());
         telemetry.addData("Theoretical max FPS", webcam.getCurrentPipelineMaxFps());
         telemetry.addData("avg color value", samplePipeline.getAvgSaturation());
-        SamplePipeline.RING_NUMBERS rv = samplePipeline.getRingValue();
+        RingPipeline.RING_NUMBERS rv = samplePipeline.getRingNumber();
         telemetry.addData("number of rings", rv == null ? "null" : rv.name());
         telemetry.update();
     }
