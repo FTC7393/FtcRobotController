@@ -8,7 +8,10 @@ import ftc.electronvolts.util.Function;
 import ftc.electronvolts.util.Functions;
 import ftc.electronvolts.util.TeamColor;
 import ftc.electronvolts.util.Utility;
+import ftc.electronvolts.util.files.OptionsFile;
 import ftc.evlib.opmodes.AbstractOptionsOp;
+import ftc.evlib.util.EVConverters;
+import ftc.evlib.util.FileUtil;
 
 @TeleOp(name = "GameChangers OptionsOp")
 public class GameChangersOptionsOp extends AbstractOptionsOp{
@@ -142,7 +145,12 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
             return Functions.none();
         }
 
-        public enum Opts {
+        public void loadOptionsFile() {
+        optionsFile = new OptionsFile(GCConverters.getInstance(), FileUtil.getOptionsFile(filename));
+        }
+
+
+    public enum Opts {
             TEAM_COLOR(teamColorTag), INITIAL_AUTO_DELAY(initialAutoDelayTag), START_POSITION(startingPositionTag);
 
             //        public boolean b;

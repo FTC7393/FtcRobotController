@@ -17,7 +17,7 @@ import ftc.electronvolts.util.units.Time;
  * @see OptionsFile
  */
 public abstract class AbstractOptionsOp extends ftc.evlib.opmodes.AbstractTeleOp<RobotCfg> {
-    private final String filename;
+    protected final String filename;
     public OptionsFile optionsFile;
 
     /**
