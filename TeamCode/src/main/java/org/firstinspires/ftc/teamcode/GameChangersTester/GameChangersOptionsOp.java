@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
+import android.graphics.Path;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import ftc.electronvolts.util.Function;
@@ -127,7 +129,7 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
 
             telemetry.addData(initialAutoDelayTag, optionsFile.get(Opts.INITIAL_AUTO_DELAY.s, initialAutoDelayDefault));
 
-
+            telemetry.addData(startingPositionTag, optionsFile.get(Opts.START_POSITION.s, startingPositionDefault));
 
         }
 
