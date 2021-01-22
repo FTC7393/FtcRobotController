@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
@@ -14,8 +15,10 @@ import ftc.electronvolts.util.TeamColor;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.ZXY;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.ZYX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 
@@ -35,22 +38,28 @@ public class VuLocalizer {
 
 
 
+
+
     public static List<VuforiaTrackable> setVuLocalizer(TeamColor tc, VuforiaTrackables targetsUltimateGoal, VuforiaLocalizer.Parameters parameters ) {
 
         // the order of the rotations/transformations are the same order we wanna transfrom the coords of the camera
-        float phoneZRotate  = 0;
+        AxesOrder axesOrder = XZY;
         float phoneXRotate  = 0;
+        float phoneZRotate  = 0;
         float phoneYRotate  = 0;
 
+
          if(tc == TeamColor.BLUE){
-             phoneZRotate = 0;
-             phoneXRotate  = 0;
-             phoneYRotate  = -90;
+             phoneXRotate  = 90;
+             phoneZRotate = -90;
+             phoneYRotate  = 5;
+
          }
          else if(tc == TeamColor.RED){
-             phoneZRotate  = 0;
-             phoneXRotate  = 0;
-             phoneYRotate  = 90;
+             phoneXRotate  = 90;
+             phoneZRotate = 90;
+             phoneYRotate  = -5;
+
          }
 
         VuforiaTrackable blueTowerGoalTarget = targetsUltimateGoal.get(0);
@@ -128,7 +137,7 @@ public class VuLocalizer {
 
         OpenGLMatrix robotFromCamera = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, ZXY, DEGREES, phoneZRotate, phoneXRotate, phoneYRotate));
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, axesOrder, DEGREES, phoneZRotate, phoneXRotate, phoneYRotate));
 
         /**  Let all the trackable listeners know where the phone is.  */
         for (VuforiaTrackable trackable : allTrackables) {

@@ -193,9 +193,10 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         b.addResultReceiverReady(S.OPENCV_RESULT, S.OPENCV_STOP, ringNumbersResultReceiver);
         b.add(S.OPENCV_STOP, makeOpenCVStopper(S.VUFORIA_INIT));
         b.add(S.VUFORIA_INIT, makeVuforiaInit(S.WAIT_FOR_OTHER_TEAM));
-        b.addWait(S.WAIT_FOR_OTHER_TEAM, S.VUFORIA_EXPLORE, Time.fromSeconds(initialDelay));
-        b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(4), 0.08, 270, 0);
-        b.addWait(S.WAIT, S.RUN_VUFORIA, 3000);
+        b.addWait(S.WAIT_FOR_OTHER_TEAM, S.DRIVE_1, Time.fromSeconds(initialDelay));
+        b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(2), 1.0, 270, 0);
+        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000);
+
         double transGain = 0.03; // need to test
         double transDeadZone = 2.0; // need to test
         double transMinPower = .15; // need to test
