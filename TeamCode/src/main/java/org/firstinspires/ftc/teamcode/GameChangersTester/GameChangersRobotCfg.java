@@ -44,7 +44,7 @@ public class GameChangersRobotCfg extends RobotCfg {
     private final IMUGyro gyro;
     private final AnalogSensor potentiometer;
     private final MotorEnc flyWheelShooter;
-    private final double flyWheelMotorSpeed = -0.9;
+    private final double flyWheelMotorSpeed = -0.6;
 
 
 

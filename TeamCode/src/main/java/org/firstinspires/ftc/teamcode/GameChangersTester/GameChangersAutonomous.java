@@ -172,6 +172,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
         ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR, startingPosition);
         webcamName = robotCfg.getWebcamName();
+        robotCfg.getCameraServo().goToPreset(ServoPresets.Camera.MIDDLE);
         super.setup();
     }
 
