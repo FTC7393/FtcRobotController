@@ -38,7 +38,6 @@ import ftc.electronvolts.util.units.Time;
 import ftc.evlib.opmodes.AbstractAutoOp;
 import ftc.evlib.statemachine.EVEndConditions;
 import ftc.evlib.statemachine.EVStateMachineBuilder;
-import ftc.evlib.util.EVConverters;
 import ftc.evlib.util.FileUtil;
 import ftc.evlib.util.ImmutableList;
 
@@ -392,7 +391,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         telemetry.addData("vuforia position", vuforiaPosRR.isReady() ? vuforiaPosRR.getValue() : "null");
         telemetry.addData("x", xyrControl.getCurrentX());
         telemetry.addData("y", xyrControl.getCurrentY());
-        telemetry.addData("vuCalc heading", xyrControl.getVuCalcHeading());
+        telemetry.addData("robot heading", xyrControl.getHeading());
     }
 
 
