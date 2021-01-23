@@ -12,7 +12,7 @@ public class ServoPresets {
     public enum Elevation implements Preset{
         SHOOTING,
         COLLECTING,
-        POWER_SHOT
+        POWERSHOOTING
     }
 
     public enum WobblePincher implements Preset {
