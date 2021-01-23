@@ -86,6 +86,14 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
         return getPos(1);
     }
 
+    public double getVuCalcHeading() {
+        if(vuCalc != null) {
+            return vuCalc.getHeading();
+        } else {
+            return Double.NaN;
+        }
+    }
+
     @Override
     public boolean act() {
         vuCalc.update();

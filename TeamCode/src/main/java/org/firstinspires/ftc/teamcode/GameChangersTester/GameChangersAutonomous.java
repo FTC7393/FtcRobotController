@@ -385,6 +385,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         telemetry.addData("vuforia position", vuforiaPosRR.isReady() ? vuforiaPosRR.getValue() : "null");
         telemetry.addData("x", xyrControl.getCurrentX());
         telemetry.addData("y", xyrControl.getCurrentY());
+        telemetry.addData("vuCalc heading", xyrControl.getVuCalcHeading());
     }
 
 
