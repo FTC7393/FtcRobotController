@@ -54,7 +54,6 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private double initialDelay = 0.0;
     double xDestIn = 0.0;
     double yDestIn = 0.0;
-    private VuCalc vuCalc;
     private VuforiaRotationTranslationCntrl xyrControl;
     private OpenCvWebcam webcam;
     private RingPipeline ringPipeline;
