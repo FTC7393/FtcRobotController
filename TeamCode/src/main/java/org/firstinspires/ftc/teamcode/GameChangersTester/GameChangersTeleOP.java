@@ -177,7 +177,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
         if(driver1.b.justPressed()) {
             robotCfg.getWobbleGoalArm().moveArmMoreDown();
-            wobbleGoalGrabberIsUp = true;
+            wobbleGoalGrabberIsUp = false;
         }
 
     }
