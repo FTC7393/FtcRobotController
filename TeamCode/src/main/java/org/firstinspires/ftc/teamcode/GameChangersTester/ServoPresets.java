@@ -23,8 +23,8 @@ public class ServoPresets {
     }
 
     public enum Camera implements Preset {
-        BLUE,
         MIDDLE,
+        BLUE,
         RED
     }
 
