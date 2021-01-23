@@ -63,6 +63,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     VuforiaTrackables targetsUltimateGoal;
     private List<VuforiaTrackable> allTrackables;
     private StartingPosition startingPosition;
+    private ServoPresets.Camera cameraServoPreset;
 
     public GameChangersAutonomous() throws IOException {
         super();
@@ -188,10 +189,16 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     @Override
     public StateMachine buildStates() {
         EVStateMachineBuilder b = new EVStateMachineBuilder(S.OPENCV_INIT, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl());
+        if(teamColor == TeamColor.BLUE) {
+            cameraServoPreset = ServoPresets.Camera.BLUE;
+        } else {
+            cameraServoPreset = ServoPresets.Camera.RED;
+        }
         b.add(S.OPENCV_INIT, makeOpenCvInit(S.WAIT_FOR_START));
         b.addResultReceiverReady(S.WAIT_FOR_START, S.OPENCV_RESULT, waitForStartRR);
         b.addResultReceiverReady(S.OPENCV_RESULT, S.OPENCV_STOP, ringNumbersResultReceiver);
-        b.add(S.OPENCV_STOP, makeOpenCVStopper(S.VUFORIA_INIT));
+        b.add(S.OPENCV_STOP, makeOpenCVStopper(S.SET_CAMERA_SERVO));
+        b.addServo(S.SET_CAMERA_SERVO, S.VUFORIA_INIT, robotCfg.getCameraServo().getName(), cameraServoPreset, false);
         b.add(S.VUFORIA_INIT, makeVuforiaInit(S.WAIT_FOR_OTHER_TEAM));
         b.addWait(S.WAIT_FOR_OTHER_TEAM, S.DRIVE_1, Time.fromSeconds(initialDelay));
         b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(2), 1.0, 270, 0);
@@ -368,7 +375,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         OPENCV_STOP,
         OPENCV_RESULT,
         VUFORIA_INIT,
-        VUFORIA_EXPLORE, WAIT_FOR_START, WAIT_FOR_OTHER_TEAM, OPENCV_INIT
+        VUFORIA_EXPLORE, WAIT_FOR_START, WAIT_FOR_OTHER_TEAM, SET_CAMERA_SERVO, OPENCV_INIT
     }
 
 
