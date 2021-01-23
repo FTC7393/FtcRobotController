@@ -20,7 +20,7 @@ public class Collector {
     public Collector(Motor collectorMotor, ServoControl collectorServo)
     {
         this.collectorMotor = collectorMotor;
-        this.collectorServo = collectorServo;
+        this.collectorServo = collectorServo; // this is the collector servo
     }
 
     public void ingest()

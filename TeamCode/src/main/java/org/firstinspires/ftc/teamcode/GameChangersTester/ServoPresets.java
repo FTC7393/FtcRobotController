@@ -5,11 +5,14 @@ import java.util.HashMap;
 public class ServoPresets {
 
     public enum Pusher implements Preset{
-        RELEASE, PUSH
+        RELEASE,
+        PUSH
     }
 
     public enum Elevation implements Preset{
-        SHOOTING, COLLECTING
+        SHOOTING,
+        COLLECTING,
+        POWERSHOOTING
     }
 
     public enum WobblePincher implements Preset {
@@ -23,8 +26,8 @@ public class ServoPresets {
     }
 
     public enum Camera implements Preset {
-        BLUE,
         MIDDLE,
+        BLUE,
         RED
     }
 
