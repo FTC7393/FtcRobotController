@@ -203,7 +203,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         double transMaxPower = 1.0; // need to test
         //might not need (in inches)
         double upperGainDistanceTreshold = 12; // need to test
-        xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
+        xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold, teamColor);
         b.add(S.VUFORIA_EXPLORE, getVuforiaPosition());
         EndCondition vuforiaArrived = new EndCondition() {
             // making inline class

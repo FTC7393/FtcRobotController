@@ -6,6 +6,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 
+import ftc.electronvolts.util.TeamColor;
 import ftc.electronvolts.util.Vector2D;
 import ftc.electronvolts.util.units.Angle;
 import ftc.evlib.hardware.sensors.HeadingSource;
@@ -22,17 +23,23 @@ public class VuCalc implements HeadingSource {
     private final VuforiaTrackable trackable;
     private static final double mmPerInch = 25.4f;
     //offset between vuforia frame and robot frame
-    public static final double orientationTransformation = -90;
+    public final double orientationTransformation = -90;
+    public final double headingOffset;
 
     private Vector2D translation;
     private double heading;
 
     private VectorF currentPos;
 
-    public VuCalc(double xDestIn, double yDestIn, VuforiaTrackable trackable) {
+    public VuCalc(double xDestIn, double yDestIn, VuforiaTrackable trackable, TeamColor tc) {
         this.xDestIn = xDestIn;
         this.yDestIn = yDestIn;
         this.trackable = trackable;
+        if(tc == TeamColor.BLUE)
+            headingOffset = 180;
+        else
+            headingOffset = 0;
+
     }
 
 
@@ -55,7 +62,8 @@ public class VuCalc implements HeadingSource {
                 // transforming the heading as well to the robot frame, you have to translate by 90 to the left to go to the robot frame, heavily dependent on robot location
                 translation = new Vector2D(vuVec.getLength(), Angle.fromDegrees(vuVec.getDirection().degrees() + orientationTransformation));
                 Orientation rotation = Orientation.getOrientation(robotLocation, EXTRINSIC, XYZ, DEGREES);
-                heading = rotation.thirdAngle + orientationTransformation;
+                double rawHeading = HeadingFixer.fix(rotation.thirdAngle, trackable.getName(), rotation.firstAngle);
+                heading = rotation.thirdAngle + headingOffset;
             }
         }
 

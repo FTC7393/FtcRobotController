@@ -5,6 +5,7 @@ import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 
 import ftc.electronvolts.util.ProportionalController;
+import ftc.electronvolts.util.TeamColor;
 import ftc.electronvolts.util.Vector2D;
 import ftc.electronvolts.util.units.Angle;
 import ftc.evlib.hardware.control.RotationControl;
@@ -13,6 +14,7 @@ import ftc.evlib.hardware.control.XYRControl;
 
 public class VuforiaRotationTranslationCntrl extends XYRControl {
 
+    private final TeamColor tc;
     private double velocityR;
     private Angle polarDirectionCorrection;
     private Vector2D translation;
@@ -33,15 +35,16 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
      * @param transMinPower -  the minimum motor power
      * @param transMaxPower -  the maximum motor power
      */
-    public VuforiaRotationTranslationCntrl(double transGain, double transDeadZone, double transMinPower, double transMaxPower, double upperGainDistanceThreshold) {
+    public VuforiaRotationTranslationCntrl(double transGain, double transDeadZone, double transMinPower, double transMaxPower, double upperGainDistanceThreshold, TeamColor tc) {
         this.upperGainDistanceThreshold = upperGainDistanceThreshold;
         transPropCntrl = new ProportionalController(transGain, transDeadZone, transMinPower, transMaxPower);
         this.transDeadZone = transDeadZone;
+        this.tc = tc;
 
     }
 
     public void setVuCalc(VuforiaTrackable trackable, double xDestIn, double yDestIn,  double rotationGain, Angle targetHeading, Angle angleTolerance, double maxAngularSpeed, double minAngularSpeed) {
-        vuCalc = new VuCalc(xDestIn, yDestIn, trackable);
+        vuCalc = new VuCalc(xDestIn, yDestIn, trackable, tc);
         roTnCtnrl = RotationControls.headingSource(vuCalc, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
     }
 
@@ -84,6 +87,13 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
 
     public double getCurrentY(){
         return getPos(1);
+    }
+
+    public double getheading(){
+        if(vuCalc != null)
+            return vuCalc.getHeading();
+        else
+            return Double.NaN;
     }
 
     @Override
