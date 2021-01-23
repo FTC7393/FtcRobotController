@@ -38,7 +38,6 @@ import ftc.electronvolts.util.units.Time;
 import ftc.evlib.opmodes.AbstractAutoOp;
 import ftc.evlib.statemachine.EVEndConditions;
 import ftc.evlib.statemachine.EVStateMachineBuilder;
-import ftc.evlib.util.EVConverters;
 import ftc.evlib.util.FileUtil;
 import ftc.evlib.util.ImmutableList;
 
@@ -201,7 +200,14 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         b.addServo(S.SET_CAMERA_SERVO, S.VUFORIA_INIT, robotCfg.getCameraServo().getName(), cameraServoPreset, false);
         b.add(S.VUFORIA_INIT, makeVuforiaInit(S.WAIT_FOR_OTHER_TEAM));
         b.addWait(S.WAIT_FOR_OTHER_TEAM, S.DRIVE_1, Time.fromSeconds(initialDelay));
-        b.addDrive(S.DRIVE_1, S.WAIT, Distance.fromFeet(2), 1.0, 270, 0);
+        if(startingPosition == StartingPosition.LEFT ){
+            b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(1.5), 1.0, 270, 0);
+            b.addDrive(S.DRIVE_1B, S.WAIT, Distance.fromFeet(.3), 0.5, 180, 0);
+        }else{
+            b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(.2), .7, 180, 0);
+            b.addDrive(S.DRIVE_1B, S.DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
+            b.addDrive(S.DRIVE_1C, S.WAIT, Distance.fromFeet(.3), 1.0, 0, 0);
+        }
         b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000);
 
         double transGain = 0.03; // need to test
@@ -210,7 +216,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         double transMaxPower = 1.0; // need to test
         //might not need (in inches)
         double upperGainDistanceTreshold = 12; // need to test
-        xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
+        xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold, teamColor);
         b.add(S.VUFORIA_EXPLORE, getVuforiaPosition());
         EndCondition vuforiaArrived = new EndCondition() {
             // making inline class
@@ -368,6 +374,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     public enum S implements StateName {
         DRIVE_1,
+        DRIVE_1B,
+        DRIVE_1C,
         WAIT,
         RUN_VUFORIA,
         TIMEOUT_LINE,
@@ -392,7 +400,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         telemetry.addData("vuforia position", vuforiaPosRR.isReady() ? vuforiaPosRR.getValue() : "null");
         telemetry.addData("x", xyrControl.getCurrentX());
         telemetry.addData("y", xyrControl.getCurrentY());
-        telemetry.addData("vuCalc heading", xyrControl.getVuCalcHeading());
+        telemetry.addData("robot heading", xyrControl.getHeading());
     }
 
 

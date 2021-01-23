@@ -1,10 +1,8 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
@@ -14,9 +12,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import ftc.electronvolts.statemachine.BasicAbstractState;
 import ftc.electronvolts.statemachine.EndCondition;
-import ftc.electronvolts.statemachine.State;
 import ftc.electronvolts.statemachine.StateMachine;
 import ftc.electronvolts.statemachine.StateMap;
 import ftc.electronvolts.statemachine.StateName;
@@ -27,9 +23,7 @@ import ftc.electronvolts.util.files.OptionsFile;
 import ftc.electronvolts.util.units.Angle;
 import ftc.electronvolts.util.units.Distance;
 import ftc.electronvolts.util.units.Time;
-import ftc.evlib.hardware.control.XYRControl;
 import ftc.evlib.opmodes.AbstractAutoOp;
-import ftc.evlib.opmodes.AbstractOp;
 import ftc.evlib.statemachine.EVEndConditions;
 import ftc.evlib.statemachine.EVStateMachineBuilder;
 import ftc.evlib.util.EVConverters;
@@ -136,6 +130,18 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
                         }
                         return Double.NaN;
                     }
+                }),
+                new Logger.Column("heading", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return xyrControl.getHeading();
+                    }
+                }),
+                new Logger.Column("teamColor", new InputExtractor<String>() {
+                    @Override
+                    public String getValue() {
+                        return teamColor.name();
+                    }
                 })
         ));
     }
@@ -195,7 +201,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
         //might not need (in inches)
         double upperGainDistanceTreshold = 12; // need to test
         xyrControl = new VuforiaRotationTranslationCntrl(
-                transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold);
+                transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold, teamColor);
         EndCondition vuforiaArrived = new EndCondition() {
             // making inline class
             @Override
