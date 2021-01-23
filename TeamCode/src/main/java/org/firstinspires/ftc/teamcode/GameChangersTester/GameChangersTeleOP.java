@@ -159,6 +159,27 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             collectorIsSucking = !collectorIsSucking;
         }
 
+        if(driver1.x.justPressed()){ // hey guys lincoln here i dont know how to add input extractors please someone else do that
+            robotCfg.getCollector().stop();
+            robotCfg.getElevation().goToPreset(ServoPresets.Elevation.POWERSHOOTING);
+            robotCfg.startFlyWheel();
+            collectorIsSucking = false;
+
+        }
+
+        if(driver1.y.justPressed()){ // hey guys lincoln here i dont know how to add input extractors please someone else do that
+            robotCfg.getCollector().stop();
+            robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
+            robotCfg.stopFlyWheel();
+            collectorIsSucking = false;
+
+        }
+
+        if(driver1.b.justPressed()) {
+            robotCfg.getWobbleGoalArm().moveArmMoreDown();
+            wobbleGoalGrabberIsUp = true;
+        }
+
     }
 
     @Override
