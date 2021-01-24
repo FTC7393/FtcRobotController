@@ -159,7 +159,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             collectorIsSucking = !collectorIsSucking;
         }
 
-        if(driver1.x.justPressed()){ // hey guys lincoln here i dont know how to add input extractors please someone else do that
+        if(driver1.x.justPressed()){ 
             robotCfg.getCollector().stop();
             robotCfg.getElevation().goToPreset(ServoPresets.Elevation.POWERSHOOTING);
             robotCfg.startFlyWheel();
@@ -167,7 +167,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
         }
 
-        if(driver1.y.justPressed()){ // hey guys lincoln here i dont know how to add input extractors please someone else do that
+        if(driver1.y.justPressed()){
             robotCfg.getCollector().stop();
             robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
             robotCfg.stopFlyWheel();

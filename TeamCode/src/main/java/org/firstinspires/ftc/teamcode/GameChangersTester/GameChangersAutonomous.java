@@ -57,7 +57,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private OpenCvWebcam webcam;
     private RingPipeline ringPipeline;
     ResultReceiver<RingPipeline.RING_NUMBERS> ringNumbersResultReceiver;
-    ResultReceiver<VuforiaPositionHolder> vuforiaPosRR = new RepeatedResultReceiver<>(5);
+    ResultReceiver<VuforiaPositionHolder> vuforiaPosRR = new RepeatedResultReceiver<>(1);
     ResultReceiver<Boolean> waitForStartRR = new BasicResultReceiver<>();
     VuforiaTrackables targetsUltimateGoal;
     private List<VuforiaTrackable> allTrackables;
@@ -81,7 +81,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     @Override
     protected Logger createLogger() {
-        return null;
+        return createLogger_unused();
     }
 
     protected Logger createLogger_unused() {
@@ -157,6 +157,13 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                         }
                         return Double.NaN;
                     }
+                }),
+                new Logger.Column("robotHeading", new InputExtractor<Double>() {
+
+                    @Override
+                    public Double getValue() {
+                        return xyrControl.getHeading();
+                    }
                 })
         ));
     }
@@ -171,13 +178,15 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
         ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR, startingPosition);
         webcamName = robotCfg.getWebcamName();
-        robotCfg.getCameraServo().goToPreset(ServoPresets.Camera.MIDDLE);
+//        robotCfg.getCameraServo().goToPreset(ServoPresets.Camera.MIDDLE);
         super.setup();
     }
 
     @Override
     protected void setup_act() {
         stateMachine.act();
+        robotCfg.getCameraServo().act();
+        robotCfg.getPincher().act();
         telemetry.addData("state", stateMachine.getCurrentStateName());
         telemetry.addData("number of rings", ringPipeline.getRingNumber());
         telemetry.update();
@@ -208,7 +217,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addDrive(S.DRIVE_1B, S.DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
             b.addDrive(S.DRIVE_1C, S.WAIT, Distance.fromFeet(.3), 1.0, 0, 0);
         }
-        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000);
+        b.addWait(S.WAIT, S.DRIVE_VUFORIA_TO_POWERSHOT, 3000);
 
         double transGain = 0.03; // need to test
         double transDeadZone = 2.0; // need to test
@@ -231,7 +240,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             }
         };
         // add other pairs of state name end conditions
-        b.addDrive(S.RUN_VUFORIA, StateMap.of(S.STOP, vuforiaArrived, S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
+        b.addDrive(S.DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.STOP, vuforiaArrived, S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
         b.addStop(S.TIMEOUT_LINE);
         b.addStop(S.STOP);
         return b.build();
@@ -247,18 +256,18 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
         allTrackables = VuLocalizer.setVuLocalizer(teamColor,targetsUltimateGoal, parameters);
         if (teamColor == TeamColor.BLUE) {
-            towerGoalTarget = allTrackables.get(0);
+            towerGoalTarget = allTrackables.get(3);
             xDestIn = -4;
             yDestIn = 40;
         } else {
-            towerGoalTarget = allTrackables.get(1);
-            xDestIn = -4;
-            yDestIn = -40;
+            towerGoalTarget = allTrackables.get(2);
+            xDestIn = 0;
+            yDestIn = -20;
         }
         targetsUltimateGoal.activate();
         double rotationGain = 0.5; // need to test
-        Angle targetHeading = Angle.fromDegrees(0); // need to test
-        Angle angleTolerance = Angle.fromDegrees(2); // need to test
+        Angle targetHeading = Angle.fromDegrees(-2); // need to test
+        Angle angleTolerance = Angle.fromDegrees(.5); // need to test
         double maxAngularSpeed = .5; // need to test
         double minAngularSpeed = 0.05; // need to test
         // heavy dependency on robot orientation, refer to vuCalc class at the end of it
@@ -377,7 +386,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         DRIVE_1B,
         DRIVE_1C,
         WAIT,
-        RUN_VUFORIA,
+        DRIVE_VUFORIA_TO_POWERSHOT,
         TIMEOUT_LINE,
         STOP,
         OPENCV_STOP,
