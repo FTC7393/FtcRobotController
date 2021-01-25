@@ -35,6 +35,7 @@ import ftc.electronvolts.util.files.OptionsFile;
 import ftc.electronvolts.util.units.Angle;
 import ftc.electronvolts.util.units.Distance;
 import ftc.electronvolts.util.units.Time;
+import ftc.evlib.hardware.sensors.Gyro;
 import ftc.evlib.opmodes.AbstractAutoOp;
 import ftc.evlib.statemachine.EVEndConditions;
 import ftc.evlib.statemachine.EVStateMachineBuilder;
@@ -63,6 +64,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private List<VuforiaTrackable> allTrackables;
     private StartingPosition startingPosition;
     private ServoPresets.Camera cameraServoPreset;
+    private VuforiaToGyro vuforiaGyro;
 
     public GameChangersAutonomous() throws IOException {
         super();
@@ -226,8 +228,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addDrive(S.DRIVE_1C, S.WAIT, Distance.fromFeet(.3), 1.0, 0, 0);
         }
 
-        b.addWait(S.WAIT, S.DRIVE_VUFORIA_TO_POWERSHOT, 3000L);
-        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000L);
+        b.addWait(S.WAIT, S.DRIVE_VUFORIA_TO_POWERSHOT, 3000);
+//        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000);
 
         double transGain = 0.03; // need to test
         double transDeadZone = 2.0; // need to test
@@ -251,6 +253,15 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         };
         // add other pairs of state name end conditions
         b.addDrive(S.DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.WAIT_ELEVATION_STABILIZE, vuforiaArrived, S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
+        b.add(S.INIT_VUFORIA_GYRO, new State() {
+            @Override
+            public StateName act() {
+                VuCalc vuCalcParam = new VuCalc(0,0,towerGoalTarget,teamColor);
+                vuforiaGyro = new VuforiaToGyro(targetsUltimateGoal, vuCalcParam);
+                return S.LINEUP_SHOOTING_ROTATION;
+            }
+        });
+        b.addGyroTurn(S.LINEUP_SHOOTING_ROTATION, S.WAIT_ELEVATION_STABILIZE, vuforiaGyro, 0);
         b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 700L);
         b.add(S.SHOOT_RINGS, new ShooterState(robotCfg, 200L, 550L, S.TURN_OFF_SHOOTER));
         b.add(S.TURN_OFF_SHOOTER, new State() {
@@ -318,8 +329,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         //-------------------------------------------------------------------------------------------------------------------------------
         //4 rings
         //-------------------------------------------------------------------------------------------------------------------------------
-        b.addDrive(S.DRIVE_RING_4, S.DROP_WOBBLE_GOAL_4, Distance.fromFeet(1.3), 0.7, 265, 0);
-        b.add(S.MOVE_ARM_DOWN_0, new State() {
+        b.addDrive(S.DRIVE_RING_4, S.MOVE_ARM_DOWN_4, Distance.fromFeet(1.3), 0.7, 265, 0);
+        b.add(S.MOVE_ARM_DOWN_4, new State() {
             @Override
             public StateName act() {
                 robotCfg.getWobbleGoalArm().moveArmDown();
@@ -335,7 +346,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 return S.PARK_4;
             }
         });
-        b.addDrive(S.PARK_4, S.STOP, Distance.fromFeet(1.5), 1, 70, 0);
+        b.addDrive(S.PARK_4, S.STOP, Distance.fromFeet(1.3), 1, 60, 0);
 
         b.addStop(S.TIMEOUT_LINE);
         b.addStop(S.STOP);
@@ -463,28 +474,40 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             }
         };
     }
-
     private State getVuforiaPosition() {
-        return new BasicAbstractState() {
+        return new State() {
             @Override
-            public void init() {
-            }
-
-            @Override
-            public boolean isDone() {
+            public StateName act() {
                 xyrControl.act();
                 Vector2D vector = new Vector2D(xyrControl.getCurrentX(), xyrControl.getCurrentY());
                 VuforiaPositionHolder vuforiaPositionHolder = new VuforiaPositionHolder(vector);
                 vuforiaPosRR.setValue(vuforiaPositionHolder);
-                return false;
-            }
-
-            @Override
-            public StateName getNextStateName() {
                 return null;
             }
         };
     }
+
+//    private State getVuforiaPosition() {
+//        return new BasicAbstractState() {
+//            @Override
+//            public void init() {
+//            }
+//
+//            @Override
+//            public boolean isDone() {
+//                xyrControl.act();
+//                Vector2D vector = new Vector2D(xyrControl.getCurrentX(), xyrControl.getCurrentY());
+//                VuforiaPositionHolder vuforiaPositionHolder = new VuforiaPositionHolder(vector);
+//                vuforiaPosRR.setValue(vuforiaPositionHolder);
+//                return false;
+//            }
+//
+//            @Override
+//            public StateName getNextStateName() {
+//                return null;
+//            }
+//        };
+//    }
 
     public enum S implements StateName {
         DRIVE_1,
@@ -497,7 +520,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         OPENCV_STOP,
         OPENCV_RESULT,
         VUFORIA_INIT,
-        VUFORIA_EXPLORE, WAIT_FOR_START, WAIT_FOR_OTHER_TEAM, SET_CAMERA_SERVO, START_FLYWHEEL, SHOOT_RINGS, WAIT_ELEVATION_STABILIZE, TURN_OFF_SHOOTER, DETERMINE_RING_STACK, DRIVE_RING_0, DRIVE_RING_1, DRIVE_RING_4, PARK_0, PARK_1, PARK_4, DROP_WOBBLE_GOAL, MOVE_ARM_DOWN, WAIT_FOR_DROP, WAIT_FOR_DROP_0, DROP_WOBBLE_GOAL_0, DROP_WOBBLE_GOAL_1, DROP_WOBBLE_GOAL_4, MOVE_ARM_DOWN_0, MOVE_ARM_DOWN_1, WAIT_FOR_DROP_4, WAIT_FOR_DROP_1, MOVE_ARM_UP_4, MOVE_ARM_UP_1, MOVE_ARM_UP_0, OPENCV_INIT
+        VUFORIA_EXPLORE, WAIT_FOR_START, WAIT_FOR_OTHER_TEAM, SET_CAMERA_SERVO, START_FLYWHEEL, SHOOT_RINGS, WAIT_ELEVATION_STABILIZE, TURN_OFF_SHOOTER, DETERMINE_RING_STACK, DRIVE_RING_0, DRIVE_RING_1, DRIVE_RING_4, PARK_0, PARK_1, PARK_4, DROP_WOBBLE_GOAL, MOVE_ARM_DOWN, WAIT_FOR_DROP, WAIT_FOR_DROP_0, DROP_WOBBLE_GOAL_0, DROP_WOBBLE_GOAL_1, DROP_WOBBLE_GOAL_4, MOVE_ARM_DOWN_0, MOVE_ARM_DOWN_1, WAIT_FOR_DROP_4, WAIT_FOR_DROP_1, MOVE_ARM_UP_4, MOVE_ARM_UP_1, MOVE_ARM_UP_0, MOVE_ARM_DOWN_4, LINEUP_SHOOTING_ROTATION, INIT_VUFORIA_GYRO, OPENCV_INIT
     }
 
 
@@ -516,7 +539,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         telemetry.addData("y", xyrControl.getCurrentY());
         telemetry.addData("robot heading", xyrControl.getHeading());
         robotCfg.getFlyWheelShooter().update();
-//        robotCfg.getWobbleGoalArm().act();
+        robotCfg.getWobbleGoalArm().act();
     }
 
 

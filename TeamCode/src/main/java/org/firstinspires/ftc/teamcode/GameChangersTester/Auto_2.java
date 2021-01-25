@@ -41,7 +41,7 @@ import ftc.evlib.statemachine.EVStateMachineBuilder;
 import ftc.evlib.util.FileUtil;
 import ftc.evlib.util.ImmutableList;
 
-@Autonomous(name = "Auto_2")
+//@Autonomous(name = "Auto_2")
 
 
 public class Auto_2 extends AbstractAutoOp<GameChangersRobotCfg> {
@@ -217,7 +217,7 @@ public class Auto_2 extends AbstractAutoOp<GameChangersRobotCfg> {
             b.addDrive(S.DRIVE_1B, S.DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
             b.addDrive(S.DRIVE_1C, S.WAIT, Distance.fromFeet(.3), 1.0, 0, 0);
         }
-        b.addWait(S.WAIT, S.DRIVE_VUFORIA_TO_POWERSHOT, 3000);
+        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000);
 
         double transGain = 0.03; // need to test
         double transDeadZone = 2.0; // need to test
