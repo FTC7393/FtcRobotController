@@ -26,6 +26,8 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
     // vector from current position to target position
     private Vector2D rawTrans;
     private final double transDeadZone;
+    private Angle targetHeading;
+    private Angle angleTolerance;
 
 
     /**
@@ -46,6 +48,8 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
     public void setVuCalc(VuforiaTrackable trackable, double xDestIn, double yDestIn,  double rotationGain, Angle targetHeading, Angle angleTolerance, double maxAngularSpeed, double minAngularSpeed) {
         vuCalc = new VuCalc(xDestIn, yDestIn, trackable, tc);
         roTnCtnrl = RotationControls.headingSource(vuCalc, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
+        this.targetHeading = targetHeading;
+        this.angleTolerance = angleTolerance;
     }
 
     @Override
@@ -64,8 +68,11 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
     }
 
     public boolean isDone() {
-        if(rawTrans != null){
-            return rawTrans.getLength() <= transDeadZone;
+        if(rawTrans != null && vuCalc != null){
+            Vector2D currHeading = new Vector2D(1.0, Angle.fromDegrees(vuCalc.getHeading()));
+            Vector2D desiredHeading = new Vector2D(1.0, targetHeading);
+            double diffHeading = Vector2D.signedAngularSeparation(currHeading, desiredHeading).degrees();
+            return rawTrans.getLength() <= transDeadZone && diffHeading <= angleTolerance.degrees();
         }
         return false;
     }
