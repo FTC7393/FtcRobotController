@@ -1,6 +1,9 @@
 package ftc.evlib.statemachine;
 
 
+import org.firstinspires.ftc.teamcode.GameChangersTester.GameChangersAutonomous;
+import org.firstinspires.ftc.teamcode.GameChangersTester.VuforiaToGyro;
+
 import java.util.Map;
 
 import ftc.electronvolts.util.InputExtractor;
@@ -229,6 +232,10 @@ public class EVStateMachineBuilder extends StateMachineBuilder {
         add(stateName, ftc.evlib.statemachine.EVStates.gyroTurn(nextStateName, mecanumControl, gyro, gyroGain, orientation, tolerance));
 //        add(stateName, EVStates.mecanumDrive(nextStateName, Distance.zero(), mecanumControl, gyro, 0, Angle.zero(), orientation, tolerance));
     }
+    public void addGyroTurn(StateName stateName, StateName nextStateName, ResultReceiver<? extends Gyro> gyro, double orientationDegrees) {
+        add(stateName, ftc.evlib.statemachine.EVStates.gyroTurn(nextStateName, mecanumControl, gyro, gyroGain, Angle.fromDegrees(orientationDegrees), tolerance));
+    }
+
     ///// END TURN STATES /////
 
     ///// START SERVO STATES /////
@@ -308,5 +315,6 @@ public class EVStateMachineBuilder extends StateMachineBuilder {
     public void addResultReceiverReady(StateName stateName, StateName nextStateName, ResultReceiver resultReceiver) {
         add(stateName, EVStates.resultReceiverReady(nextStateName,resultReceiver));
     }
+
 
 }

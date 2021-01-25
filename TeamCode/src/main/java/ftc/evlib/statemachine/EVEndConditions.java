@@ -3,6 +3,7 @@ package ftc.evlib.statemachine;
 
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
+import ftc.electronvolts.util.ResultReceiver;
 import ftc.evlib.hardware.sensors.AnalogSensor;
 import ftc.evlib.hardware.sensors.ColorDigitalSensor;
 import ftc.evlib.hardware.sensors.DigitalSensor;
@@ -228,6 +229,23 @@ public class EVEndConditions extends EndConditions {
             @Override
             public boolean isDone() {
                 Vector2D gyroVector = new Vector2D(1, Angle.fromDegrees(gyro.getHeading()));
+                Angle separation = Vector2D.signedAngularSeparation(targetVector, gyroVector);
+                separationLog=separation.radians();
+                toleranceLog=tolerance.radians();
+                return Math.abs(separation.radians()) <= tolerance.radians();
+            }
+        };
+    }
+    public static EndCondition gyroCloseTo(final ResultReceiver<? extends Gyro> gyro, Angle target, final Angle tolerance) {
+        final Vector2D targetVector = new Vector2D(1, target);
+        return new EndCondition() {
+            @Override
+            public void init() {
+            }
+
+            @Override
+            public boolean isDone() {
+                Vector2D gyroVector = new Vector2D(1, Angle.fromDegrees(gyro.getValue().getHeading()));
                 Angle separation = Vector2D.signedAngularSeparation(targetVector, gyroVector);
                 separationLog=separation.radians();
                 toleranceLog=tolerance.radians();

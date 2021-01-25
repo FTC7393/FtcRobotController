@@ -1613,7 +1613,7 @@ public class EVStates extends States {
 
     public static State gyroTurn(StateName nextStateName, final MecanumControl mecanumControl,
                                  final Gyro gyro, final double gyroGain, final Angle orientation, final Angle tolerance) {
-    return gyroTurn(nextStateName,mecanumControl,gyro, gyroGain, orientation,tolerance,1);
+        return gyroTurn(nextStateName,mecanumControl,gyro, gyroGain, orientation,tolerance,1);
     }
 
     public static State gyroTurn(StateName nextStateName, final MecanumControl mecanumControl,
@@ -1640,6 +1640,38 @@ public class EVStates extends States {
             public void dispose() {
                 mecanumControl.stop();
                 gyro.setActive(false);
+            }
+        };
+    }
+    public static State gyroTurn(StateName nextStateName, final MecanumControl mecanumControl,
+                                 final ResultReceiver<? extends Gyro> gyro, final double gyroGain, final Angle orientation, final Angle tolerance) {
+        return gyroTurn(nextStateName,mecanumControl,gyro, gyroGain, orientation,tolerance,1);
+    }
+
+    public static State gyroTurn(StateName nextStateName, final MecanumControl mecanumControl,
+                                 final ResultReceiver<? extends Gyro> gyro, final double gyroGain, final Angle orientation, final Angle tolerance, final double speed) {
+        Map<StateName, EndCondition> transitions = StateMap.of(
+                nextStateName,
+                EVEndConditions.gyroCloseTo(gyro, orientation, tolerance)
+        );
+
+        return new AbstractState(transitions) {
+            @Override
+            public void init() {
+                mecanumControl.setTranslationControl(TranslationControls.ZERO);
+                mecanumControl.setRotationControl(RotationControls.gyro(gyro.getValue(), gyroGain, orientation, tolerance, speed));
+                gyro.getValue().setActive(true);
+            }
+
+            @Override
+            public void run() {
+
+            }
+
+            @Override
+            public void dispose() {
+                mecanumControl.stop();
+                gyro.getValue().setActive(false);
             }
         };
     }
