@@ -1,12 +1,8 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
-import com.qualcomm.robotcore.util.ElapsedTime;
-
 import ftc.electronvolts.statemachine.BasicAbstractState;
-import ftc.electronvolts.statemachine.State;
 import ftc.electronvolts.statemachine.StateName;
 import ftc.electronvolts.util.AnalogInputEdgeDetector;
-import ftc.evlib.hardware.config.RobotCfg;
 
 public class ShooterState extends BasicAbstractState {
 
@@ -15,12 +11,23 @@ public class ShooterState extends BasicAbstractState {
     private long initTime;
     private long firstPause;
     private long secondPause;
+    private int numCycles = 0;
+    private final StateName nextState;
 
-    public ShooterState(AnalogInputEdgeDetector collectorShooterButton, GameChangersRobotCfg robotCfg, long firstPause, long secondPause) {
+    public ShooterState(AnalogInputEdgeDetector collectorShooterButton, GameChangersRobotCfg robotCfg, long firstPause, long secondPause, StateName next) {
         this.collectorShooterButton = collectorShooterButton;
         this.robotCfg = robotCfg;
         this.firstPause = firstPause;
         this.secondPause = secondPause;
+        this.nextState = next;
+    }
+
+    public ShooterState(GameChangersRobotCfg robotCfg, long firstPause, long secondPause, StateName next) {
+        this.collectorShooterButton = null;
+        this.robotCfg = robotCfg;
+        this.firstPause = firstPause;
+        this.secondPause = secondPause;
+        this.nextState = next;
     }
 
     @Override
@@ -32,9 +39,16 @@ public class ShooterState extends BasicAbstractState {
 
     @Override
     public boolean isDone() {
-        if (!collectorShooterButton.isPressed()) {
-            robotCfg.getPusher().goToPreset(ServoPresets.Pusher.RELEASE);
-            return true;
+        if(collectorShooterButton == null) {
+            if(numCycles > 2) {
+                robotCfg.getPusher().goToPreset(ServoPresets.Pusher.RELEASE);
+                return true;
+            }
+        } else {
+            if (!collectorShooterButton.isPressed()) {
+                robotCfg.getPusher().goToPreset(ServoPresets.Pusher.RELEASE);
+                return true;
+            }
         }
 
         long timeSinceInit = System.currentTimeMillis() - initTime;
@@ -42,6 +56,7 @@ public class ShooterState extends BasicAbstractState {
         if (timeSinceInit > secondPause) {
             robotCfg.getPusher().goToPreset(ServoPresets.Pusher.PUSH);
             initTime = System.currentTimeMillis();
+            numCycles++;
         } else if (timeSinceInit > firstPause) {
             robotCfg.getPusher().goToPreset(ServoPresets.Pusher.RELEASE);
         }
@@ -50,6 +65,6 @@ public class ShooterState extends BasicAbstractState {
 
     @Override
     public StateName getNextStateName() {
-        return GameChangersTeleOP.S.IDLE;
+        return nextState;
     }
 }
