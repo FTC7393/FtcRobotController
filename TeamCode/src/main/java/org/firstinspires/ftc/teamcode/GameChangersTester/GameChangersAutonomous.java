@@ -294,7 +294,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 return S.PARK_0;
             }
         });
-        b.addDrive(S.PARK_0, S.STOP, Distance.fromFeet(.7), 1, 0, 0);
+        b.addDrive(S.PARK_0, S.STOP, Distance.fromFeet(.9), 1, 0, 0);
         //-------------------------------------------------------------------------------------------------------------------------------
         //1 ring
         //-------------------------------------------------------------------------------------------------------------------------------
@@ -315,11 +315,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 return S.PARK_1;
             }
         });
-        b.addDrive(S.PARK_1, S.STOP, Distance.fromFeet(0.7), 1, 55, 0);
+        b.addDrive(S.PARK_1, S.STOP, Distance.fromFeet(0.8), 1, 65, 0);
         //-------------------------------------------------------------------------------------------------------------------------------
         //4 rings
         //-------------------------------------------------------------------------------------------------------------------------------
-        b.addDrive(S.DRIVE_RING_4, S.MOVE_ARM_DOWN_4, Distance.fromFeet(1.3), 0.7, 265, 0);
+        b.addDrive(S.DRIVE_RING_4, S.MOVE_ARM_DOWN_4, Distance.fromFeet(1.5), 0.7, 260, 0);
         b.add(S.MOVE_ARM_DOWN_4, new State() {
             @Override
             public StateName act() {
@@ -336,7 +336,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 return S.PARK_4;
             }
         });
-        b.addDrive(S.PARK_4, S.STOP, Distance.fromFeet(1.5), 1, 70, 0);
+        b.addDrive(S.PARK_4, S.STOP, Distance.fromFeet(1.35), 1, 65, 0);
 
         b.addStop(S.TIMEOUT_LINE);
         b.addStop(S.STOP);

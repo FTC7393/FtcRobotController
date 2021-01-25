@@ -41,7 +41,7 @@ import ftc.evlib.statemachine.EVStateMachineBuilder;
 import ftc.evlib.util.FileUtil;
 import ftc.evlib.util.ImmutableList;
 
-@Autonomous(name = "Auto_2")
+//@Autonomous(name = "Auto_2")
 
 
 public class Auto_2 extends AbstractAutoOp<GameChangersRobotCfg> {
