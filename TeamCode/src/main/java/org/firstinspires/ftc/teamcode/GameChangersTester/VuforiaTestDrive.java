@@ -206,6 +206,7 @@ public class VuforiaTestDrive extends AbstractAutoOp<GameChangersRobotCfg> {
             // making inline class
             @Override
             public void init() {
+                robotCfg.getCameraServo().goToPreset(ServoPresets.Camera.BLUE);
                 xyrControl.setVuCalc(towerGoalTarget,xDestIn,yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
             }
 

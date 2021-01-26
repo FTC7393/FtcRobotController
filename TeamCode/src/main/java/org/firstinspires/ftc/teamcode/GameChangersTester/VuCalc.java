@@ -36,7 +36,7 @@ public class VuCalc implements HeadingSource {
         this.yDestIn = yDestIn;
         this.trackable = trackable;
         if(tc == TeamColor.BLUE)
-            headingOffset = 180;
+            headingOffset = 0;
         else
             headingOffset = 0;
 
@@ -63,7 +63,7 @@ public class VuCalc implements HeadingSource {
                 translation = new Vector2D(vuVec.getLength(), Angle.fromDegrees(vuVec.getDirection().degrees() + orientationTransformation));
                 Orientation rotation = Orientation.getOrientation(robotLocation, EXTRINSIC, XYZ, DEGREES);
                 double rawHeading = HeadingFixer.fix(rotation.thirdAngle, trackable.getName(), rotation.firstAngle);
-                heading = rotation.thirdAngle + headingOffset;
+                heading = rawHeading + headingOffset;
             }
         }
 

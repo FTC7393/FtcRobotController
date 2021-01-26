@@ -214,7 +214,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             public StateName act() {
                 robotCfg.startFlyWheel();
                 robotCfg.getElevation().goToPreset(ServoPresets.Elevation.SHOOTING);
-                return S.DRIVE_1;
+                if(teamColor == TeamColor.RED) {
+                    return S.DRIVE_1;
+                } else {
+                    return S.BLUE_DRIVE_1;
+                }
             }
         });
         if (teamColor == TeamColor.RED) {
@@ -226,8 +230,29 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 b.addDrive(S.DRIVE_1B, S.DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
                 b.addDrive(S.DRIVE_1C, S.WAIT, Distance.fromFeet(.3), 1.0, 0, 0);
             }
+            b.add(S.WAIT, new BasicAbstractState() {
+                private long initTime;
 
-            b.addWait(S.WAIT, S.DRIVE_VUFORIA_TO_POWERSHOT, 1000);
+                @Override
+                public void init() {
+                    initTime = System.currentTimeMillis();
+                }
+
+                @Override
+                public boolean isDone() {
+                    xyrControl.act();
+                    if(System.currentTimeMillis()- initTime > 1000L) {
+                        return true;
+                    }
+                    return false;
+                }
+
+                @Override
+                public StateName getNextStateName() {
+                    return S.DRIVE_VUFORIA_TO_POWERSHOT;
+                }
+            });
+//            b.addWait(S.WAIT, S.DRIVE_VUFORIA_TO_POWERSHOT, 1000);
 //        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000L);
 
             double transGain = 0.03; // need to test
@@ -343,15 +368,36 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addStop(S.STOP);
         } else {
             if (startingPosition == StartingPosition.LEFT) {
-                b.addDrive(S.BLUE_DRIVE_1, S.BLUE_DRIVE_1B, Distance.fromFeet(1.5), 1.0, 275, 0);
-                b.addDrive(S.BLUE_DRIVE_1B, S.BLUE_WAIT, Distance.fromFeet(.3), 0.5, 180, 0);
-            } else {
-                b.addDrive(S.BLUE_DRIVE_1, S.BLUE_DRIVE_1B, Distance.fromFeet(.2), .7, 180, 0);
+                b.addDrive(S.BLUE_DRIVE_1, S.BLUE_DRIVE_1B, Distance.fromFeet(.2), .7, 0, 0);
                 b.addDrive(S.BLUE_DRIVE_1B, S.BLUE_DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
-                b.addDrive(S.BLUE_DRIVE_1C, S.BLUE_WAIT, Distance.fromFeet(.3), 1.0, 0, 0);
+                b.addDrive(S.BLUE_DRIVE_1C, S.BLUE_WAIT, Distance.fromFeet(.3), 1.0, 180, 0);
+            } else {
+                b.addDrive(S.BLUE_DRIVE_1, S.BLUE_DRIVE_1B, Distance.fromFeet(1.5), 1.0, 265, 0);
+                b.addDrive(S.BLUE_DRIVE_1B, S.BLUE_WAIT, Distance.fromFeet(.3), 0.5, 0, 0);
             }
+            b.add(S.BLUE_WAIT, new BasicAbstractState() {
+                private long initTime;
 
-            b.addWait(S.BLUE_WAIT, S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, 1000);
+                @Override
+                public void init() {
+                    initTime = System.currentTimeMillis();
+                }
+
+                @Override
+                public boolean isDone() {
+                    xyrControl.act();
+                    if(System.currentTimeMillis()- initTime > 100L) {
+                        return true;
+                    }
+                    return false;
+                }
+
+                @Override
+                public StateName getNextStateName() {
+                    return S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT;
+                }
+            });
+//            b.addWait(S.BLUE_WAIT, S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, 1000);
 //        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000L);
 
             double transGain = 0.03; // need to test
@@ -402,7 +448,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             //-------------------------------------------------------------------------------------------------------------------------------
             //0 rings
             //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.BLUE_DRIVE_RING_0, S.BLUE_MOVE_ARM_DOWN_0, Distance.fromFeet(0.5), 0.7, 225, 0);
+            b.addDrive(S.BLUE_DRIVE_RING_0, S.BLUE_MOVE_ARM_DOWN_0, Distance.fromFeet(0.5), 0.7, 315, 0);
             b.add(S.BLUE_MOVE_ARM_DOWN_0, new State() {
                 @Override
                 public StateName act() {
@@ -419,11 +465,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     return S.BLUE_PARK_0;
                 }
             });
-            b.addDrive(S.BLUE_PARK_0, S.BLUE_STOP, Distance.fromFeet(.9), 1, 0, 0);
+            b.addDrive(S.BLUE_PARK_0, S.BLUE_STOP, Distance.fromFeet(.9), 1, 90, 0);
             //-------------------------------------------------------------------------------------------------------------------------------
             //1 ring
             //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.BLUE_DRIVE_RING_1, S.BLUE_MOVE_ARM_DOWN_1, Distance.fromFeet(1), 0.7, 280, 0);
+            b.addDrive(S.BLUE_DRIVE_RING_1, S.BLUE_MOVE_ARM_DOWN_1, Distance.fromFeet(1), 0.7, 260, 0);
             b.add(S.BLUE_MOVE_ARM_DOWN_1, new State() {
                 @Override
                 public StateName act() {
@@ -440,11 +486,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     return S.BLUE_PARK_1;
                 }
             });
-            b.addDrive(S.BLUE_PARK_1, S.BLUE_STOP, Distance.fromFeet(0.8), 1, 65, 0);
+            b.addDrive(S.BLUE_PARK_1, S.BLUE_STOP, Distance.fromFeet(0.8), 1, 115, 0);
             //-------------------------------------------------------------------------------------------------------------------------------
             //4 rings
             //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.BLUE_DRIVE_RING_4, S.BLUE_MOVE_ARM_DOWN_4, Distance.fromFeet(1.5), 0.7, 260, 0);
+            b.addDrive(S.BLUE_DRIVE_RING_4, S.BLUE_MOVE_ARM_DOWN_4, Distance.fromFeet(1.5), 0.7, 280, 0);
             b.add(S.BLUE_MOVE_ARM_DOWN_4, new State() {
                 @Override
                 public StateName act() {
@@ -461,7 +507,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     return S.BLUE_PARK_4;
                 }
             });
-            b.addDrive(S.BLUE_PARK_4, S.BLUE_STOP, Distance.fromFeet(1.35), 1, 65, 0);
+            b.addDrive(S.BLUE_PARK_4, S.BLUE_STOP, Distance.fromFeet(1.35), 1, 115, 0);
 
             b.addStop(S.BLUE_TIMEOUT_LINE);
             b.addStop(S.BLUE_STOP);
@@ -480,8 +526,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         allTrackables = VuLocalizer.setVuLocalizer(teamColor,targetsUltimateGoal, parameters);
         if (teamColor == TeamColor.BLUE) {
             towerGoalTarget = allTrackables.get(3);
-            xDestIn = -4;
-            yDestIn = 40;
+            xDestIn = 0;
+            yDestIn = 33;
         } else {
             towerGoalTarget = allTrackables.get(2);
             xDestIn = 0;

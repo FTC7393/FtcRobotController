@@ -28,6 +28,8 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
     private final double transDeadZone;
     private Angle targetHeading;
     private Angle angleTolerance;
+    private static final Vector2D zeroVector = new Vector2D(0, 0);
+    private static final Angle zeroAngle = Angle.fromDegrees(0);
 
 
     /**
@@ -59,11 +61,17 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
 
     @Override
     public Angle getPolarDirectionCorrection() {
+        if(polarDirectionCorrection == null) {
+            return zeroAngle;
+        }
         return polarDirectionCorrection;
     }
 
     @Override
     public Vector2D getTranslation() {
+        if(translation == null) {
+            return zeroVector;
+        }
         return translation;
     }
 
