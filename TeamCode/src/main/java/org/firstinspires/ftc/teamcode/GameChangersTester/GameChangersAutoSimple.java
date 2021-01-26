@@ -587,6 +587,7 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
                 public void init() {}
                 @Override
                 public boolean isDone() {
+                    xyrControl.act();
                     return xyrControl.isDone();
                 }
             };
