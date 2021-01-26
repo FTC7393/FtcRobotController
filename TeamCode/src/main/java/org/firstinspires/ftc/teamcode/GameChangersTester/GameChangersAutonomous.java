@@ -179,6 +179,16 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR, startingPosition);
         webcamName = robotCfg.getWebcamName();
 //        robotCfg.getCameraServo().goToPreset(ServoPresets.Camera.MIDDLE);
+
+        //creating xyrcontrol object which will be used during the whole class
+        double transGain = 0.03; // need to test
+        double transDeadZone = 2.0; // need to test
+        double transMinPower = .15; // need to test
+        double transMaxPower = 1.0; // need to test
+        //might not need (in inches)
+        double upperGainDistanceTreshold = 12; // need to test
+        xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold, teamColor);
+
         super.setup();
     }
 
@@ -255,13 +265,6 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 //            b.addWait(S.WAIT, S.DRIVE_VUFORIA_TO_POWERSHOT, 1000);
 //        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000L);
 
-            double transGain = 0.03; // need to test
-            double transDeadZone = 2.0; // need to test
-            double transMinPower = .15; // need to test
-            double transMaxPower = 1.0; // need to test
-            //might not need (in inches)
-            double upperGainDistanceTreshold = 12; // need to test
-            xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold, teamColor);
             b.add(S.VUFORIA_EXPLORE, getVuforiaPosition());
             EndCondition vuforiaArrived = new EndCondition() {
                 // making inline class
@@ -272,6 +275,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
                 @Override
                 public boolean isDone() {
+                    xyrControl.act();
                     return xyrControl.isDone();
                 }
             };
@@ -400,13 +404,6 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 //            b.addWait(S.BLUE_WAIT, S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, 1000);
 //        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000L);
 
-            double transGain = 0.03; // need to test
-            double transDeadZone = 2.0; // need to test
-            double transMinPower = .15; // need to test
-            double transMaxPower = 1.0; // need to test
-            //might not need (in inches)
-            double upperGainDistanceTreshold = 12; // need to test
-            xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold, teamColor);
             b.add(S.BLUE_VUFORIA_EXPLORE, getVuforiaPosition());
             EndCondition vuforiaArrived = new EndCondition() {
                 // making inline class
@@ -417,6 +414,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
                 @Override
                 public boolean isDone() {
+
+                    xyrControl.act();
                     return xyrControl.isDone();
                 }
             };
