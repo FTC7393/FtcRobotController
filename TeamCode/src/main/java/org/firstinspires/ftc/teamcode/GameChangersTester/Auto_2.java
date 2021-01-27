@@ -48,7 +48,7 @@ public class Auto_2 extends AbstractAutoOp<GameChangersRobotCfg> {
     private final String VUFORIA_KEY;
     private VuforiaTrackable towerGoalTarget;
     private WebcamName webcamName;
-    //options op values
+    //options op valuesAuto_2
     private TeamColor teamColor = null;
     private double initialDelay = 0.0;
     double xDestIn = 0.0;

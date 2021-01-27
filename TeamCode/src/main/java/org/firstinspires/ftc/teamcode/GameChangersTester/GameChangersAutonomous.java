@@ -218,7 +218,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         b.add(S.OPENCV_STOP, makeOpenCVStopper(S.SET_CAMERA_SERVO));
         b.addServo(S.SET_CAMERA_SERVO, S.VUFORIA_INIT, robotCfg.getCameraServo().getName(), cameraServoPreset, false);
         b.add(S.VUFORIA_INIT, makeVuforiaInit(S.WAIT_FOR_OTHER_TEAM));
-        b.addWait(S.WAIT_FOR_OTHER_TEAM, S.START_FLYWHEEL, Time.fromSeconds(initialDelay));
+        b.addWait(S.WAIT_FOR_OTHER_TEAM, S.ELEVATE_SHOOTER, Time.fromSeconds(initialDelay));
         b.addServo(S.ELEVATE_SHOOTER,teamColor == TeamColor.RED?S.DRIVE_1:S.BLUE_DRIVE_1,robotCfg.getElevation().getName(),ServoPresets.Elevation.SHOOTING,false);
 //        b.add(S.START_FLYWHEEL, new State() {
 //            @Override
