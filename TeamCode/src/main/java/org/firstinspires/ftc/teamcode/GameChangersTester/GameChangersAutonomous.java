@@ -42,8 +42,6 @@ import ftc.evlib.util.FileUtil;
 import ftc.evlib.util.ImmutableList;
 
 @Autonomous(name = "GameChangersAuto")
-
-
 public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg> {
     private final String VUFORIA_KEY;
     private VuforiaTrackable towerGoalTarget;
@@ -63,6 +61,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private List<VuforiaTrackable> allTrackables;
     private StartingPosition startingPosition;
     private ServoPresets.Camera cameraServoPreset;
+    private ResultReceiver<Boolean> vuforiaInitializedRR = new BasicResultReceiver<>();
 
     public GameChangersAutonomous() throws IOException {
         super();
@@ -178,6 +177,17 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
         ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR, startingPosition);
         webcamName = robotCfg.getWebcamName();
+
+        double transGain = 0.03; // need to test
+        double transDeadZone = 2.0; // need to test
+        double transMinPower = .15; // need to test
+        double transMaxPower = 1.0; // need to test
+        //might not need (in inches)
+        double upperGainDistanceTreshold = 12; // need to test
+        xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower,
+                transMaxPower, upperGainDistanceTreshold, teamColor);
+
+
 //        robotCfg.getCameraServo().goToPreset(ServoPresets.Camera.MIDDLE);
         super.setup();
     }
@@ -207,311 +217,323 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         b.addResultReceiverReady(S.OPENCV_RESULT, S.OPENCV_STOP, ringNumbersResultReceiver);
         b.add(S.OPENCV_STOP, makeOpenCVStopper(S.SET_CAMERA_SERVO));
         b.addServo(S.SET_CAMERA_SERVO, S.VUFORIA_INIT, robotCfg.getCameraServo().getName(), cameraServoPreset, false);
-        b.add(S.VUFORIA_INIT, makeVuforiaInit(S.WAIT_FOR_OTHER_TEAM));
-        b.addWait(S.WAIT_FOR_OTHER_TEAM, S.START_FLYWHEEL, Time.fromSeconds(initialDelay));
-        b.add(S.START_FLYWHEEL, new State() {
-            @Override
-            public StateName act() {
-                robotCfg.startFlyWheel();
-                robotCfg.getElevation().goToPreset(ServoPresets.Elevation.SHOOTING);
-                if(teamColor == TeamColor.RED) {
-                    return S.DRIVE_1;
-                } else {
-                    return S.BLUE_DRIVE_1;
-                }
-            }
-        });
-        if (teamColor == TeamColor.RED) {
-            if (startingPosition == StartingPosition.LEFT) {
-                b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(1.5), 1.0, 275, 0);
-                b.addDrive(S.DRIVE_1B, S.WAIT, Distance.fromFeet(.3), 0.5, 180, 0);
-            } else {
-                b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(.2), .7, 180, 0);
-                b.addDrive(S.DRIVE_1B, S.DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
-                b.addDrive(S.DRIVE_1C, S.WAIT, Distance.fromFeet(.3), 1.0, 0, 0);
-            }
-            b.add(S.WAIT, new BasicAbstractState() {
-                private long initTime;
+//        b.addWait(S.WAIT_FOR_OTHER_TEAM, S.START_FLYWHEEL, Time.fromSeconds(initialDelay));
 
-                @Override
-                public void init() {
-                    initTime = System.currentTimeMillis();
-                }
+        b.add(S.VUFORIA_INIT, makeVuforiaInit(S.drive1));
 
-                @Override
-                public boolean isDone() {
-                    xyrControl.act();
-                    if(System.currentTimeMillis()- initTime > 1000L) {
-                        return true;
-                    }
-                    return false;
-                }
-
-                @Override
-                public StateName getNextStateName() {
-                    return S.DRIVE_VUFORIA_TO_POWERSHOT;
-                }
-            });
-//            b.addWait(S.WAIT, S.DRIVE_VUFORIA_TO_POWERSHOT, 1000);
-//        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000L);
-
-            double transGain = 0.03; // need to test
-            double transDeadZone = 2.0; // need to test
-            double transMinPower = .15; // need to test
-            double transMaxPower = 1.0; // need to test
-            //might not need (in inches)
-            double upperGainDistanceTreshold = 12; // need to test
-            xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold, teamColor);
-            b.add(S.VUFORIA_EXPLORE, getVuforiaPosition());
-            EndCondition vuforiaArrived = new EndCondition() {
-                // making inline class
-                @Override
-                public void init() {
-
-                }
-
-                @Override
-                public boolean isDone() {
-                    return xyrControl.isDone();
-                }
-            };
-            // add other pairs of state name end conditions
-            b.addDrive(S.DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.TURN_AIM_SHOOT, vuforiaArrived, S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
-            b.addGyroTurn(S.TURN_AIM_SHOOT, S.WAIT_ELEVATION_STABILIZE, 0);
-            b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 700L);
-            b.add(S.SHOOT_RINGS, new ShooterState(robotCfg, 200L, 550L, S.TURN_OFF_SHOOTER));
-            b.add(S.TURN_OFF_SHOOTER, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.stopFlyWheel();
-                    robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
-                    return S.DETERMINE_RING_STACK;
-                }
-            });
-            b.add(S.DETERMINE_RING_STACK, new State() {
-                @Override
-                public StateName act() {
-                    if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_0) {
-                        return S.DRIVE_RING_0;
-                    } else if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_1) {
-                        return S.DRIVE_RING_1;
-                    } else {
-                        return S.DRIVE_RING_4;
-                    }
-                }
-            });
-            //-------------------------------------------------------------------------------------------------------------------------------
-            //0 rings
-            //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.DRIVE_RING_0, S.MOVE_ARM_DOWN_0, Distance.fromFeet(0.5), 0.7, 225, 0);
-            b.add(S.MOVE_ARM_DOWN_0, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.WAIT_FOR_DROP_0;
-                }
-            });
-            b.addWait(S.WAIT_FOR_DROP_0, S.DROP_WOBBLE_GOAL_0, 500L);
-            b.addServo(S.DROP_WOBBLE_GOAL_0, S.MOVE_ARM_UP_0, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
-            b.add(S.MOVE_ARM_UP_0, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.PARK_0;
-                }
-            });
-            b.addDrive(S.PARK_0, S.STOP, Distance.fromFeet(.9), 1, 0, 0);
-            //-------------------------------------------------------------------------------------------------------------------------------
-            //1 ring
-            //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.DRIVE_RING_1, S.MOVE_ARM_DOWN_1, Distance.fromFeet(1), 0.7, 280, 0);
-            b.add(S.MOVE_ARM_DOWN_1, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.WAIT_FOR_DROP_1;
-                }
-            });
-            b.addWait(S.WAIT_FOR_DROP_1, S.DROP_WOBBLE_GOAL_1, 500L);
-            b.addServo(S.DROP_WOBBLE_GOAL_1, S.MOVE_ARM_UP_1, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
-            b.add(S.MOVE_ARM_UP_1, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.PARK_1;
-                }
-            });
-            b.addDrive(S.PARK_1, S.STOP, Distance.fromFeet(0.8), 1, 65, 0);
-            //-------------------------------------------------------------------------------------------------------------------------------
-            //4 rings
-            //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.DRIVE_RING_4, S.MOVE_ARM_DOWN_4, Distance.fromFeet(1.5), 0.7, 260, 0);
-            b.add(S.MOVE_ARM_DOWN_4, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.WAIT_FOR_DROP_4;
-                }
-            });
-            b.addWait(S.WAIT_FOR_DROP_4, S.DROP_WOBBLE_GOAL_4, 500L);
-            b.addServo(S.DROP_WOBBLE_GOAL_4, S.MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
-            b.add(S.MOVE_ARM_UP_4, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.PARK_4;
-                }
-            });
-            b.addDrive(S.PARK_4, S.STOP, Distance.fromFeet(1.35), 1, 65, 0);
-
-            b.addStop(S.TIMEOUT_LINE);
-            b.addStop(S.STOP);
-        } else {
-            if (startingPosition == StartingPosition.LEFT) {
-                b.addDrive(S.BLUE_DRIVE_1, S.BLUE_DRIVE_1B, Distance.fromFeet(.2), .7, 0, 0);
-                b.addDrive(S.BLUE_DRIVE_1B, S.BLUE_DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
-                b.addDrive(S.BLUE_DRIVE_1C, S.BLUE_WAIT, Distance.fromFeet(.3), 1.0, 180, 0);
-            } else {
-                b.addDrive(S.BLUE_DRIVE_1, S.BLUE_DRIVE_1B, Distance.fromFeet(1.5), 1.0, 265, 0);
-                b.addDrive(S.BLUE_DRIVE_1B, S.BLUE_WAIT, Distance.fromFeet(.3), 0.5, 0, 0);
-            }
-            b.add(S.BLUE_WAIT, new BasicAbstractState() {
-                private long initTime;
-
-                @Override
-                public void init() {
-                    initTime = System.currentTimeMillis();
-                }
-
-                @Override
-                public boolean isDone() {
-                    xyrControl.act();
-                    if(System.currentTimeMillis()- initTime > 100L) {
-                        return true;
-                    }
-                    return false;
-                }
-
-                @Override
-                public StateName getNextStateName() {
-                    return S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT;
-                }
-            });
-//            b.addWait(S.BLUE_WAIT, S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, 1000);
-//        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000L);
-
-            double transGain = 0.03; // need to test
-            double transDeadZone = 2.0; // need to test
-            double transMinPower = .15; // need to test
-            double transMaxPower = 1.0; // need to test
-            //might not need (in inches)
-            double upperGainDistanceTreshold = 12; // need to test
-            xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold, teamColor);
-            b.add(S.BLUE_VUFORIA_EXPLORE, getVuforiaPosition());
-            EndCondition vuforiaArrived = new EndCondition() {
-                // making inline class
-                @Override
-                public void init() {
-
-                }
-
-                @Override
-                public boolean isDone() {
-                    return xyrControl.isDone();
-                }
-            };
-            // add other pairs of state name end conditions
-            b.addDrive(S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.BLUE_TURN_AIM_SHOOT, vuforiaArrived, S.BLUE_TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
-            b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT, S.BLUE_WAIT_ELEVATION_STABILIZE, 0);
-            b.addWait(S.BLUE_WAIT_ELEVATION_STABILIZE, S.BLUE_SHOOT_RINGS, 700L);
-            b.add(S.BLUE_SHOOT_RINGS, new ShooterState(robotCfg, 200L, 550L, S.BLUE_TURN_OFF_SHOOTER));
-            b.add(S.BLUE_TURN_OFF_SHOOTER, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.stopFlyWheel();
-                    robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
-                    return S.BLUE_DETERMINE_RING_STACK;
-                }
-            });
-            b.add(S.BLUE_DETERMINE_RING_STACK, new State() {
-                @Override
-                public StateName act() {
-                    if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_0) {
-                        return S.BLUE_DRIVE_RING_0;
-                    } else if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_1) {
-                        return S.BLUE_DRIVE_RING_1;
-                    } else {
-                        return S.BLUE_DRIVE_RING_4;
-                    }
-                }
-            });
-            //-------------------------------------------------------------------------------------------------------------------------------
-            //0 rings
-            //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.BLUE_DRIVE_RING_0, S.BLUE_MOVE_ARM_DOWN_0, Distance.fromFeet(0.5), 0.7, 315, 0);
-            b.add(S.BLUE_MOVE_ARM_DOWN_0, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.BLUE_WAIT_FOR_DROP_0;
-                }
-            });
-            b.addWait(S.BLUE_WAIT_FOR_DROP_0, S.BLUE_DROP_WOBBLE_GOAL_0, 500L);
-            b.addServo(S.BLUE_DROP_WOBBLE_GOAL_0, S.BLUE_MOVE_ARM_UP_0, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
-            b.add(S.BLUE_MOVE_ARM_UP_0, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.BLUE_PARK_0;
-                }
-            });
-            b.addDrive(S.BLUE_PARK_0, S.BLUE_STOP, Distance.fromFeet(.9), 1, 90, 0);
-            //-------------------------------------------------------------------------------------------------------------------------------
-            //1 ring
-            //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.BLUE_DRIVE_RING_1, S.BLUE_MOVE_ARM_DOWN_1, Distance.fromFeet(1), 0.7, 260, 0);
-            b.add(S.BLUE_MOVE_ARM_DOWN_1, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.BLUE_WAIT_FOR_DROP_1;
-                }
-            });
-            b.addWait(S.BLUE_WAIT_FOR_DROP_1, S.BLUE_DROP_WOBBLE_GOAL_1, 500L);
-            b.addServo(S.BLUE_DROP_WOBBLE_GOAL_1, S.BLUE_MOVE_ARM_UP_1, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
-            b.add(S.BLUE_MOVE_ARM_UP_1, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.BLUE_PARK_1;
-                }
-            });
-            b.addDrive(S.BLUE_PARK_1, S.BLUE_STOP, Distance.fromFeet(0.8), 1, 115, 0);
-            //-------------------------------------------------------------------------------------------------------------------------------
-            //4 rings
-            //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.BLUE_DRIVE_RING_4, S.BLUE_MOVE_ARM_DOWN_4, Distance.fromFeet(1.5), 0.7, 280, 0);
-            b.add(S.BLUE_MOVE_ARM_DOWN_4, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.BLUE_WAIT_FOR_DROP_4;
-                }
-            });
-            b.addWait(S.BLUE_WAIT_FOR_DROP_4, S.BLUE_DROP_WOBBLE_GOAL_4, 500L);
-            b.addServo(S.BLUE_DROP_WOBBLE_GOAL_4, S.BLUE_MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
-            b.add(S.BLUE_MOVE_ARM_UP_4, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.BLUE_PARK_4;
-                }
-            });
-            b.addDrive(S.BLUE_PARK_4, S.BLUE_STOP, Distance.fromFeet(1.35), 1, 115, 0);
-
-            b.addStop(S.BLUE_TIMEOUT_LINE);
-            b.addStop(S.BLUE_STOP);
-        }
+        b.addDrive(S.drive1, S.drive2, Distance.fromFeet(1.5), 1.0, 265, 0);
+        b.addDrive(S.drive2, S.wait_for_vf_init, Distance.fromFeet(0.5), 0.5, 0, 0);
+        b.addResultReceiverReady(S.wait_for_vf_init, S.init_vuforia_wall_seek, vuforiaInitializedRR);
+        b.add(S.init_vuforia_wall_seek, makeSetupStateForWallLineup(S.vuforia_seek));
+        b.addDrive(S.vuforia_seek,
+                StateMap.of(S.stop, makeXyrDoneEndCondition(),
+                        S.timeout, EVEndConditions.timed(Time.fromSeconds(3))),
+                xyrControl);
+        b.addStop(S.stop);
+        b.addStop(S.timeout);
+//        b.add(S.START_FLYWHEEL, new State() {
+//            @Override
+//            public StateName act() {
+//                robotCfg.startFlyWheel();
+//                robotCfg.getElevation().goToPreset(ServoPresets.Elevation.SHOOTING);
+//                if(teamColor == TeamColor.RED) {
+//                    return S.DRIVE_1;
+//                } else {
+//                    return S.BLUE_DRIVE_1;
+//                }
+//            }
+//        });
+//        if (teamColor == TeamColor.RED) {
+//            if (startingPosition == StartingPosition.LEFT) {
+//                b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(1.5), 1.0, 275, 0);
+//                b.addDrive(S.DRIVE_1B, S.WAIT, Distance.fromFeet(.3), 0.5, 180, 0);
+//            } else {
+//                b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(.2), .7, 180, 0);
+//                b.addDrive(S.DRIVE_1B, S.DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
+//                b.addDrive(S.DRIVE_1C, S.WAIT, Distance.fromFeet(.3), 1.0, 0, 0);
+//            }
+//            b.add(S.WAIT, new BasicAbstractState() {
+//                private long initTime;
+//
+//                @Override
+//                public void init() {
+//                    initTime = System.currentTimeMillis();
+//                }
+//
+//                @Override
+//                public boolean isDone() {
+//                    xyrControl.act();
+//                    if(System.currentTimeMillis()- initTime > 1000L) {
+//                        return true;
+//                    }
+//                    return false;
+//                }
+//
+//                @Override
+//                public StateName getNextStateName() {
+//                    return S.DRIVE_VUFORIA_TO_POWERSHOT;
+//                }
+//            });
+////            b.addWait(S.WAIT, S.DRIVE_VUFORIA_TO_POWERSHOT, 1000);
+////        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000L);
+//
+//            double transGain = 0.03; // need to test
+//            double transDeadZone = 2.0; // need to test
+//            double transMinPower = .15; // need to test
+//            double transMaxPower = 1.0; // need to test
+//            //might not need (in inches)
+//            double upperGainDistanceTreshold = 12; // need to test
+//            xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold, teamColor);
+//            b.add(S.VUFORIA_EXPLORE, getVuforiaPosition());
+//            EndCondition vuforiaArrived = new EndCondition() {
+//                // making inline class
+//                @Override
+//                public void init() {
+//
+//                }
+//
+//                @Override
+//                public boolean isDone() {
+//                    return xyrControl.isDone();
+//                }
+//            };
+//            // add other pairs of state name end conditions
+//            b.addDrive(S.DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.TURN_AIM_SHOOT, vuforiaArrived, S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
+//            b.addGyroTurn(S.TURN_AIM_SHOOT, S.WAIT_ELEVATION_STABILIZE, 0);
+//            b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 700L);
+//            b.add(S.SHOOT_RINGS, new ShooterState(robotCfg, 200L, 550L, S.TURN_OFF_SHOOTER));
+//            b.add(S.TURN_OFF_SHOOTER, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.stopFlyWheel();
+//                    robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
+//                    return S.DETERMINE_RING_STACK;
+//                }
+//            });
+//            b.add(S.DETERMINE_RING_STACK, new State() {
+//                @Override
+//                public StateName act() {
+//                    if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_0) {
+//                        return S.DRIVE_RING_0;
+//                    } else if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_1) {
+//                        return S.DRIVE_RING_1;
+//                    } else {
+//                        return S.DRIVE_RING_4;
+//                    }
+//                }
+//            });
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            //0 rings
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            b.addDrive(S.DRIVE_RING_0, S.MOVE_ARM_DOWN_0, Distance.fromFeet(0.5), 0.7, 225, 0);
+//            b.add(S.MOVE_ARM_DOWN_0, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmDown();
+//                    return S.WAIT_FOR_DROP_0;
+//                }
+//            });
+//            b.addWait(S.WAIT_FOR_DROP_0, S.DROP_WOBBLE_GOAL_0, 500L);
+//            b.addServo(S.DROP_WOBBLE_GOAL_0, S.MOVE_ARM_UP_0, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
+//            b.add(S.MOVE_ARM_UP_0, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmUp();
+//                    return S.PARK_0;
+//                }
+//            });
+//            b.addDrive(S.PARK_0, S.STOP, Distance.fromFeet(.9), 1, 0, 0);
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            //1 ring
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            b.addDrive(S.DRIVE_RING_1, S.MOVE_ARM_DOWN_1, Distance.fromFeet(1), 0.7, 280, 0);
+//            b.add(S.MOVE_ARM_DOWN_1, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmDown();
+//                    return S.WAIT_FOR_DROP_1;
+//                }
+//            });
+//            b.addWait(S.WAIT_FOR_DROP_1, S.DROP_WOBBLE_GOAL_1, 500L);
+//            b.addServo(S.DROP_WOBBLE_GOAL_1, S.MOVE_ARM_UP_1, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
+//            b.add(S.MOVE_ARM_UP_1, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmUp();
+//                    return S.PARK_1;
+//                }
+//            });
+//            b.addDrive(S.PARK_1, S.STOP, Distance.fromFeet(0.8), 1, 65, 0);
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            //4 rings
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            b.addDrive(S.DRIVE_RING_4, S.MOVE_ARM_DOWN_4, Distance.fromFeet(1.5), 0.7, 260, 0);
+//            b.add(S.MOVE_ARM_DOWN_4, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmDown();
+//                    return S.WAIT_FOR_DROP_4;
+//                }
+//            });
+//            b.addWait(S.WAIT_FOR_DROP_4, S.DROP_WOBBLE_GOAL_4, 500L);
+//            b.addServo(S.DROP_WOBBLE_GOAL_4, S.MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
+//            b.add(S.MOVE_ARM_UP_4, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmUp();
+//                    return S.PARK_4;
+//                }
+//            });
+//            b.addDrive(S.PARK_4, S.STOP, Distance.fromFeet(1.35), 1, 65, 0);
+//
+//            b.addStop(S.TIMEOUT_LINE);
+//            b.addStop(S.STOP);
+//        } else {
+//            if (startingPosition == StartingPosition.LEFT) {
+//                b.addDrive(S.BLUE_DRIVE_1, S.BLUE_DRIVE_1B, Distance.fromFeet(.2), .7, 0, 0);
+//                b.addDrive(S.BLUE_DRIVE_1B, S.BLUE_DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
+//                b.addDrive(S.BLUE_DRIVE_1C, S.BLUE_WAIT, Distance.fromFeet(.3), 1.0, 180, 0);
+//            } else {
+//                b.addDrive(S.BLUE_DRIVE_1, S.BLUE_DRIVE_1B, Distance.fromFeet(1.5), 1.0, 265, 0);
+//                b.addDrive(S.BLUE_DRIVE_1B, S.BLUE_WAIT, Distance.fromFeet(.3), 0.5, 0, 0);
+//            }
+//            b.add(S.BLUE_WAIT, new BasicAbstractState() {
+//                private long initTime;
+//
+//                @Override
+//                public void init() {
+//                    initTime = System.currentTimeMillis();
+//                }
+//
+//                @Override
+//                public boolean isDone() {
+//                    xyrControl.act();
+//                    if(System.currentTimeMillis()- initTime > 100L) {
+//                        return true;
+//                    }
+//                    return false;
+//                }
+//
+//                @Override
+//                public StateName getNextStateName() {
+//                    return S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT;
+//                }
+//            });
+////            b.addWait(S.BLUE_WAIT, S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, 1000);
+////        b.addWait(S.WAIT, S.VUFORIA_EXPLORE, 3000L);
+//
+//            double transGain = 0.03; // need to test
+//            double transDeadZone = 2.0; // need to test
+//            double transMinPower = .15; // need to test
+//            double transMaxPower = 1.0; // need to test
+//            //might not need (in inches)
+//            double upperGainDistanceTreshold = 12; // need to test
+//            xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower, transMaxPower, upperGainDistanceTreshold, teamColor);
+//            b.add(S.BLUE_VUFORIA_EXPLORE, getVuforiaPosition());
+//            EndCondition vuforiaArrived = new EndCondition() {
+//                // making inline class
+//                @Override
+//                public void init() {
+//
+//                }
+//
+//                @Override
+//                public boolean isDone() {
+//                    return xyrControl.isDone();
+//                }
+//            };
+//            // add other pairs of state name end conditions
+//            b.addDrive(S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.BLUE_TURN_AIM_SHOOT, vuforiaArrived, S.BLUE_TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
+//            b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT, S.BLUE_WAIT_ELEVATION_STABILIZE, 0);
+//            b.addWait(S.BLUE_WAIT_ELEVATION_STABILIZE, S.BLUE_SHOOT_RINGS, 700L);
+//            b.add(S.BLUE_SHOOT_RINGS, new ShooterState(robotCfg, 200L, 550L, S.BLUE_TURN_OFF_SHOOTER));
+//            b.add(S.BLUE_TURN_OFF_SHOOTER, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.stopFlyWheel();
+//                    robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
+//                    return S.BLUE_DETERMINE_RING_STACK;
+//                }
+//            });
+//            b.add(S.BLUE_DETERMINE_RING_STACK, new State() {
+//                @Override
+//                public StateName act() {
+//                    if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_0) {
+//                        return S.BLUE_DRIVE_RING_0;
+//                    } else if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_1) {
+//                        return S.BLUE_DRIVE_RING_1;
+//                    } else {
+//                        return S.BLUE_DRIVE_RING_4;
+//                    }
+//                }
+//            });
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            //0 rings
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            b.addDrive(S.BLUE_DRIVE_RING_0, S.BLUE_MOVE_ARM_DOWN_0, Distance.fromFeet(0.5), 0.7, 315, 0);
+//            b.add(S.BLUE_MOVE_ARM_DOWN_0, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmDown();
+//                    return S.BLUE_WAIT_FOR_DROP_0;
+//                }
+//            });
+//            b.addWait(S.BLUE_WAIT_FOR_DROP_0, S.BLUE_DROP_WOBBLE_GOAL_0, 500L);
+//            b.addServo(S.BLUE_DROP_WOBBLE_GOAL_0, S.BLUE_MOVE_ARM_UP_0, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
+//            b.add(S.BLUE_MOVE_ARM_UP_0, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmUp();
+//                    return S.BLUE_PARK_0;
+//                }
+//            });
+//            b.addDrive(S.BLUE_PARK_0, S.BLUE_STOP, Distance.fromFeet(.9), 1, 90, 0);
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            //1 ring
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            b.addDrive(S.BLUE_DRIVE_RING_1, S.BLUE_MOVE_ARM_DOWN_1, Distance.fromFeet(1), 0.7, 260, 0);
+//            b.add(S.BLUE_MOVE_ARM_DOWN_1, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmDown();
+//                    return S.BLUE_WAIT_FOR_DROP_1;
+//                }
+//            });
+//            b.addWait(S.BLUE_WAIT_FOR_DROP_1, S.BLUE_DROP_WOBBLE_GOAL_1, 500L);
+//            b.addServo(S.BLUE_DROP_WOBBLE_GOAL_1, S.BLUE_MOVE_ARM_UP_1, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
+//            b.add(S.BLUE_MOVE_ARM_UP_1, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmUp();
+//                    return S.BLUE_PARK_1;
+//                }
+//            });
+//            b.addDrive(S.BLUE_PARK_1, S.BLUE_STOP, Distance.fromFeet(0.8), 1, 115, 0);
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            //4 rings
+//            //-------------------------------------------------------------------------------------------------------------------------------
+//            b.addDrive(S.BLUE_DRIVE_RING_4, S.BLUE_MOVE_ARM_DOWN_4, Distance.fromFeet(1.5), 0.7, 280, 0);
+//            b.add(S.BLUE_MOVE_ARM_DOWN_4, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmDown();
+//                    return S.BLUE_WAIT_FOR_DROP_4;
+//                }
+//            });
+//            b.addWait(S.BLUE_WAIT_FOR_DROP_4, S.BLUE_DROP_WOBBLE_GOAL_4, 500L);
+//            b.addServo(S.BLUE_DROP_WOBBLE_GOAL_4, S.BLUE_MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
+//            b.add(S.BLUE_MOVE_ARM_UP_4, new State() {
+//                @Override
+//                public StateName act() {
+//                    robotCfg.getWobbleGoalArm().moveArmUp();
+//                    return S.BLUE_PARK_4;
+//                }
+//            });
+//            b.addDrive(S.BLUE_PARK_4, S.BLUE_STOP, Distance.fromFeet(1.35), 1, 115, 0);
+//
+//            b.addStop(S.BLUE_TIMEOUT_LINE);
+//            b.addStop(S.BLUE_STOP);
+//        }
         return b.build();
     }
 
@@ -523,7 +545,13 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         parameters.cameraName = webcamName;
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
         targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
-        allTrackables = VuLocalizer.setVuLocalizer(teamColor,targetsUltimateGoal, parameters);
+        allTrackables = VuLocalizer.setVuLocalizer(teamColor, targetsUltimateGoal, parameters);
+        vuforiaInitializedRR.setValue(true);
+    }
+
+
+    //         targetsUltimateGoal.activate();
+    private void initForVuforiaLineupWithWallTarget() {
         if (teamColor == TeamColor.BLUE) {
             towerGoalTarget = allTrackables.get(3);
             xDestIn = 0;
@@ -533,16 +561,43 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             xDestIn = 0;
             yDestIn = -40;
         }
-        targetsUltimateGoal.activate();
         double rotationGain = 0.5; // need to test
         Angle targetHeading = Angle.fromDegrees(2); // need to test
         Angle angleTolerance = Angle.fromDegrees(.5); // need to test
         double maxAngularSpeed = .5; // need to test
         double minAngularSpeed = 0.05; // need to test
         // heavy dependency on robot orientation, refer to vuCalc class at the end of it
-        xyrControl.setVuCalc(towerGoalTarget, xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
+        xyrControl.setVuCalc(towerGoalTarget, xDestIn, yDestIn, rotationGain, targetHeading,
+                angleTolerance, maxAngularSpeed, minAngularSpeed);
+        targetsUltimateGoal.activate();
     }
 
+    private State makeSetupStateForWallLineup(final StateName nextState) {
+        return new State() {
+            @Override
+            public StateName act() {
+                initForVuforiaLineupWithWallTarget();
+                return nextState;
+            }
+        };
+
+//        return new OtherThreadState(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        initForVuforiaLineupWithWallTarget();
+//                    }
+//                }, nextState);
+    }
+    private EndCondition makeXyrDoneEndCondition() {
+        return new EndCondition() {
+            @Override
+            public void init() {}
+            @Override
+            public boolean isDone() {
+                return xyrControl.isDone();
+            }
+        };
+    }
     private State makeOpenCvInit(final StateName nextState) {
         return new BasicAbstractState() {
             boolean isDone = false;
@@ -611,27 +666,16 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     }
 
     private State makeVuforiaInit(final StateName nextState) {
-        return new BasicAbstractState() {
-            private boolean isDone = false;
+        return new State() {
             @Override
-            public void init() {
+            public StateName act() {
                 Runnable r = new Runnable() {
                     @Override
                     public void run() {
                         initVuforia();
-                        isDone = true;
                     }
                 };
                 new Thread(r).start();
-            }
-
-            @Override
-            public boolean isDone() {
-                return isDone;
-            }
-
-            @Override
-            public StateName getNextStateName() {
                 return nextState;
             }
         };
@@ -681,7 +725,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         OPENCV_STOP,
         OPENCV_RESULT,
         VUFORIA_INIT,
-        VUFORIA_EXPLORE, WAIT_FOR_START, WAIT_FOR_OTHER_TEAM, SET_CAMERA_SERVO, START_FLYWHEEL, SHOOT_RINGS, WAIT_ELEVATION_STABILIZE, TURN_OFF_SHOOTER, DETERMINE_RING_STACK, DRIVE_RING_0, DRIVE_RING_1, DRIVE_RING_4, PARK_0, PARK_1, PARK_4, DROP_WOBBLE_GOAL, MOVE_ARM_DOWN, WAIT_FOR_DROP, WAIT_FOR_DROP_0, DROP_WOBBLE_GOAL_0, DROP_WOBBLE_GOAL_1, DROP_WOBBLE_GOAL_4, MOVE_ARM_DOWN_0, MOVE_ARM_DOWN_1, WAIT_FOR_DROP_4, WAIT_FOR_DROP_1, MOVE_ARM_UP_4, MOVE_ARM_UP_1, MOVE_ARM_UP_0, TURN_AIM_SHOOT, MOVE_ARM_DOWN_4, BLUE_STOP, BLUE_TIMEOUT_LINE, BLUE_PARK_4, BLUE_MOVE_ARM_UP_4, BLUE_DROP_WOBBLE_GOAL_4, BLUE_WAIT_FOR_DROP_4, BLUE_MOVE_ARM_DOWN_4, BLUE_DRIVE_RING_4, BLUE_PARK_1, BLUE_MOVE_ARM_UP_1, BLUE_DROP_WOBBLE_GOAL_1, BLUE_WAIT_FOR_DROP_1, BLUE_MOVE_ARM_DOWN_1, BLUE_DRIVE_RING_1, BLUE_PARK_0, BLUE_MOVE_ARM_UP_0, BLUE_DROP_WOBBLE_GOAL_0, BLUE_WAIT_FOR_DROP_0, BLUE_MOVE_ARM_DOWN_0, BLUE_DRIVE_RING_0, BLUE_DETERMINE_RING_STACK, BLUE_TURN_OFF_SHOOTER, BLUE_SHOOT_RINGS, BLUE_WAIT_ELEVATION_STABILIZE, BLUE_TURN_AIM_SHOOT, BLUE_DRIVE_VUFORIA_TO_POWERSHOT, BLUE_VUFORIA_EXPLORE, BLUE_WAIT, BLUE_DRIVE_1C, BLUE_DRIVE_1B, BLUE_DRIVE_1, OPENCV_INIT
+        VUFORIA_EXPLORE, WAIT_FOR_START, WAIT_FOR_OTHER_TEAM, SET_CAMERA_SERVO, START_FLYWHEEL, SHOOT_RINGS, WAIT_ELEVATION_STABILIZE, TURN_OFF_SHOOTER, DETERMINE_RING_STACK, DRIVE_RING_0, DRIVE_RING_1, DRIVE_RING_4, PARK_0, PARK_1, PARK_4, DROP_WOBBLE_GOAL, MOVE_ARM_DOWN, WAIT_FOR_DROP, WAIT_FOR_DROP_0, DROP_WOBBLE_GOAL_0, DROP_WOBBLE_GOAL_1, DROP_WOBBLE_GOAL_4, MOVE_ARM_DOWN_0, MOVE_ARM_DOWN_1, WAIT_FOR_DROP_4, WAIT_FOR_DROP_1, MOVE_ARM_UP_4, MOVE_ARM_UP_1, MOVE_ARM_UP_0, TURN_AIM_SHOOT, MOVE_ARM_DOWN_4, BLUE_STOP, BLUE_TIMEOUT_LINE, BLUE_PARK_4, BLUE_MOVE_ARM_UP_4, BLUE_DROP_WOBBLE_GOAL_4, BLUE_WAIT_FOR_DROP_4, BLUE_MOVE_ARM_DOWN_4, BLUE_DRIVE_RING_4, BLUE_PARK_1, BLUE_MOVE_ARM_UP_1, BLUE_DROP_WOBBLE_GOAL_1, BLUE_WAIT_FOR_DROP_1, BLUE_MOVE_ARM_DOWN_1, BLUE_DRIVE_RING_1, BLUE_PARK_0, BLUE_MOVE_ARM_UP_0, BLUE_DROP_WOBBLE_GOAL_0, BLUE_WAIT_FOR_DROP_0, BLUE_MOVE_ARM_DOWN_0, BLUE_DRIVE_RING_0, BLUE_DETERMINE_RING_STACK, BLUE_TURN_OFF_SHOOTER, BLUE_SHOOT_RINGS, BLUE_WAIT_ELEVATION_STABILIZE, BLUE_TURN_AIM_SHOOT, BLUE_DRIVE_VUFORIA_TO_POWERSHOT, BLUE_VUFORIA_EXPLORE, BLUE_WAIT, BLUE_DRIVE_1C, BLUE_DRIVE_1B, BLUE_DRIVE_1, OPENCV_INIT,
+
+        drive1, drive2, wait_for_vf_init, init_vuforia_wall_seek, vuforia_seek, stop, timeout
     }
 
 
@@ -693,6 +739,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     @Override
     protected void act() {
+        if (stateMachine.getCurrentStateName() == S.vuforia_seek)
+            xyrControl.act();
+
         telemetry.addData("state", stateMachine.getCurrentStateName());
         telemetry.addData("number of rings", ringNumbersResultReceiver.isReady() ? ringNumbersResultReceiver.getValue() : "null");
         telemetry.addData("vuforia position", vuforiaPosRR.isReady() ? vuforiaPosRR.getValue() : "null");
@@ -710,3 +759,37 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     }
 }
+
+
+//class OtherThreadState extends BasicAbstractState {
+//    private boolean isDone = false;
+//    private final Runnable r;
+//    private final StateName nextState;
+//
+//    public OtherThreadState(Runnable r, StateName nextState) {
+//        this.r = r;
+//        this.nextState = nextState;
+//    }
+//
+//    @Override
+//    public void init() {
+//        Runnable myRunnable = new Runnable() {
+//            @Override
+//            public void run() {
+//                r.run();
+//                isDone = true;
+//            }
+//        };
+//        new Thread(myRunnable).start();
+//    }
+//
+//    @Override
+//    public boolean isDone() {
+//        return isDone;
+//    }
+//
+//    @Override
+//    public StateName getNextStateName() {
+//        return nextState;
+//    }
+//}
