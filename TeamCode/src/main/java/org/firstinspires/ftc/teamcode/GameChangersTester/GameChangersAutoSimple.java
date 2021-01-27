@@ -118,13 +118,13 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
                 new Logger.Column("currentXCoord", new InputExtractor<Double>() {
                     @Override
                     public Double getValue() {
-                        return xyrControl == null ? -1: xyrControl.getCurrentX();
+                        return xyrControl.getCurrentX();
                     }
                 }),
                 new Logger.Column("currentYCoord", new InputExtractor<Double>() {
                     @Override
                     public Double getValue() {
-                        return xyrControl == null ? -1: xyrControl.getCurrentY();
+                        return xyrControl.getCurrentY();
                     }
                 }),
                 new Logger.Column("xDestIn", new InputExtractor<Double>() {
@@ -142,9 +142,6 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
                 new Logger.Column("driveAngle", new InputExtractor<Double>() {
                     @Override
                     public Double getValue() {
-                        if (xyrControl == null) {
-                            return Double.NaN;
-                        }
                         if (xyrControl.getTranslation() != null) {
                             return xyrControl.getTranslation().getDirection().degrees();
                         }
@@ -154,9 +151,6 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
                 new Logger.Column("driveSpeed", new InputExtractor<Double>() {
                     @Override
                     public Double getValue() {
-                        if (xyrControl == null) {
-                            return Double.NaN;
-                        }
                         if (xyrControl.getTranslation() != null) {
                             return xyrControl.getTranslation().getLength();
                         }
@@ -167,9 +161,6 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
 
                     @Override
                     public Double getValue() {
-                        if (xyrControl == null) {
-                            return Double.NaN;
-                        }
                         return xyrControl.getHeading();
                     }
                 })
@@ -186,6 +177,17 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
         ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
         ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR, startingPosition);
         webcamName = robotCfg.getWebcamName();
+
+        double transGain = 0.03; // need to test
+        double transDeadZone = 2.0; // need to test
+        double transMinPower = .15; // need to test
+        double transMaxPower = 1.0; // need to test
+        //might not need (in inches)
+        double upperGainDistanceTreshold = 12; // need to test
+        xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower,
+                transMaxPower, upperGainDistanceTreshold, teamColor);
+
+
 //        robotCfg.getCameraServo().goToPreset(ServoPresets.Camera.MIDDLE);
         super.setup();
     }
@@ -216,14 +218,19 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
         b.add(S.OPENCV_STOP, makeOpenCVStopper(S.SET_CAMERA_SERVO));
         b.addServo(S.SET_CAMERA_SERVO, S.VUFORIA_INIT, robotCfg.getCameraServo().getName(), cameraServoPreset, false);
 //        b.addWait(S.WAIT_FOR_OTHER_TEAM, S.START_FLYWHEEL, Time.fromSeconds(initialDelay));
+
         b.add(S.VUFORIA_INIT, makeVuforiaInit(S.drive1));
 
         b.addDrive(S.drive1, S.drive2, Distance.fromFeet(1.5), 1.0, 265, 0);
         b.addDrive(S.drive2, S.wait_for_vf_init, Distance.fromFeet(0.5), 0.5, 0, 0);
         b.addResultReceiverReady(S.wait_for_vf_init, S.init_vuforia_wall_seek, vuforiaInitializedRR);
         b.add(S.init_vuforia_wall_seek, makeSetupStateForWallLineup(S.vuforia_seek));
-        b.addDrive(S.vuforia_seek, StateMap.of(S.stop, makeXyrEndCondition(), S.timeout, EVEndConditions.timed(3000L)),
-                xyrControl, xyrControl);
+        b.addDrive(S.vuforia_seek,
+                StateMap.of(S.stop, makeXyrDoneEndCondition(),
+                            S.timeout, EVEndConditions.timed(Time.fromSeconds(3))),
+                xyrControl);
+        b.addStop(S.stop);
+        b.addStop(S.timeout);
 //        b.add(S.START_FLYWHEEL, new State() {
 //            @Override
 //            public StateName act() {
@@ -539,15 +546,7 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
         targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
         allTrackables = VuLocalizer.setVuLocalizer(teamColor, targetsUltimateGoal, parameters);
-
-        double transGain = 0.03; // need to test
-        double transDeadZone = 2.0; // need to test
-        double transMinPower = .15; // need to test
-        double transMaxPower = 1.0; // need to test
-        //might not need (in inches)
-        double upperGainDistanceTreshold = 12; // need to test
-        xyrControl = new VuforiaRotationTranslationCntrl(transGain, transDeadZone, transMinPower,
-                transMaxPower, upperGainDistanceTreshold, teamColor);
+        vuforiaInitializedRR.setValue(true);
     }
 
 
@@ -574,20 +573,27 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
     }
 
     private State makeSetupStateForWallLineup(final StateName nextState) {
-        return new OtherThreadState(new Runnable() {
-                    @Override
-                    public void run() {
-                        initForVuforiaLineupWithWallTarget();
-                    }
-                }, nextState);
+        return new State() {
+            @Override
+            public StateName act() {
+                initForVuforiaLineupWithWallTarget();
+                return nextState;
+            }
+        };
+
+//        return new OtherThreadState(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        initForVuforiaLineupWithWallTarget();
+//                    }
+//                }, nextState);
     }
-    private EndCondition makeXyrEndCondition() {
+    private EndCondition makeXyrDoneEndCondition() {
         return new EndCondition() {
                 @Override
                 public void init() {}
                 @Override
                 public boolean isDone() {
-                    xyrControl.act();
                     return xyrControl.isDone();
                 }
             };
@@ -667,7 +673,6 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
                     @Override
                     public void run() {
                         initVuforia();
-                        vuforiaInitializedRR.setValue(true);
                     }
                 };
                 new Thread(r).start();
@@ -740,9 +745,9 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
         telemetry.addData("state", stateMachine.getCurrentStateName());
         telemetry.addData("number of rings", ringNumbersResultReceiver.isReady() ? ringNumbersResultReceiver.getValue() : "null");
         telemetry.addData("vuforia position", vuforiaPosRR.isReady() ? vuforiaPosRR.getValue() : "null");
-        telemetry.addData("x", xyrControl == null ? -1: xyrControl.getCurrentX());
-        telemetry.addData("y", xyrControl == null ? -1: xyrControl.getCurrentY());
-        telemetry.addData("robot heading", xyrControl == null ? -1: xyrControl.getHeading());
+        telemetry.addData("x", xyrControl.getCurrentX());
+        telemetry.addData("y", xyrControl.getCurrentY());
+        telemetry.addData("robot heading", xyrControl.getHeading());
         robotCfg.getFlyWheelShooter().update();
         robotCfg.getWobbleGoalArm().act();
     }
@@ -756,35 +761,35 @@ public class GameChangersAutoSimple extends AbstractAutoOp<GameChangersRobotCfg>
 }
 
 
-class OtherThreadState extends BasicAbstractState {
-    private boolean isDone = false;
-    private final Runnable r;
-    private final StateName nextState;
-
-    public OtherThreadState(Runnable r, StateName nextState) {
-        this.r = r;
-        this.nextState = nextState;
-    }
-
-    @Override
-    public void init() {
-        Runnable myRunnable = new Runnable() {
-            @Override
-            public void run() {
-                r.run();
-                isDone = true;
-            }
-        };
-        new Thread(r).start();
-    }
-
-    @Override
-    public boolean isDone() {
-        return isDone;
-    }
-
-    @Override
-    public StateName getNextStateName() {
-        return nextState;
-    }
-}
+//class OtherThreadState extends BasicAbstractState {
+//    private boolean isDone = false;
+//    private final Runnable r;
+//    private final StateName nextState;
+//
+//    public OtherThreadState(Runnable r, StateName nextState) {
+//        this.r = r;
+//        this.nextState = nextState;
+//    }
+//
+//    @Override
+//    public void init() {
+//        Runnable myRunnable = new Runnable() {
+//            @Override
+//            public void run() {
+//                r.run();
+//                isDone = true;
+//            }
+//        };
+//        new Thread(myRunnable).start();
+//    }
+//
+//    @Override
+//    public boolean isDone() {
+//        return isDone;
+//    }
+//
+//    @Override
+//    public StateName getNextStateName() {
+//        return nextState;
+//    }
+//}
