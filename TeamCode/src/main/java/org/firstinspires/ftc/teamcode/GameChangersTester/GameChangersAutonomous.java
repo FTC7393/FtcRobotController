@@ -604,10 +604,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     }
 
     private State makeVuforiaInit(final StateName nextState) {
-        return new BasicAbstractState() {
-            private boolean isDone = false;
+        return new State() {
             @Override
-            public void init() {
+            public StateName act() {
                 Runnable r = new Runnable() {
                     @Override
                     public void run() {
@@ -616,17 +615,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     }
                 };
                 new Thread(r).start();
-            }
-
-            @Override
-            public boolean isDone() {
-                return isDone;
-            }
-
-            @Override
-            public StateName getNextStateName() {
                 return nextState;
             }
+
         };
     }
     private State getVuforiaPosition() {
