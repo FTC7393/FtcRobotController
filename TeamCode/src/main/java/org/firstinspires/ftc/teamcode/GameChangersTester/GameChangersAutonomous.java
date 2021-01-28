@@ -64,6 +64,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private StartingPosition startingPosition;
     private ServoPresets.Camera cameraServoPreset;
     private ResultReceiver<Boolean> vuforiaInitRR = new BasicResultReceiver<>();
+    private long wobbleGoalWaitTime;
 
     public GameChangersAutonomous() throws IOException {
         super();
@@ -212,6 +213,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         } else {
             cameraServoPreset = ServoPresets.Camera.RED;
         }
+        wobbleGoalWaitTime = 800L;
         b.add(S.OPENCV_INIT, makeOpenCvInit(S.WAIT_FOR_START));
         b.addResultReceiverReady(S.WAIT_FOR_START, S.OPENCV_RESULT, waitForStartRR);
         b.addResultReceiverReady(S.OPENCV_RESULT, S.OPENCV_STOP, ringNumbersResultReceiver);
@@ -225,7 +227,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(1.5), 1.0, 275, 0);
                 b.addDrive(S.DRIVE_1B, S.SET_VUCALC, Distance.fromFeet(.3), 0.5, 180, 0);
             } else {
-                b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(.2), .7, 180, 0);
+                b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(.2), .7, 180, 0); // might go out of field
                 b.addDrive(S.DRIVE_1B, S.DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
                 b.addDrive(S.DRIVE_1C, S.SET_VUCALC, Distance.fromFeet(.3), 1.0, 0, 0);
             }
@@ -265,7 +267,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     return S.WAIT_FOR_DROP_0;
                 }
             });
-            b.addWait(S.WAIT_FOR_DROP_0, S.DROP_WOBBLE_GOAL_0, 500L);
+            b.addWait(S.WAIT_FOR_DROP_0, S.DROP_WOBBLE_GOAL_0, wobbleGoalWaitTime);
             b.addServo(S.DROP_WOBBLE_GOAL_0, S.MOVE_ARM_UP_0, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
             b.add(S.MOVE_ARM_UP_0, new State() {
                 @Override
@@ -286,7 +288,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     return S.WAIT_FOR_DROP_1;
                 }
             });
-            b.addWait(S.WAIT_FOR_DROP_1, S.DROP_WOBBLE_GOAL_1, 500L);
+            b.addWait(S.WAIT_FOR_DROP_1, S.DROP_WOBBLE_GOAL_1, wobbleGoalWaitTime);
             b.addServo(S.DROP_WOBBLE_GOAL_1, S.MOVE_ARM_UP_1, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
             b.add(S.MOVE_ARM_UP_1, new State() {
                 @Override
@@ -307,8 +309,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     return S.WAIT_FOR_DROP_4;
                 }
             });
-            b.addWait(S.WAIT_FOR_DROP_4, S.DROP_WOBBLE_GOAL_4, 500L);
-            b.addServo(S.DROP_WOBBLE_GOAL_4, S.MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
+            b.addWait(S.WAIT_FOR_DROP_4, S.DROP_WOBBLE_GOAL_4, wobbleGoalWaitTime);
+            b.addServo(S.DROP_WOBBLE_GOAL_4, S.MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true); // need to be condensed using new method
             b.add(S.MOVE_ARM_UP_4, new State() {
                 @Override
                 public StateName act() {
@@ -360,66 +362,33 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             //-------------------------------------------------------------------------------------------------------------------------------
             //0 rings
             //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.BLUE_DRIVE_RING_0, S.BLUE_MOVE_ARM_DOWN_0, Distance.fromFeet(0.5), 0.7, 315, 180);
-            b.add(S.BLUE_MOVE_ARM_DOWN_0, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.BLUE_WAIT_FOR_DROP_0;
-                }
-            });
-            b.addWait(S.BLUE_WAIT_FOR_DROP_0, S.BLUE_DROP_WOBBLE_GOAL_0, 500L);
+            b.addDrive(S.BLUE_DRIVE_RING_0, S.BLUE_WOBBLE_TURN, Distance.fromFeet(0.45), 0.7, 320, 0);
+            b.addGyroTurn(S.BLUE_WOBBLE_TURN, S.BLUE_MOVE_ARM_DOWN_0, 180);
+            b.add(S.BLUE_MOVE_ARM_DOWN_0, makeArmDownState(S.BLUE_WAIT_FOR_DROP_0));
+            b.addWait(S.BLUE_WAIT_FOR_DROP_0, S.BLUE_DROP_WOBBLE_GOAL_0, wobbleGoalWaitTime);
             b.addServo(S.BLUE_DROP_WOBBLE_GOAL_0, S.BLUE_MOVE_ARM_UP_0, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
-            b.add(S.BLUE_MOVE_ARM_UP_0, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.BLUE_PARK_0;
-                }
-            });
-            b.addDrive(S.BLUE_PARK_0, S.BLUE_STOP, Distance.fromFeet(.9), 1, 90, 180);
+            b.add(S.BLUE_MOVE_ARM_UP_0, makeArmUpState(S.BLUE_PARK_0));
+            b.addDrive(S.BLUE_PARK_0, S.BLUE_STOP, Distance.fromFeet(1), 1, 185, 180);
             //-------------------------------------------------------------------------------------------------------------------------------
-            //1 ring
+            //1 ring (untested changes)
             //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.BLUE_DRIVE_RING_1, S.BLUE_MOVE_ARM_DOWN_1, Distance.fromFeet(1), 0.7, 260, 180);
-            b.add(S.BLUE_MOVE_ARM_DOWN_1, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.BLUE_WAIT_FOR_DROP_1;
-                }
-            });
-            b.addWait(S.BLUE_WAIT_FOR_DROP_1, S.BLUE_DROP_WOBBLE_GOAL_1, 500L);
+            b.addDrive(S.BLUE_DRIVE_RING_1, S.BLUE_WOBBLE_TURN_1, Distance.fromFeet(.85), 0.7, 262, 0);
+            b.addGyroTurn(S.BLUE_WOBBLE_TURN_1, S.BLUE_MOVE_ARM_DOWN_1, 180);
+            b.add(S.BLUE_MOVE_ARM_DOWN_1, makeArmDownState(S.BLUE_WAIT_FOR_DROP_1));
+            b.addWait(S.BLUE_WAIT_FOR_DROP_1, S.BLUE_DROP_WOBBLE_GOAL_1, wobbleGoalWaitTime);
             b.addServo(S.BLUE_DROP_WOBBLE_GOAL_1, S.BLUE_MOVE_ARM_UP_1, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
-            b.add(S.BLUE_MOVE_ARM_UP_1, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.BLUE_PARK_1;
-                }
-            });
+            b.add(S.BLUE_MOVE_ARM_UP_1, makeArmUpState(S.BLUE_PARK_1));
             b.addDrive(S.BLUE_PARK_1, S.BLUE_STOP, Distance.fromFeet(0.8), 1, 115, 180);
             //-------------------------------------------------------------------------------------------------------------------------------
             //4 rings
             //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.BLUE_DRIVE_RING_4, S.BLUE_MOVE_ARM_DOWN_4, Distance.fromFeet(1.5), 0.7, 280, 180);
-            b.add(S.BLUE_MOVE_ARM_DOWN_4, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.BLUE_WAIT_FOR_DROP_4;
-                }
-            });
-            b.addWait(S.BLUE_WAIT_FOR_DROP_4, S.BLUE_DROP_WOBBLE_GOAL_4, 500L);
+            b.addDrive(S.BLUE_DRIVE_RING_4, S.BLUE_WOBBLE_TURN_4, Distance.fromFeet(1.4), 0.7, 280, 0);
+            b.addGyroTurn(S.BLUE_WOBBLE_TURN_4, S.BLUE_MOVE_ARM_DOWN_1, 180); // this is rotating out of the field
+            b.add(S.BLUE_MOVE_ARM_DOWN_4, makeArmDownState(S.BLUE_WAIT_FOR_DROP_4));
+            b.addWait(S.BLUE_WAIT_FOR_DROP_4, S.BLUE_DROP_WOBBLE_GOAL_4, wobbleGoalWaitTime);
             b.addServo(S.BLUE_DROP_WOBBLE_GOAL_4, S.BLUE_MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, true);
-            b.add(S.BLUE_MOVE_ARM_UP_4, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.BLUE_PARK_4;
-                }
-            });
-            b.addDrive(S.BLUE_PARK_4, S.BLUE_STOP, Distance.fromFeet(1.35), 1, 115, 180);
+            b.add(S.BLUE_MOVE_ARM_UP_4, makeArmUpState(S.BLUE_PARK_4));
+            b.addDrive(S.BLUE_PARK_4, S.BLUE_STOP, Distance.fromFeet(2.4), 1, 135, 180); //this isnt driving as long as it should
 
             b.addStop(S.BLUE_TIMEOUT_LINE);
             b.addStop(S.BLUE_STOP);
@@ -614,6 +583,27 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             }
         };
     }
+
+    private State makeArmUpState(final StateName nextState) {
+        return new State() {
+            @Override
+            public StateName act() {
+                robotCfg.getWobbleGoalArm().moveArmUp();
+                return nextState;
+            }
+        };
+    }
+
+    private State makeArmDownState(final StateName nextState) {
+        return new State() {
+            @Override
+            public StateName act() {
+                robotCfg.getWobbleGoalArm().moveArmDown();
+                return nextState;
+            }
+        };
+    }
+
 //    private State getVuforiaPosition() {
 //        return new BasicAbstractState() {
 //            @Override
@@ -648,7 +638,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         OPENCV_RESULT,
         VUFORIA_INIT,
         VUFORIA_EXPLORE,
-        WAIT_FOR_START, WAIT_FOR_OTHER_TEAM, SET_CAMERA_SERVO, START_FLYWHEEL, SHOOT_RINGS, WAIT_ELEVATION_STABILIZE, TURN_OFF_SHOOTER, DETERMINE_RING_STACK, DRIVE_RING_0, DRIVE_RING_1, DRIVE_RING_4, PARK_0, PARK_1, PARK_4, DROP_WOBBLE_GOAL, MOVE_ARM_DOWN, WAIT_FOR_DROP, WAIT_FOR_DROP_0, DROP_WOBBLE_GOAL_0, DROP_WOBBLE_GOAL_1, DROP_WOBBLE_GOAL_4, MOVE_ARM_DOWN_0, MOVE_ARM_DOWN_1, WAIT_FOR_DROP_4, WAIT_FOR_DROP_1, MOVE_ARM_UP_4, MOVE_ARM_UP_1, MOVE_ARM_UP_0, TURN_AIM_SHOOT, MOVE_ARM_DOWN_4, BLUE_STOP, BLUE_TIMEOUT_LINE, BLUE_PARK_4, BLUE_MOVE_ARM_UP_4, BLUE_DROP_WOBBLE_GOAL_4, BLUE_WAIT_FOR_DROP_4, BLUE_MOVE_ARM_DOWN_4, BLUE_DRIVE_RING_4, BLUE_PARK_1, BLUE_MOVE_ARM_UP_1, BLUE_DROP_WOBBLE_GOAL_1, BLUE_WAIT_FOR_DROP_1, BLUE_MOVE_ARM_DOWN_1, BLUE_DRIVE_RING_1, BLUE_PARK_0, BLUE_MOVE_ARM_UP_0, BLUE_DROP_WOBBLE_GOAL_0, BLUE_WAIT_FOR_DROP_0, BLUE_MOVE_ARM_DOWN_0, BLUE_DRIVE_RING_0, BLUE_DETERMINE_RING_STACK, BLUE_TURN_OFF_SHOOTER, BLUE_SHOOT_RINGS, BLUE_WAIT_ELEVATION_STABILIZE, BLUE_TURN_AIM_SHOOT, BLUE_DRIVE_VUFORIA_TO_POWERSHOT, BLUE_VUFORIA_EXPLORE, BLUE_WAIT, BLUE_DRIVE_1C, BLUE_DRIVE_1B, BLUE_DRIVE_1, SET_VUCALC, WAIT_FOR_VUFORIA_INIT, ACTIVATE_TARGETS, DEACTIVATE_TARGETS, BLUE_SET_VUCALC, BLUE_TARGETS_ACTIVATE, BLUE_WAIT_FOR_VUFORIA_INIT, BLUE_DEACTIVATE_TARGETS, ELEVATE_SHOOTER, BLUE_START_FLYWHEEL, OPENCV_INIT
+        WAIT_FOR_START, WAIT_FOR_OTHER_TEAM, SET_CAMERA_SERVO, START_FLYWHEEL, SHOOT_RINGS, WAIT_ELEVATION_STABILIZE, TURN_OFF_SHOOTER, DETERMINE_RING_STACK, DRIVE_RING_0, DRIVE_RING_1, DRIVE_RING_4, PARK_0, PARK_1, PARK_4, DROP_WOBBLE_GOAL, MOVE_ARM_DOWN, WAIT_FOR_DROP, WAIT_FOR_DROP_0, DROP_WOBBLE_GOAL_0, DROP_WOBBLE_GOAL_1, DROP_WOBBLE_GOAL_4, MOVE_ARM_DOWN_0, MOVE_ARM_DOWN_1, WAIT_FOR_DROP_4, WAIT_FOR_DROP_1, MOVE_ARM_UP_4, MOVE_ARM_UP_1, MOVE_ARM_UP_0, TURN_AIM_SHOOT, MOVE_ARM_DOWN_4, BLUE_STOP, BLUE_TIMEOUT_LINE, BLUE_PARK_4, BLUE_MOVE_ARM_UP_4, BLUE_DROP_WOBBLE_GOAL_4, BLUE_WAIT_FOR_DROP_4, BLUE_MOVE_ARM_DOWN_4, BLUE_DRIVE_RING_4, BLUE_PARK_1, BLUE_MOVE_ARM_UP_1, BLUE_DROP_WOBBLE_GOAL_1, BLUE_WAIT_FOR_DROP_1, BLUE_MOVE_ARM_DOWN_1, BLUE_DRIVE_RING_1, BLUE_PARK_0, BLUE_MOVE_ARM_UP_0, BLUE_DROP_WOBBLE_GOAL_0, BLUE_WAIT_FOR_DROP_0, BLUE_MOVE_ARM_DOWN_0, BLUE_DRIVE_RING_0, BLUE_DETERMINE_RING_STACK, BLUE_TURN_OFF_SHOOTER, BLUE_SHOOT_RINGS, BLUE_WAIT_ELEVATION_STABILIZE, BLUE_TURN_AIM_SHOOT, BLUE_DRIVE_VUFORIA_TO_POWERSHOT, BLUE_VUFORIA_EXPLORE, BLUE_WAIT, BLUE_DRIVE_1C, BLUE_DRIVE_1B, BLUE_DRIVE_1, SET_VUCALC, WAIT_FOR_VUFORIA_INIT, ACTIVATE_TARGETS, DEACTIVATE_TARGETS, BLUE_SET_VUCALC, BLUE_TARGETS_ACTIVATE, BLUE_WAIT_FOR_VUFORIA_INIT, BLUE_DEACTIVATE_TARGETS, ELEVATE_SHOOTER, BLUE_START_FLYWHEEL, BLUE_WOBBLE_TURN, BLUE_WOBBLE_TURN_1, BLUE_WOBBLE_TURN_4, OPENCV_INIT
     }
 
 
