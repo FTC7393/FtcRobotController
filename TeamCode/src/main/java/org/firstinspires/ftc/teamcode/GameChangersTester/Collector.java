@@ -29,11 +29,11 @@ public class Collector {
         collectorServo.goToPreset(ServoPresets.Collector.FORWARD);
     }
             //damages rings and possibly could break the windmill
-//    public void expel()
-//    {
-//        collectorMotor.setPower(motorPowerBack);
-//        collectorServo.setPosition(servoPowerBack);
-//    }
+    public void expel()
+    {
+        collectorMotor.setPower(motorPowerBack);
+        collectorServo.setPosition(servoPowerBack);
+    }
 
     public void stop()
     {
