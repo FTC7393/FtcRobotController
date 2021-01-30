@@ -248,7 +248,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             //END timeout drive
 
             b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.TURN_AIM_SHOOT));
-            b.addGyroTurn(S.TURN_AIM_SHOOT, S.WAIT_ELEVATION_STABILIZE, 0);
+            b.addGyroTurn(S.TURN_AIM_SHOOT, S.WAIT_ELEVATION_STABILIZE, -1);
             b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 2000L);
             b.add(S.SHOOT_RINGS, new ShooterState(robotCfg, 150L, 500L, S.TURN_OFF_SHOOTER));
             b.add(S.TURN_OFF_SHOOTER, makeFlyWheelStopState(S.DEACTIVATE_TARGETS));
