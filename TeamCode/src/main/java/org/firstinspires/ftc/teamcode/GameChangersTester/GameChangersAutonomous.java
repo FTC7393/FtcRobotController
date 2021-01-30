@@ -227,11 +227,12 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         if (teamColor == TeamColor.RED) {
             if (startingPosition == StartingPosition.LEFT) {
                 b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(1.5), 1.0, 275, 0);
-                b.addDrive(S.DRIVE_1B, S.SET_VUCALC, Distance.fromFeet(.3), 0.5, 180, 0);
+                b.addDrive(S.DRIVE_1B, S.SET_VUCALC, Distance.fromFeet(.32), 0.5, 180, 0);
             } else {
                 b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(.2), .7, 180, 0); // might go out of field
                 b.addDrive(S.DRIVE_1B, S.DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
                 b.addDrive(S.DRIVE_1C, S.SET_VUCALC, Distance.fromFeet(.3), 1.0, 0, 0);
+//                b.addDrive(S.DRIVE_1C, S.SET_VUCALC, Distance.fromFeet(.3), 1.0, 0, 0);
             }
             b.add(S.SET_VUCALC, makeVuCalcState(S.WAIT_FOR_VUFORIA_INIT));
             b.addResultReceiverReady(S.WAIT_FOR_VUFORIA_INIT, S.ACTIVATE_TARGETS, vuforiaInitRR);
@@ -239,7 +240,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.VUFORIA_EXPLORE, getVuforiaPosition());
             EndCondition vuforiaArrived = createXYREndCondition();
             // add other pairs of state name end conditions
-            b.addDrive(S.DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.START_FLYWHEEL, vuforiaArrived, S.TIMEOUT_DRIVE, EVEndConditions.timed(Time.fromSeconds(8))), xyrControl);
+            b.addDrive(S.DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.START_FLYWHEEL, vuforiaArrived, S.START_FLYWHEEL, EVEndConditions.timed(Time.fromSeconds(3))), xyrControl);
 
             //START timeout drive
             b.addDrive(S.TIMEOUT_DRIVE, S.TIMEOUT_PARK,Distance.fromFeet(.3),.7,270,0);
@@ -267,7 +268,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             //-------------------------------------------------------------------------------------------------------------------------------
             //0 rings
             //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.DRIVE_RING_0, S.MOVE_ARM_DOWN_0, Distance.fromFeet(0.65), 0.7, 225, 0);
+            b.addDrive(S.DRIVE_RING_0, S.MOVE_ARM_DOWN_0, Distance.fromFeet(0.62), 0.7, 225, 0);
             b.add(S.MOVE_ARM_DOWN_0, new State() {
                 @Override
                 public StateName act() {
@@ -289,7 +290,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             //-------------------------------------------------------------------------------------------------------------------------------
             //1 ring
             //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.DRIVE_RING_1, S.MOVE_ARM_DOWN_1, Distance.fromFeet(1.05), 0.7, 275, 0);
+            b.addDrive(S.DRIVE_RING_1, S.MOVE_ARM_DOWN_1, Distance.fromFeet(.95), 0.7, 275, 0);
             b.add(S.MOVE_ARM_DOWN_1, new State() {
                 @Override
                 public StateName act() {
@@ -340,8 +341,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 b.addDrive(S.BLUE_DRIVE_1B, S.BLUE_DRIVE_1C, Distance.fromFeet(1.5), 1.0, 270, 0);
                 b.addDrive(S.BLUE_DRIVE_1C, S.BLUE_SET_VUCALC, Distance.fromFeet(.3), 1.0, 180, 0);
             } else {
-                b.addDrive(S.BLUE_DRIVE_1, S.BLUE_DRIVE_1B, Distance.fromFeet(1.5), 1.0, 265, 0);
-                b.addDrive(S.BLUE_DRIVE_1B, S.BLUE_SET_VUCALC, Distance.fromFeet(.3), 0.5, 0, 0);
+                b.addDrive(S.BLUE_DRIVE_1, S.BLUE_DRIVE_1B, Distance.fromFeet(1.4), 1.0, 265, 0);
+                b.addDrive(S.BLUE_DRIVE_1B, S.BLUE_SET_VUCALC, Distance.fromFeet(.43), 0.5, 0, 0);
             }
             b.add(S.BLUE_SET_VUCALC, makeVuCalcState(S.BLUE_WAIT_FOR_VUFORIA_INIT));
             b.addResultReceiverReady(S.BLUE_WAIT_FOR_VUFORIA_INIT, S.BLUE_TARGETS_ACTIVATE, vuforiaInitRR);
@@ -352,7 +353,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.BLUE_VUFORIA_EXPLORE, getVuforiaPosition());
             EndCondition vuforiaArrived = createXYREndCondition();
             // add other pairs of state name end conditions
-            b.addDrive(S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.BLUE_START_FLYWHEEL, vuforiaArrived, S.BLUE_TIMEOUT_DRIVE, EVEndConditions.timed(Time.fromSeconds(8))), xyrControl);
+            b.addDrive(S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.BLUE_START_FLYWHEEL, vuforiaArrived, S.BLUE_START_FLYWHEEL, EVEndConditions.timed(Time.fromSeconds(3))), xyrControl);
 
             //START timeout drive
             b.addDrive(S.BLUE_TIMEOUT_DRIVE, S.BLUE_TIMEOUT_PARK,Distance.fromFeet(.3),.7,270,0);
@@ -362,7 +363,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.BLUE_START_FLYWHEEL,makeStartFlyWheelState(S.BLUE_TURN_AIM_SHOOT));
             b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT, S.BLUE_WAIT_ELEVATION_STABILIZE, 0);
             b.addWait(S.BLUE_WAIT_ELEVATION_STABILIZE, S.BLUE_SHOOT_RINGS, 2500L);
-            b.add(S.BLUE_SHOOT_RINGS, new ShooterState(robotCfg, 200L, 550L, S.BLUE_TURN_OFF_SHOOTER));
+            b.add(S.BLUE_SHOOT_RINGS, new ShooterState(robotCfg, 200L, 650L, S.BLUE_TURN_OFF_SHOOTER));
             b.add(S.BLUE_TURN_OFF_SHOOTER, makeFlyWheelStopState(S.BLUE_DEACTIVATE_TARGETS));
             b.add(S.BLUE_DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.BLUE_DETERMINE_RING_STACK));
             b.add(S.BLUE_DETERMINE_RING_STACK, new State() {
