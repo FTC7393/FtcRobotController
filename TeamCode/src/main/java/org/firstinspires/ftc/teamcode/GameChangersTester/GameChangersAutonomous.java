@@ -242,7 +242,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addDrive(S.DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.START_FLYWHEEL, vuforiaArrived, S.TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
             b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.TURN_AIM_SHOOT));
             b.addGyroTurn(S.TURN_AIM_SHOOT, S.WAIT_ELEVATION_STABILIZE, 0);
-            b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 3000L);
+            b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 2500L);
             b.add(S.SHOOT_RINGS, new ShooterState(robotCfg, 200L, 550L, S.TURN_OFF_SHOOTER));
             b.add(S.TURN_OFF_SHOOTER, makeFlyWheelStopState(S.DEACTIVATE_TARGETS));
             b.add(S.DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.DETERMINE_RING_STACK));
@@ -346,10 +346,10 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.BLUE_VUFORIA_EXPLORE, getVuforiaPosition());
             EndCondition vuforiaArrived = createXYREndCondition();
             // add other pairs of state name end conditions
-            b.addDrive(S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.BLUE_DEACTIVATE_TARGETS, vuforiaArrived, S.BLUE_TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
+            b.addDrive(S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.BLUE_START_FLYWHEEL, vuforiaArrived, S.BLUE_TIMEOUT_LINE, EVEndConditions.timed(Time.fromSeconds(5))), xyrControl);
             b.add(S.BLUE_START_FLYWHEEL,makeStartFlyWheelState(S.BLUE_TURN_AIM_SHOOT));
             b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT, S.BLUE_WAIT_ELEVATION_STABILIZE, 0);
-            b.addWait(S.BLUE_WAIT_ELEVATION_STABILIZE, S.BLUE_SHOOT_RINGS, 3000L);
+            b.addWait(S.BLUE_WAIT_ELEVATION_STABILIZE, S.BLUE_SHOOT_RINGS, 2500L);
             b.add(S.BLUE_SHOOT_RINGS, new ShooterState(robotCfg, 200L, 550L, S.BLUE_TURN_OFF_SHOOTER));
             b.add(S.BLUE_TURN_OFF_SHOOTER, makeFlyWheelStopState(S.BLUE_DEACTIVATE_TARGETS));
             b.add(S.BLUE_DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.BLUE_DETERMINE_RING_STACK));
@@ -368,37 +368,36 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             //-------------------------------------------------------------------------------------------------------------------------------
             //0 rings
             //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.BLUE_DRIVE_RING_0, S.BLUE_WOBBLE_TURN, Distance.fromFeet(0.45), 0.7, 320, -5);
+            b.addDrive(S.BLUE_DRIVE_RING_0, S.BLUE_WOBBLE_TURN, Distance.fromFeet(0.55), 0.7, 321, -5);
             b.addGyroTurn(S.BLUE_WOBBLE_TURN, S.BLUE_MOVE_ARM_DOWN_0, 180);
             b.add(S.BLUE_MOVE_ARM_DOWN_0, makeArmDownState(S.BLUE_WAIT_FOR_DROP_0));
             b.addWait(S.BLUE_WAIT_FOR_DROP_0, S.BLUE_DROP_WOBBLE_GOAL_0, wobbleGoalWaitTime);
             b.addServo(S.BLUE_DROP_WOBBLE_GOAL_0, S.BLUE_MOVE_ARM_UP_0, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, servoReleaseWaitTime,true);
-            b.add(S.BLUE_MOVE_ARM_UP_0, makeArmUpState(S.BLUE_PARK_0_A));
-            b.addDrive(S.BLUE_PARK_0_A, S.BLUE_PARK_0, Distance.fromFeet(1), 1, 180, 180);
-            b.addDrive(S.BLUE_PARK_0, S.BLUE_STOP, Distance.fromFeet(1), 1, 185, 180);
+            b.add(S.BLUE_MOVE_ARM_UP_0, makeArmUpState(S.BLUE_PARK_0));
+//            b.addDrive(S.BLUE_PARK_0_A, S.BLUE_PARK_0, Distance.fromFeet(1), 1, 180, 180);
+            b.addDrive(S.BLUE_PARK_0, S.BLUE_STOP, Distance.fromFeet(1.8), 1, 183, 180);
             //-------------------------------------------------------------------------------------------------------------------------------
             //1 ring (untested changes)
             //-------------------------------------------------------------------------------------------------------------------------------
-            b.addDrive(S.BLUE_DRIVE_RING_1, S.BLUE_WOBBLE_TURN_1, Distance.fromFeet(.85), 0.7, 262, -5);
+            b.addDrive(S.BLUE_DRIVE_RING_1, S.BLUE_WOBBLE_TURN_1, Distance.fromFeet(.9), 0.7, 265, -5);
             b.addGyroTurn(S.BLUE_WOBBLE_TURN_1, S.BLUE_MOVE_ARM_DOWN_1, 180);
             b.add(S.BLUE_MOVE_ARM_DOWN_1, makeArmDownState(S.BLUE_WAIT_FOR_DROP_1));
             b.addWait(S.BLUE_WAIT_FOR_DROP_1, S.BLUE_DROP_WOBBLE_GOAL_1, wobbleGoalWaitTime);
             b.addServo(S.BLUE_DROP_WOBBLE_GOAL_1, S.BLUE_MOVE_ARM_UP_1, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED,servoReleaseWaitTime, true);
             b.add(S.BLUE_MOVE_ARM_UP_1, makeArmUpState(S.BLUE_PARK_1_A));
             b.addDrive(S.BLUE_PARK_1_A, S.BLUE_PARK_1, Distance.fromFeet(1), 1, 180, 180);
-            b.addDrive(S.BLUE_PARK_1, S.BLUE_STOP, Distance.fromFeet(0.8), 1, 115, 180);
+            b.addDrive(S.BLUE_PARK_1, S.BLUE_STOP, Distance.fromFeet(0.6), 1, 115, 180);
             //-------------------------------------------------------------------------------------------------------------------------------
             //4 rings
             //-------------------------------------------------------------------------------------------------------------------------------
             b.addDrive(S.BLUE_DRIVE_RING_4, S.BLUE_WOBBLE_TURN_4, Distance.fromFeet(1.45), 0.7, 285, -5);
-            b.addGyroTurn(S.BLUE_WOBBLE_TURN_4, S.BLUE_MOVE_ARM_DOWN_1, 180); // this is rotating out of the field
+            b.addGyroTurn(S.BLUE_WOBBLE_TURN_4, S.BLUE_MOVE_ARM_DOWN_4, 180);
             b.add(S.BLUE_MOVE_ARM_DOWN_4, makeArmDownState(S.BLUE_WAIT_FOR_DROP_4));
             b.addWait(S.BLUE_WAIT_FOR_DROP_4, S.BLUE_DROP_WOBBLE_GOAL_4, wobbleGoalWaitTime);
             b.addServo(S.BLUE_DROP_WOBBLE_GOAL_4, S.BLUE_MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, servoReleaseWaitTime,true);
             b.add(S.BLUE_MOVE_ARM_UP_4, makeArmUpState(S.BLUE_PARK_4_A));
-            b.addDrive(S.BLUE_PARK_4_A, S.BLUE_PARK_4, Distance.fromFeet(1.5), 1, 180, 180);
-            b.addDrive(S.BLUE_PARK_4, S.BLUE_PARK_4C, Distance.fromFeet(2), 1, 90, 180); //this isnt driving as long as it should
-            b.addDrive(S.BLUE_PARK_4C, S.BLUE_STOP, Distance.fromFeet(1), 1, 90, 180); //this isnt driving as long as it should
+            b.addDrive(S.BLUE_PARK_4_A, S.BLUE_PARK_4, Distance.fromFeet(.5), 1, 180, 180);
+            b.addDrive(S.BLUE_PARK_4, S.BLUE_STOP, Distance.fromFeet(1.5), 1, 135, 180);
 
             b.addStop(S.BLUE_TIMEOUT_LINE);
             b.addStop(S.BLUE_STOP);
