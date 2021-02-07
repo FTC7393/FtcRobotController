@@ -82,6 +82,14 @@ public class PowerShotStateMachineFactory {
         StateName firstState = S.IDLE;
         EVStateMachineBuilder b = new EVStateMachineBuilder(firstState, teamColor, tolerance, gyro, gyroGain, maxAngularSpeed,
                 servos, mecanumControl);
+
+        ServoPresets.Camera cameraServoPreset;
+        if(teamColor == TeamColor.BLUE) {
+            cameraServoPreset = ServoPresets.Camera.BLUE;
+        } else {
+            cameraServoPreset = ServoPresets.Camera.RED;
+        }
+
         State idleState = new State() {
             @Override
             public StateName act() {
@@ -105,7 +113,8 @@ public class PowerShotStateMachineFactory {
         };
 
         b.add(firstState, idleState);
-        b.add(S.VUFORIA_TARGETS_ACTIVATE, makeTargetsActivateState(S.VUFORIA_SEEK));
+        b.add(S.VUFORIA_TARGETS_ACTIVATE, makeTargetsActivateState(S.SET_CAMERA_SERVO));
+        b.addServo(S.SET_CAMERA_SERVO, S.VUFORIA_SEEK, GameChangersRobotCfg.GameChangersServoName.CAMERA, cameraServoPreset, true);
         b.add(S.VUFORIA_SEEK, vuforiaSeekState);
         EndCondition vuforiaArrived = createXYREndCondition();
         // add other pairs of state name end conditions
@@ -177,7 +186,7 @@ public class PowerShotStateMachineFactory {
     }
 
     public enum S implements StateName{
-        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, IDLE
+        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO, IDLE
     }
 
 }
