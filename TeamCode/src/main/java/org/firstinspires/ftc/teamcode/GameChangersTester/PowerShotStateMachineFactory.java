@@ -100,7 +100,7 @@ public class PowerShotStateMachineFactory {
             }
         };
 
-        EndCondition vuforiaSeek = createVuforiaSeekEC(3);
+        EndCondition vuforiaSeek = createVuforiaSeekEC(1);
 
         StateMap vSeekSM = StateMap.of(S.VUFORIA_DRIVE, vuforiaSeek, S.VUFORIA_TARGETS_DEACTIVATE, EndConditions.timed(3000));
 
@@ -119,6 +119,7 @@ public class PowerShotStateMachineFactory {
         EndCondition vuforiaArrived = createXYREndCondition();
         // add other pairs of state name end conditions
         b.addDrive(GameChangersAutonomous.S.DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.START_FLYWHEEL, vuforiaArrived, S.START_FLYWHEEL, EVEndConditions.timed(Time.fromSeconds(3))), xyrControl);
+        b.add(S.VUFORIA_TARGETS_DEACTIVATE, makeTargetsDeactivateState(S.START_FLYWHEEL));
         b.addStop(S.START_FLYWHEEL);
         //TODO: make sure vuforia targets are deactivated
         return b.build();
