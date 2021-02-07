@@ -152,22 +152,14 @@ public class PowerShotStateMachineFactory {
     }
 
     private State makeGyroHeadingState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                gyroHeading = robotCfg.getGyro().getHeading();
-                return nextState;
-            }
+        return () -> {
+            gyroHeading = robotCfg.getGyro().getHeading();
+            return nextState;
         };
     }
 
     private State makeShootRingState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                return nextState;
-            }
-        };
+        return () -> nextState;
     }
 
     private EndCondition createDriverHaltEC() {
@@ -226,32 +218,23 @@ public class PowerShotStateMachineFactory {
 
 
     private State makeTargetsActivateState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                targetsUltimateGoal.activate();
-                return nextState;
-            }
+        return () -> {
+            targetsUltimateGoal.activate();
+            return nextState;
         };
     }
 
     private State makeTargetsDeactivateState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                targetsUltimateGoal.deactivate();
-                return nextState;
-            }
+        return () -> {
+            targetsUltimateGoal.deactivate();
+            return nextState;
         };
     }
 
     private State makeStartFlyWheelState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                robotCfg.startFlyWheel();
-                return nextState;
-            }
+        return () -> {
+            robotCfg.startFlyWheel();
+            return nextState;
         };
     }
 
