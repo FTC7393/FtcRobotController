@@ -137,6 +137,8 @@ public class PowerShotStateMachineFactory {
         b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.WAIT_FOR_FLYWHEEL));
         b.addWait(S.WAIT_FOR_FLYWHEEL, S.SHOOT_MIDDLE, 3000);
         b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT));
+        b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeading - 2), tolerance, 1);
+        b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT));
 
 
 
@@ -159,7 +161,22 @@ public class PowerShotStateMachineFactory {
     }
 
     private State makeShootRingState(final StateName nextState) {
-        return () -> nextState;
+        return new BasicAbstractState() {
+            @Override
+            public void init() {
+
+            }
+
+            @Override
+            public boolean isDone() {
+                return false;
+            }
+
+            @Override
+            public StateName getNextStateName() {
+                return nextState;
+            }
+        };
     }
 
     private EndCondition createDriverHaltEC() {
@@ -240,7 +257,7 @@ public class PowerShotStateMachineFactory {
 
 
     public enum S implements StateName{
-        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO, TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, STOP, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL, SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, IDLE
+        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO, TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, STOP, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL, SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, IDLE
     }
 
 }
