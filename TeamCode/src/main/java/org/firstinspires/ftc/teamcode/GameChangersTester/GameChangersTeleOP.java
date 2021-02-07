@@ -257,6 +257,8 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             autoPowerShotSM.act();
         }
 
+        telemetry.addData("powershot statemachine state", autoPowerShotSM.getCurrentStateName().name());
+
     }
 
     @Override
