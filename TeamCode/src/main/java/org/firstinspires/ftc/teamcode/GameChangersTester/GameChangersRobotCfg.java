@@ -44,7 +44,7 @@ public class GameChangersRobotCfg extends RobotCfg {
     private final IMUGyro gyro;
     private final AnalogSensor potentiometer;
     private final MotorEnc flyWheelShooter;
-    private final double flyWheelMotorSpeed = .9;
+    private final double flyWheelMotorSpeed = 1;
 
 
 
@@ -111,9 +111,9 @@ public class GameChangersRobotCfg extends RobotCfg {
 
     public int getFlywheelEncoderValue() { return flyWheelShooter.getEncoderPosition();}
 
-    public void startFlyWheel() { flyWheelShooter.setSpeed(flyWheelMotorSpeed);}
+    public void startFlyWheel() { flyWheelShooter.setPower(flyWheelMotorSpeed);}
 
-    public void stopFlyWheel() { flyWheelShooter.setSpeed(0);}
+    public void stopFlyWheel() { flyWheelShooter.setPower(0);}
 
     public ServoControl getPincher() {
         return getServo(GameChangersServoName.PINCH);
