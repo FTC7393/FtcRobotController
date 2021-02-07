@@ -5,6 +5,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
+import java.util.List;
+
 import ftc.electronvolts.statemachine.AbstractState;
 import ftc.electronvolts.statemachine.EndCondition;
 import ftc.electronvolts.statemachine.EndConditions;
@@ -34,13 +36,14 @@ public class PowerShotStateMachineFactory {
     private final Continuable button;
     private VuforiaRotationTranslationCntrl xyrControl;
     private VuforiaTrackables targetsUltimateGoal;
+    private List<VuforiaTrackable> allTrackables;
     private VuforiaTrackable trackable;
     private double xDestIn;
     private double yDestIn;
 
     public PowerShotStateMachineFactory(TeamColor teamColor, Angle tolerance, Gyro gyro, double gyroGain, double maxAngularSpeed,
                                         Servos servos, MecanumControl mecanumControl, final Continuable button,
-                                        VuforiaTrackables targetsUltimateGoal) {
+                                        VuforiaTrackables targetsUltimateGoal, List<VuforiaTrackable> allTrackables) {
 
         this.teamColor = teamColor;
         this.tolerance = tolerance;
@@ -51,13 +54,15 @@ public class PowerShotStateMachineFactory {
         this.mecanumControl = mecanumControl;
         this.button = button;
         this.targetsUltimateGoal = targetsUltimateGoal;
+        this.allTrackables = allTrackables;
+
 
         if(teamColor == TeamColor.BLUE) {
-            trackable = targetsUltimateGoal.get(3);
+            trackable = allTrackables.get(3);
             xDestIn = 0; //need to tweak
             yDestIn = 20; //need to tweak
         } else {
-            trackable = targetsUltimateGoal.get(2);
+            trackable = allTrackables.get(2);
             xDestIn = 0; //need to tweak
             yDestIn = -30; //need to tweak
         }

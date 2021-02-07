@@ -44,9 +44,9 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     private AnalogInputEdgeDetector collectorShooterButton;
     private TeamColor teamColor;
     private VuforiaTrackables targetsUltimateGoal;
-    private List<VuforiaTrackable> allTrackables;
     private ResultReceiver<Boolean> vuforiaInitRR = new BasicResultReceiver<>();
     private StateMachine autoPowerShotSM;
+    private List<VuforiaTrackable> allTrackables;
 
     public GameChangersTeleOP() {
 
@@ -154,7 +154,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                     };
                     PowerShotStateMachineFactory factory = new PowerShotStateMachineFactory(teamColor, Angle.fromDegrees(2),
                             robotCfg.getGyro(), 0.6, 0.6, robotCfg.getServos(), robotCfg.getMecanumControl(),
-                            button, targetsUltimateGoal);
+                            button, targetsUltimateGoal, allTrackables);
                     autoPowerShotSM = factory.create();
                 } catch(RuntimeException r) {
 

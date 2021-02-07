@@ -12,10 +12,6 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.List;
 
 import ftc.electronvolts.statemachine.BasicAbstractState;
@@ -46,7 +42,7 @@ import ftc.evlib.util.ImmutableList;
 
 public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg> {
     private final String VUFORIA_KEY;
-    private VuforiaTrackable towerGoalTarget;
+    private VuforiaTrackable sideWallTarget;
     private WebcamName webcamName;
     //options op values
     private TeamColor teamColor = null;
@@ -437,11 +433,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
         allTrackables = VuLocalizer.setVuLocalizer(teamColor, targetsUltimateGoal, parameters);
         if (teamColor == TeamColor.BLUE) {
-            towerGoalTarget = allTrackables.get(3);
+            sideWallTarget = allTrackables.get(3);
             xDestIn = 0;
             yDestIn = 33;
         } else {
-            towerGoalTarget = allTrackables.get(2);
+            sideWallTarget = allTrackables.get(2);
             xDestIn = 0;
             yDestIn = -40;
         }
@@ -456,7 +452,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 double maxAngularSpeed = .5;
                 double minAngularSpeed = 0.05;
                 // heavy dependency on robot orientation, refer to vuCalc class at the end of it
-                xyrControl.setVuCalc(towerGoalTarget, xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
+                xyrControl.setVuCalc(sideWallTarget, xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
                 return nextState;
             }
         };
