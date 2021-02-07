@@ -253,7 +253,9 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             robotCfg.getCollector().ingest();
         }
 
-        autoPowerShotSM.act();
+        if(autoPowerShotSM != null) {
+            autoPowerShotSM.act();
+        }
 
     }
 
