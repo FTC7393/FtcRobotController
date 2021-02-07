@@ -26,6 +26,7 @@ import ftc.evlib.statemachine.EVStateMachineBuilder;
 public class PowerShotStateMachineFactory {
 
 
+    private GameChangersRobotCfg robotCfg;
     private final TeamColor teamColor;
     private final Angle tolerance;
     private final Gyro gyro;
@@ -41,9 +42,10 @@ public class PowerShotStateMachineFactory {
     private double xDestIn;
     private double yDestIn;
 
-    public PowerShotStateMachineFactory(TeamColor teamColor, Angle tolerance, Gyro gyro, double gyroGain, double maxAngularSpeed,
+    public PowerShotStateMachineFactory(GameChangersRobotCfg robotCfg, TeamColor teamColor, Angle tolerance, Gyro gyro, double gyroGain, double maxAngularSpeed,
                                         Servos servos, MecanumControl mecanumControl, final Continuable button,
                                         VuforiaTrackables targetsUltimateGoal, List<VuforiaTrackable> allTrackables) {
+        this.robotCfg = robotCfg;
 
         this.teamColor = teamColor;
         this.tolerance = tolerance;
@@ -107,7 +109,7 @@ public class PowerShotStateMachineFactory {
 
         EndCondition vuforiaSeek = createVuforiaSeekEC(1);
 
-        StateMap vSeekSM = StateMap.of(S.VUFORIA_DRIVE, vuforiaSeek, S.VUFORIA_TARGETS_DEACTIVATE, EndConditions.timed(3000));
+        StateMap vSeekSM = StateMap.of(S.VUFORIA_DRIVE, vuforiaSeek, S.TIMEOUT_DEACTIVATE, EndConditions.timed(3000));
 
         AbstractState vuforiaSeekState = new AbstractState(vSeekSM) {
             @Override public void init() {}
@@ -119,15 +121,40 @@ public class PowerShotStateMachineFactory {
 
         b.add(firstState, idleState);
         b.add(S.VUFORIA_TARGETS_ACTIVATE, makeTargetsActivateState(S.SET_CAMERA_SERVO));
-        b.addServo(S.SET_CAMERA_SERVO, S.VUFORIA_SEEK, GameChangersRobotCfg.GameChangersServoName.CAMERA, cameraServoPreset, true);
+        b.addServo(S.SET_CAMERA_SERVO, S.VUFORIA_SEEK, robotCfg.getCameraServo().getName(), cameraServoPreset, true);
         b.add(S.VUFORIA_SEEK, vuforiaSeekState);
         EndCondition vuforiaArrived = createXYREndCondition();
         // add other pairs of state name end conditions
-        b.addDrive(S.VUFORIA_DRIVE, StateMap.of(S.START_FLYWHEEL, vuforiaArrived, S.START_FLYWHEEL, EVEndConditions.timed(Time.fromSeconds(3))), xyrControl);
-        b.add(S.VUFORIA_TARGETS_DEACTIVATE, makeTargetsDeactivateState(S.START_FLYWHEEL));
-        b.addStop(S.START_FLYWHEEL);
+        EndCondition driverHaltEC = createDriverHaltEC();
+        b.addDrive(S.VUFORIA_DRIVE, StateMap.of(S.VUFORIA_TARGETS_DEACTIVATE, vuforiaArrived, S.TIMEOUT_DEACTIVATE,
+                EVEndConditions.timed(Time.fromSeconds(3)), S.TIMEOUT_DEACTIVATE, driverHaltEC), xyrControl);
+        b.add(S.VUFORIA_TARGETS_DEACTIVATE, makeTargetsDeactivateState(S.STOP));
+
+
+
+
+        //timeout branch - deactivate targets, prep shooter for driver
+        b.add(S.TIMEOUT_DEACTIVATE, makeTargetsDeactivateState(S.SET_SHOOTER_SERVO));
+        b.addServo(S.SET_SHOOTER_SERVO, S.START_FLYWHEEL, robotCfg.getElevation().getName(),
+                ServoPresets.Elevation.POWERSHOOTING, true);
+        b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.IDLE));
+        b.addStop(S.STOP);
         //TODO: make sure vuforia targets are deactivated
         return b.build();
+    }
+
+    private EndCondition createDriverHaltEC() {
+        return new EndCondition() {
+            @Override
+            public void init() {
+
+            }
+
+            @Override
+            public boolean isDone() {
+                return false;
+            }
+        };
     }
 
     private EndCondition createXYREndCondition() {
@@ -191,8 +218,19 @@ public class PowerShotStateMachineFactory {
         };
     }
 
+    private State makeStartFlyWheelState(final StateName nextState) {
+        return new State() {
+            @Override
+            public StateName act() {
+                robotCfg.startFlyWheel();
+                return nextState;
+            }
+        };
+    }
+
+
     public enum S implements StateName{
-        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO, IDLE
+        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO, TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, STOP, IDLE
     }
 
 }
