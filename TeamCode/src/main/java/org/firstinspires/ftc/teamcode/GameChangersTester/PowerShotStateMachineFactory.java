@@ -8,6 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import java.util.List;
 
 import ftc.electronvolts.statemachine.AbstractState;
+import ftc.electronvolts.statemachine.BasicAbstractState;
 import ftc.electronvolts.statemachine.EndCondition;
 import ftc.electronvolts.statemachine.EndConditions;
 import ftc.electronvolts.statemachine.State;
@@ -41,6 +42,7 @@ public class PowerShotStateMachineFactory {
     private VuforiaTrackable trackable;
     private double xDestIn;
     private double yDestIn;
+    private double gyroHeading;
 
     public PowerShotStateMachineFactory(GameChangersRobotCfg robotCfg, TeamColor teamColor, Angle tolerance, Gyro gyro, double gyroGain, double maxAngularSpeed,
                                         Servos servos, MecanumControl mecanumControl, final Continuable button,
@@ -66,7 +68,7 @@ public class PowerShotStateMachineFactory {
         } else {
             trackable = allTrackables.get(2);
             xDestIn = 0; //need to tweak
-            yDestIn = -30; //need to tweak
+            yDestIn = -25.6; //need to tweak
         }
 
         double transGain = 0.03;
@@ -128,19 +130,44 @@ public class PowerShotStateMachineFactory {
         EndCondition driverHaltEC = createDriverHaltEC();
         b.addDrive(S.VUFORIA_DRIVE, StateMap.of(S.VUFORIA_TARGETS_DEACTIVATE, vuforiaArrived, S.TIMEOUT_DEACTIVATE,
                 EVEndConditions.timed(Time.fromSeconds(3)), S.TIMEOUT_DEACTIVATE, driverHaltEC), xyrControl);
-        b.add(S.VUFORIA_TARGETS_DEACTIVATE, makeTargetsDeactivateState(S.STOP));
+        b.add(S.VUFORIA_TARGETS_DEACTIVATE, makeTargetsDeactivateState(S.GET_GYRO_HEADING));
+        b.add(S.GET_GYRO_HEADING, makeGyroHeadingState(S.SET_SHOOTER_SERVO));
+        b.addServo(S.SET_SHOOTER_SERVO, S.START_FLYWHEEL, robotCfg.getElevation().getName(),
+                ServoPresets.Elevation.POWERSHOOTING, true);
+        b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.WAIT_FOR_FLYWHEEL));
+        b.addWait(S.WAIT_FOR_FLYWHEEL, S.SHOOT_MIDDLE, 3000);
+        b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT));
 
 
 
 
         //timeout branch - deactivate targets, prep shooter for driver
-        b.add(S.TIMEOUT_DEACTIVATE, makeTargetsDeactivateState(S.SET_SHOOTER_SERVO));
-        b.addServo(S.SET_SHOOTER_SERVO, S.START_FLYWHEEL, robotCfg.getElevation().getName(),
+        b.add(S.TIMEOUT_DEACTIVATE, makeTargetsDeactivateState(S.TIMEOUT_SET_SHOOTER_SERVO));
+        b.addServo(S.TIMEOUT_SET_SHOOTER_SERVO, S.TIMEOUT_START_FLYWHEEL, robotCfg.getElevation().getName(),
                 ServoPresets.Elevation.POWERSHOOTING, true);
-        b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.IDLE));
+        b.add(S.TIMEOUT_START_FLYWHEEL, makeStartFlyWheelState(S.IDLE));
         b.addStop(S.STOP);
         //TODO: make sure vuforia targets are deactivated
         return b.build();
+    }
+
+    private State makeGyroHeadingState(final StateName nextState) {
+        return new State() {
+            @Override
+            public StateName act() {
+                gyroHeading = robotCfg.getGyro().getHeading();
+                return nextState;
+            }
+        };
+    }
+
+    private State makeShootRingState(final StateName nextState) {
+        return new State() {
+            @Override
+            public StateName act() {
+                return nextState;
+            }
+        };
     }
 
     private EndCondition createDriverHaltEC() {
@@ -230,7 +257,7 @@ public class PowerShotStateMachineFactory {
 
 
     public enum S implements StateName{
-        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO, TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, STOP, IDLE
+        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO, TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, STOP, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL, SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, IDLE
     }
 
 }

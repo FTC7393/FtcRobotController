@@ -1617,7 +1617,16 @@ public class EVStates extends States {
     }
 
     public static State gyroTurn(StateName nextStateName, final MecanumControl mecanumControl,
-                                 final Gyro gyro, final double gyroGain, final Angle orientation, final Angle tolerance, final double speed) {
+                                 final Gyro gyro, final double gyroGain, final Angle orientation,
+                                 final Angle tolerance, final double speed) {
+        InputExtractor<Angle> orientationIE = () -> orientation;
+
+        return gyroTurn(nextStateName, mecanumControl, gyro, gyroGain, orientationIE, tolerance, speed);
+    }
+
+    public static State gyroTurn(StateName nextStateName, final MecanumControl mecanumControl,
+                                 final Gyro gyro, final double gyroGain, final InputExtractor<Angle> orientation,
+                                 final Angle tolerance, final double speed) {
         Map<StateName, EndCondition> transitions = StateMap.of(
                 nextStateName,
                 EVEndConditions.gyroCloseTo(gyro, orientation, tolerance)
@@ -1627,7 +1636,7 @@ public class EVStates extends States {
             @Override
             public void init() {
                 mecanumControl.setTranslationControl(TranslationControls.ZERO);
-                mecanumControl.setRotationControl(RotationControls.gyro(gyro, gyroGain, orientation, tolerance, speed));
+                mecanumControl.setRotationControl(RotationControls.gyro(gyro, gyroGain, orientation.getValue(), tolerance, speed));
                 gyro.setActive(true);
             }
 

@@ -225,6 +225,11 @@ public class EVStateMachineBuilder extends StateMachineBuilder {
         add(stateName, ftc.evlib.statemachine.EVStates.gyroTurn(nextStateName, mecanumControl, gyro, gyroGain, orientation, tolerance));
 //        add(stateName, EVStates.mecanumDrive(nextStateName, Distance.zero(), mecanumControl, gyro, 0, Angle.zero(), orientation, tolerance));
     }
+
+    public void addGyroTurn(StateName stateName, StateName nextStateName, InputExtractor<Angle> orientation, Angle tolerance, double speed) {
+        add(stateName, ftc.evlib.statemachine.EVStates.gyroTurn(nextStateName, mecanumControl, gyro, gyroGain, orientation, tolerance, speed));
+//        add(stateName, EVStates.mecanumDrive(nextStateName, Distance.zero(), mecanumControl, gyro, 0, Angle.zero(), orientation, tolerance));
+    }
     ///// END TURN STATES /////
 
     ///// START SERVO STATES /////
