@@ -136,9 +136,9 @@ public class PowerShotStateMachineFactory {
                 ServoPresets.Elevation.POWERSHOOTING, true);
         b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.WAIT_FOR_FLYWHEEL));
         b.addWait(S.WAIT_FOR_FLYWHEEL, S.SHOOT_MIDDLE, 3000);
-        b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT));
+        b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE, button));
         b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeading - 2), tolerance, 1);
-        b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT));
+        b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT, 200, S.TIMEOUT_DEACTIVATE, button));
 
 
 
@@ -160,15 +160,31 @@ public class PowerShotStateMachineFactory {
         };
     }
 
-    private State makeShootRingState(final StateName nextState) {
+    private State makeShootRingState(final StateName successState, final long delay, final StateName cancelState, final Continuable button) {
         return new BasicAbstractState() {
+            long endTime;
+            StateName nextState;
+
             @Override
             public void init() {
-
+                endTime = System.currentTimeMillis() + delay;
+                robotCfg.getPusher().goToPreset(ServoPresets.Pusher.PUSH);
             }
 
             @Override
             public boolean isDone() {
+                if (!button.doContinue()) {
+                    //Pull back servo
+                    robotCfg.getPusher().goToPreset(ServoPresets.Pusher.RELEASE);
+                    nextState = cancelState;
+                    return true;
+                }
+                if (endTime < System.currentTimeMillis()) {
+                    //Pull back servo
+                    robotCfg.getPusher().goToPreset(ServoPresets.Pusher.RELEASE);
+                    nextState = successState;
+                    return true;
+                }
                 return false;
             }
 
@@ -178,6 +194,7 @@ public class PowerShotStateMachineFactory {
             }
         };
     }
+
 
     private EndCondition createDriverHaltEC() {
         return new EndCondition() {
