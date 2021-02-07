@@ -65,10 +65,10 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     @Override
     protected Logger createLogger() {
         return new Logger("log_", ".csv", ImmutableList.of(
-                new Logger.Column("pshot sm states", new InputExtractor<StateName>() {
+                new Logger.Column("pshot sm states", new InputExtractor<String>() {
                     @Override
-                    public StateName getValue() {
-                        return autoPowerShotSM.getCurrentStateName();
+                    public String getValue() {
+                        return autoPowerShotSM == null ? "none" : autoPowerShotSM.getCurrentStateName().name();
                     }
                 }),
                 new Logger.Column("proportional value potentiometer", new InputExtractor<Double>() {
