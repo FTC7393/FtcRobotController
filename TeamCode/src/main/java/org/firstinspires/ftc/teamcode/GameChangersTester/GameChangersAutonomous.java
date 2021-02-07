@@ -67,14 +67,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private long wobbleGoalWaitTime;
     private long servoReleaseWaitTime;
 
-    public GameChangersAutonomous() throws IOException {
+    public GameChangersAutonomous() {
         super();
-        // now read Vuforia Key from file in FTC directory on ControlHub:
-        File keyFile = FileUtil.getAppFile("vuforiakey.txt");
-        BufferedReader breader = new BufferedReader(new FileReader(keyFile));
-        String line = breader.readLine();
-        breader.close();
-        VUFORIA_KEY = line + " \n";
+        VUFORIA_KEY = VuforiaKeyReader.readVuforiaKey();
     }
 
     @Override
@@ -208,7 +203,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     @Override
     public StateMachine buildStates() {
-        EVStateMachineBuilder b = new EVStateMachineBuilder(S.OPENCV_INIT, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(), 0.6, 0.6, servos, robotCfg.getMecanumControl());
+        EVStateMachineBuilder b = new EVStateMachineBuilder(S.OPENCV_INIT, teamColor, Angle.fromDegrees(2), robotCfg.getGyro(),
+                0.6, 0.6, servos, robotCfg.getMecanumControl());
         if (teamColor == TeamColor.BLUE) {
             cameraServoPreset = ServoPresets.Camera.BLUE;
         } else {

@@ -2,19 +2,34 @@ package org.firstinspires.ftc.teamcode.GameChangersTester;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+
+import java.io.IOException;
+import java.util.List;
+
 import ftc.electronvolts.statemachine.State;
 import ftc.electronvolts.statemachine.StateMachine;
 import ftc.electronvolts.statemachine.StateMachineBuilder;
+import ftc.electronvolts.statemachine.StateMap;
 import ftc.electronvolts.statemachine.StateName;
 import ftc.electronvolts.util.AnalogInputEdgeDetector;
+import ftc.electronvolts.util.BasicResultReceiver;
 import ftc.electronvolts.util.Function;
 import ftc.electronvolts.util.Functions;
 import ftc.electronvolts.util.InputExtractor;
 import ftc.electronvolts.util.InputExtractors;
+import ftc.electronvolts.util.ResultReceiver;
+import ftc.electronvolts.util.TeamColor;
 import ftc.electronvolts.util.files.Logger;
+import ftc.electronvolts.util.files.OptionsFile;
+import ftc.electronvolts.util.units.Angle;
 import ftc.evlib.hardware.control.RotationControls;
 import ftc.evlib.hardware.control.TranslationControls;
 import ftc.evlib.opmodes.AbstractTeleOp;
+import ftc.evlib.util.FileUtil;
 import ftc.evlib.util.ImmutableList;
 
 @TeleOp(name = "GameChangersTeleOP")
@@ -27,6 +42,11 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     private AnalogInputEdgeDetector collectorIntakeButton;
     private AnalogInputEdgeDetector collectorShooterButton;
+    private TeamColor teamColor;
+    private VuforiaTrackables targetsUltimateGoal;
+    private List<VuforiaTrackable> allTrackables;
+    private ResultReceiver<Boolean> vuforiaInitRR = new BasicResultReceiver<>();
+    private StateMachine autoPowerShotSM;
 
     public GameChangersTeleOP() {
 
@@ -45,6 +65,12 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     @Override
     protected Logger createLogger() {
         return new Logger("log_", ".csv", ImmutableList.of(
+                new Logger.Column("pshot sm states", new InputExtractor<StateName>() {
+                    @Override
+                    public StateName getValue() {
+                        return autoPowerShotSM.getCurrentStateName();
+                    }
+                }),
                 new Logger.Column("proportional value potentiometer", new InputExtractor<Double>() {
                     @Override
                     public Double getValue() {
@@ -90,12 +116,54 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         ));
     }
 
+
+    private void initVuforia() {
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+        parameters.vuforiaLicenseKey = VuforiaKeyReader.readVuforiaKey();
+        parameters.cameraName = robotCfg.getWebcamName();
+        VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
+        targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
+        allTrackables = VuLocalizer.setVuLocalizer(teamColor, targetsUltimateGoal, parameters);
+    }
+
+
     @Override
     protected void setup() {
         collectorIntakeButton = new AnalogInputEdgeDetector(driver1.left_trigger, 0.3, 0.7, false);
         collectorShooterButton = new AnalogInputEdgeDetector(driver1.right_trigger, 0.3, 0.7, false);
-        
+        OptionsFile optionsFile = new OptionsFile(GCConverters.getInstance(), FileUtil.getOptionsFile(GameChangersOptionsOp.FILENAME));
+        teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
         shooterStateMachine = buildShooterStateMachine();
+
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    initVuforia();
+                    Continuable button = new Continuable() {
+                        boolean isRunning = false;
+                        @Override
+                        public boolean doContinue() {
+                            if(driver1.a.justPressed()) {
+                                isRunning = !isRunning;
+                            }
+                            return isRunning;
+                        }
+                    };
+                    PowerShotStateMachineFactory factory = new PowerShotStateMachineFactory(teamColor, Angle.fromDegrees(2),
+                            robotCfg.getGyro(), 0.6, 0.6, robotCfg.getServos(), robotCfg.getMecanumControl(),
+                            button, targetsUltimateGoal);
+                    autoPowerShotSM = factory.create();
+                } catch(RuntimeException r) {
+
+                }
+            }
+        };
+
+        Thread t = new Thread(r);
+        t.start();
     }
 
     @Override
@@ -185,6 +253,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             robotCfg.getCollector().ingest();
         }
 
+        autoPowerShotSM.act();
 
     }
 
