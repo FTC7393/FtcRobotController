@@ -45,7 +45,7 @@ public class GameChangersRobotCfg extends RobotCfg {
     private final AnalogSensor potentiometer;
     private final MotorEnc flyWheelShooter;
     private final double flyWheelMotorSpeed = 1;
-
+    private final BlinkyControl blinkin;
 
 
 
@@ -99,6 +99,9 @@ public class GameChangersRobotCfg extends RobotCfg {
 
         //camera
         webcam = hardwareMap.get(WebcamName.class, "Webcam");
+
+        //Blinkin thing.
+        //blinkin = hardwareMap.get(RevBlinkin)
 
 
     }
