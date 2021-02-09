@@ -38,7 +38,7 @@ public class GameChangersRobotCfg extends RobotCfg {
     //private final TwoMotors twoMotors;
     private final Collector collector;
     private final MecanumControl mecanumControl;
-    private final Velocity velocity = new Velocity(Distance.fromInches(12), Time.fromSeconds(1.0));
+    private static final Velocity velocity = new Velocity(Distance.fromInches(12), Time.fromSeconds(1.0));
     private final Servos servos;
     private final WobbleGoalCollector wobbleGoal;
     private final IMUGyro gyro;
@@ -60,8 +60,10 @@ public class GameChangersRobotCfg extends RobotCfg {
     }
 
 
-    public GameChangersRobotCfg(HardwareMap hardwareMap, Map<ServoName, Enum> servoStartPresetMap) {
+    public GameChangersRobotCfg(HardwareMap hardwareMap, Velocity velocityX, Velocity velocityY) {
         super(hardwareMap);
+
+        Map<ServoName, Enum> servoStartPresetMap = ServoCfg.defaultServoStartPresetMap(GameChangersServoName.values());
 
         servos = new Servos(ServoCfg.createServoMap(hardwareMap, servoStartPresetMap));
 
@@ -75,7 +77,7 @@ public class GameChangersRobotCfg extends RobotCfg {
         Motor blm =  Motors.withEncoder(backLeftMotor, true, true, stoppers);
         Motor brm =  Motors.withEncoder(backRightMotor, false, true, stoppers);
         // twoMotors = new TwoMotors(lm, rm, true, velocity);
-        mecanumControl = new MecanumControl(new MecanumMotors(lm,rm,blm,brm,true,velocity,velocity));
+        mecanumControl = new MecanumControl(new MecanumMotors(lm,rm,blm,brm,true,velocityX,velocityY));
 
         //Collector Stoof
         DcMotor leftCollector = hardwareMap.get(DcMotor.class, "collectorMotor");
@@ -107,7 +109,7 @@ public class GameChangersRobotCfg extends RobotCfg {
     }
     //Servo Stuof
     public GameChangersRobotCfg(HardwareMap hardwareMap) {
-        this(hardwareMap, ServoCfg.defaultServoStartPresetMap(GameChangersServoName.values()));
+        this(hardwareMap, velocity, velocity);
     }
 
     public ftc.evlib.hardware.motors.MotorEnc getFlyWheelShooter() { return flyWheelShooter; }

@@ -26,6 +26,9 @@ import ftc.electronvolts.util.TeamColor;
 import ftc.electronvolts.util.files.Logger;
 import ftc.electronvolts.util.files.OptionsFile;
 import ftc.electronvolts.util.units.Angle;
+import ftc.electronvolts.util.units.Distance;
+import ftc.electronvolts.util.units.Time;
+import ftc.electronvolts.util.units.Velocity;
 import ftc.evlib.hardware.control.RotationControls;
 import ftc.evlib.hardware.control.TranslationControls;
 import ftc.evlib.opmodes.AbstractTeleOp;
@@ -59,60 +62,32 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected GameChangersRobotCfg createRobotCfg() {
-        return new GameChangersRobotCfg(hardwareMap);
+        Velocity velocityX = new Velocity(Distance.fromInches(24), Time.fromSeconds(1.0));
+        Velocity velocityY = new Velocity(Distance.fromInches(18), Time.fromSeconds(1.0));
+        return new GameChangersRobotCfg(hardwareMap, velocityX, velocityY);
     }
 
     @Override
     protected Logger createLogger() {
         return new Logger("log_", ".csv", ImmutableList.of(
-                new Logger.Column("pshot sm states", new InputExtractor<String>() {
-                    @Override
-                    public String getValue() {
-                        return autoPowerShotSM == null ? "none" : autoPowerShotSM.getCurrentStateName().name();
-                    }
-                }),
-                new Logger.Column("proportional value potentiometer", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return robotCfg.getWobbleGoalArm().getPidController().getpTerm();
-                    }
-                }),
-                new Logger.Column("integral value potentiometer", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return robotCfg.getWobbleGoalArm().getPidController().getiTerm();
-                    }
-                }),
-                new Logger.Column("derivative value potentiometer", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return robotCfg.getWobbleGoalArm().getPidController().getdTerm();
-                    }
-                }),
-                new Logger.Column("input value potentiometer", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return robotCfg.getWobbleGoalArm().getPidController().getInput();
-                    }
-                }),
-                new Logger.Column("output value potentiometer", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return robotCfg.getWobbleGoalArm().getPidController().getOutput();
-                    }
-                }),
-                new Logger.Column("error value potentiometer", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return robotCfg.getWobbleGoalArm().getPidController().getError();
-                    }
-                }),
-                new Logger.Column("target position value potentiometer", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return robotCfg.getWobbleGoalArm().getTargetPosition();
-                    }
-                })
+                new Logger.Column("pshot sm states", (InputExtractor<String>) () ->
+                        autoPowerShotSM == null ? "none" : autoPowerShotSM.getCurrentStateName().name()),
+                new Logger.Column("proportional value potentiometer", (InputExtractor<Double>) () ->
+                        robotCfg.getWobbleGoalArm().getPidController().getpTerm()),
+                new Logger.Column("integral value potentiometer", (InputExtractor<Double>) () ->
+                        robotCfg.getWobbleGoalArm().getPidController().getiTerm()),
+                new Logger.Column("derivative value potentiometer", (InputExtractor<Double>) () ->
+                        robotCfg.getWobbleGoalArm().getPidController().getdTerm()),
+                new Logger.Column("input value potentiometer", (InputExtractor<Double>) () ->
+                        robotCfg.getWobbleGoalArm().getPidController().getInput()),
+                new Logger.Column("output value potentiometer", (InputExtractor<Double>) () ->
+                        robotCfg.getWobbleGoalArm().getPidController().getOutput()),
+                new Logger.Column("error value potentiometer", (InputExtractor<Double>) () ->
+                        robotCfg.getWobbleGoalArm().getPidController().getError()),
+                new Logger.Column("target position value potentiometer", (InputExtractor<Double>) () ->
+                        robotCfg.getWobbleGoalArm().getTargetPosition()),
+                new Logger.Column("gyro values", (InputExtractor<Double>) () ->
+                        robotCfg.getGyro().getHeading())
         ));
     }
 
