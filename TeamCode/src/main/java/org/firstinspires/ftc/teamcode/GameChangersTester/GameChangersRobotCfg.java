@@ -45,7 +45,7 @@ public class GameChangersRobotCfg extends RobotCfg {
     private final AnalogSensor potentiometer;
     private final MotorEnc flyWheelShooter;
     private final double flyWheelMotorSpeed = 1;
-    private final BlinkyControl blinkin;
+//    private final BlinkyControl blinkin;
 
 
 

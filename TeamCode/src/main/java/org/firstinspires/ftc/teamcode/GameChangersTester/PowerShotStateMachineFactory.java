@@ -138,7 +138,7 @@ public class PowerShotStateMachineFactory {
         b.addWait(S.WAIT_FOR_FLYWHEEL, S.SHOOT_MIDDLE, 3000);
         b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE, button));
         b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeading - 2), tolerance, 1);
-        b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT, 200, S.TIMEOUT_DEACTIVATE, button));
+        b.add(S.SHOOT_LEFT, makeShootRingState(S.STOP, 200, S.TIMEOUT_DEACTIVATE, button));
 
 
 
@@ -179,7 +179,7 @@ public class PowerShotStateMachineFactory {
                     nextState = cancelState;
                     return true;
                 }
-                if (endTime < System.currentTimeMillis()) {
+                if (System.currentTimeMillis() > endTime) {
                     //Pull back servo
                     robotCfg.getPusher().goToPreset(ServoPresets.Pusher.RELEASE);
                     nextState = successState;
