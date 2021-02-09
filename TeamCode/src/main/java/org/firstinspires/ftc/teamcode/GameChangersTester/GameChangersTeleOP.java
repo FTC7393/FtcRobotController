@@ -62,7 +62,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected GameChangersRobotCfg createRobotCfg() {
-        Velocity velocityX = new Velocity(Distance.fromInches(24), Time.fromSeconds(1.0));
+        Velocity velocityX = new Velocity(Distance.fromInches(30), Time.fromSeconds(1.0));
         Velocity velocityY = new Velocity(Distance.fromInches(18), Time.fromSeconds(1.0));
         return new GameChangersRobotCfg(hardwareMap, velocityX, velocityY);
     }
@@ -72,20 +72,6 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         return new Logger("log_", ".csv", ImmutableList.of(
                 new Logger.Column("pshot sm states", (InputExtractor<String>) () ->
                         autoPowerShotSM == null ? "none" : autoPowerShotSM.getCurrentStateName().name()),
-                new Logger.Column("proportional value potentiometer", (InputExtractor<Double>) () ->
-                        robotCfg.getWobbleGoalArm().getPidController().getpTerm()),
-                new Logger.Column("integral value potentiometer", (InputExtractor<Double>) () ->
-                        robotCfg.getWobbleGoalArm().getPidController().getiTerm()),
-                new Logger.Column("derivative value potentiometer", (InputExtractor<Double>) () ->
-                        robotCfg.getWobbleGoalArm().getPidController().getdTerm()),
-                new Logger.Column("input value potentiometer", (InputExtractor<Double>) () ->
-                        robotCfg.getWobbleGoalArm().getPidController().getInput()),
-                new Logger.Column("output value potentiometer", (InputExtractor<Double>) () ->
-                        robotCfg.getWobbleGoalArm().getPidController().getOutput()),
-                new Logger.Column("error value potentiometer", (InputExtractor<Double>) () ->
-                        robotCfg.getWobbleGoalArm().getPidController().getError()),
-                new Logger.Column("target position value potentiometer", (InputExtractor<Double>) () ->
-                        robotCfg.getWobbleGoalArm().getTargetPosition()),
                 new Logger.Column("gyro values", (InputExtractor<Double>) () ->
                         robotCfg.getGyro().getHeading())
         ));
@@ -127,7 +113,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                             return isRunning;
                         }
                     };
-                    PowerShotStateMachineFactory factory = new PowerShotStateMachineFactory(robotCfg, teamColor, Angle.fromDegrees(1),
+                    PowerShotStateMachineFactory factory = new PowerShotStateMachineFactory(robotCfg, teamColor, Angle.fromDegrees(0.3),
                             robotCfg.getGyro(), 0.6, 0.6, robotCfg.getServos(), robotCfg.getMecanumControl(),
                             button, targetsUltimateGoal, allTrackables);
                     autoPowerShotSM = factory.create();
