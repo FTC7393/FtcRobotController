@@ -42,7 +42,7 @@ public class PowerShotStateMachineFactory {
     private VuforiaTrackable trackable;
     private double xDestIn;
     private double yDestIn;
-    private double gyroHeading;
+    private double gyroHeadingAtPowershotTime;
 
     public PowerShotStateMachineFactory(GameChangersRobotCfg robotCfg, TeamColor teamColor, Angle tolerance, Gyro gyro, double gyroGain, double maxAngularSpeed,
                                         Servos servos, MecanumControl mecanumControl, final Continuable button,
@@ -126,9 +126,9 @@ public class PowerShotStateMachineFactory {
         b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.WAIT_FOR_FLYWHEEL));
         b.addWait(S.WAIT_FOR_FLYWHEEL, S.SHOOT_MIDDLE, 3000);
         b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE, button));
-        b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeading + 2), tolerance, 1);
+        b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 2), tolerance, 1);
         b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT, 200, S.TIMEOUT_DEACTIVATE, button));
-        b.addGyroTurn(S.TURN_RIGHT, S.SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeading - 4), tolerance, 1);
+        b.addGyroTurn(S.TURN_RIGHT, S.SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 4), tolerance, 1);
         b.add(S.SHOOT_RIGHT, makeShootRingState(S.STOP, 200, S.TIMEOUT_DEACTIVATE, button));
 
 
@@ -147,7 +147,7 @@ public class PowerShotStateMachineFactory {
     private State makeGyroHeadingState(final StateName nextState) {
         return () -> {
             robotCfg.getGyro().setActive(true);
-            gyroHeading = robotCfg.getGyro().getHeading();
+            gyroHeadingAtPowershotTime = robotCfg.getGyro().getHeading();
             robotCfg.getGyro().setActive(false);
             return nextState;
         };
