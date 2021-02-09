@@ -146,7 +146,9 @@ public class PowerShotStateMachineFactory {
 
     private State makeGyroHeadingState(final StateName nextState) {
         return () -> {
+            robotCfg.getGyro().setActive(true);
             gyroHeading = robotCfg.getGyro().getHeading();
+            robotCfg.getGyro().setActive(false);
             return nextState;
         };
     }
