@@ -134,14 +134,15 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected void go() {
-        InputExtractor<Double> invertedRightStick = new InputExtractor<Double>() {
-            @Override
-            public Double getValue() {
-                return -driver1.right_stick_x.getValue();
-            }
-        };
+        InputExtractor<Double> invertedRightStick = () -> -driver1.right_stick_x.getValue();
         robotCfg.getMecanumControl().setTranslationControl(TranslationControls.inputExtractorXY(InputExtractors.negative(driver1.left_stick_x), driver1.left_stick_y));
         robotCfg.getMecanumControl().setRotationControl(RotationControls.inputExtractor(invertedRightStick));
+
+        if(teamColor == TeamColor.RED) {
+            robotCfg.getCameraServo().goToPreset(ServoPresets.Camera.RED);
+        } else {
+            robotCfg.getCameraServo().goToPreset(ServoPresets.Camera.BLUE);
+        }
 
     }
 
