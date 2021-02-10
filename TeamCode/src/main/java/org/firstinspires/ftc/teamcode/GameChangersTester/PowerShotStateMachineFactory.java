@@ -146,22 +146,22 @@ public class PowerShotStateMachineFactory {
 
     private State makeGyroHeadingState(final StateName nextState) {
         return new BasicAbstractState() {
-            private boolean isRunning;
+            private int runCount;
 
             @Override
             public void init() {
-                isRunning = false;
+                runCount = 0;
                 robotCfg.getGyro().setActive(true);
             }
 
             @Override
             public boolean isDone() {
-                if(isRunning) {
+                if(runCount > 3) {
                     gyroHeadingAtPowershotTime = robotCfg.getGyro().getHeading();
                     robotCfg.getGyro().setActive(false);
                     return true;
                 }
-                isRunning = true;
+                runCount++;
                 return false;
                 }
 
