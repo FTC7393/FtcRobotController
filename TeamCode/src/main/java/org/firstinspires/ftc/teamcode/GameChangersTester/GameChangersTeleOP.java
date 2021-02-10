@@ -50,6 +50,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     private ResultReceiver<Boolean> vuforiaInitRR = new BasicResultReceiver<>();
     private StateMachine autoPowerShotSM;
     private List<VuforiaTrackable> allTrackables;
+    private PowerShotStateMachineFactory factory;
 
     public GameChangersTeleOP() {
 
@@ -73,7 +74,11 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                 new Logger.Column("pshot sm states", (InputExtractor<String>) () ->
                         autoPowerShotSM == null ? "none" : autoPowerShotSM.getCurrentStateName().name()),
                 new Logger.Column("gyro values", (InputExtractor<Double>) () ->
-                        robotCfg.getGyro().getHeading())
+                        robotCfg.getGyro().getHeading()),
+                new Logger.Column("vuforia pos x", (InputExtractor<Double>) () ->
+                        factory == null ? Double.NaN : factory.getXyrControl().getCurrentX()),
+                new Logger.Column("vuforia pos y", (InputExtractor<Double>) () ->
+                        factory == null ? Double.NaN : factory.getXyrControl().getCurrentY())
         ));
     }
 
@@ -113,7 +118,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                             return isRunning;
                         }
                     };
-                    PowerShotStateMachineFactory factory = new PowerShotStateMachineFactory(robotCfg, teamColor, Angle.fromDegrees(0.3),
+                    factory = new PowerShotStateMachineFactory(robotCfg, teamColor, Angle.fromDegrees(0.2),
                             robotCfg.getGyro(), 0.6, 0.6, robotCfg.getServos(), robotCfg.getMecanumControl(),
                             button, targetsUltimateGoal, allTrackables);
                     autoPowerShotSM = factory.create();

@@ -74,7 +74,7 @@ public class VuCalc implements HeadingSource {
     public double getHeading() {
         return heading;
     }
-    // robot frame translation
+    // robot frame translation - in inches from where we are to where we want to go
     public Vector2D getTranslation(){
         return  translation;
     }

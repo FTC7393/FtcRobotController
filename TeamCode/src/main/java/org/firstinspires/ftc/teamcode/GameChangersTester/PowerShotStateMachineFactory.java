@@ -72,7 +72,7 @@ public class PowerShotStateMachineFactory {
         }
 
         double transGain = 0.03;
-        double transDeadZone = 0.5;
+        double transDeadZone = 0.3;
         double transMinPower = .15;
         double transMaxPower = 1.0;
         double upperGainDistanceTreshold = 12;
@@ -80,7 +80,7 @@ public class PowerShotStateMachineFactory {
                 upperGainDistanceTreshold, teamColor);
         double rotationGain = 0.5;
         Angle targetHeading = Angle.fromDegrees(2); //need to tweak
-        Angle angleTolerance = Angle.fromDegrees(.3);
+        Angle angleTolerance = Angle.fromDegrees(.2);
         double maxAngularSpeedXYR = .5;
         double minAngularSpeed = 0.05;
         // heavy dependency on robot orientation, refer to vuCalc class at the end of it
@@ -128,7 +128,7 @@ public class PowerShotStateMachineFactory {
         b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE, button));
         b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 4), tolerance, 1);
         b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT, 200, S.TIMEOUT_DEACTIVATE, button));
-        b.addGyroTurn(S.TURN_RIGHT, S.SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 4), tolerance, 1);
+        b.addGyroTurn(S.TURN_RIGHT, S.SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 5), tolerance, 1);
         b.add(S.SHOOT_RIGHT, makeShootRingState(S.STOP, 200, S.TIMEOUT_DEACTIVATE, button));
 
 
@@ -283,6 +283,11 @@ public class PowerShotStateMachineFactory {
             return nextState;
         };
     }
+
+    public VuforiaRotationTranslationCntrl getXyrControl() {
+        return xyrControl;
+    }
+
 
 
     public enum S implements StateName{
