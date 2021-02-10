@@ -145,11 +145,30 @@ public class PowerShotStateMachineFactory {
     }
 
     private State makeGyroHeadingState(final StateName nextState) {
-        return () -> {
-            robotCfg.getGyro().setActive(true);
-            gyroHeadingAtPowershotTime = robotCfg.getGyro().getHeading();
-            robotCfg.getGyro().setActive(false);
-            return nextState;
+        return new BasicAbstractState() {
+            private boolean isRunning;
+
+            @Override
+            public void init() {
+                isRunning = false;
+                robotCfg.getGyro().setActive(true);
+            }
+
+            @Override
+            public boolean isDone() {
+                if(isRunning) {
+                    gyroHeadingAtPowershotTime = robotCfg.getGyro().getHeading();
+                    robotCfg.getGyro().setActive(false);
+                    return true;
+                }
+                isRunning = true;
+                return false;
+                }
+
+            @Override
+            public StateName getNextStateName() {
+                return nextState;
+            }
         };
     }
 
