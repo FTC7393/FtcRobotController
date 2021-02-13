@@ -105,8 +105,27 @@ public class FlyWheelShooter {
         int distance = currEnc - lastEnc;
         currentSpeed = distance/cycleTime;
 
-        currentPower = pidController.computeCorrection(currentTargetSpeed,currentSpeed);
+        //normal operation code
+        //currentPower = pidController.computeCorrection(currentTargetSpeed,currentSpeed);
+        //flywheelMotor.setPower(currentPower);
+
+        //Test 1
+        currentPower = 1;
         flywheelMotor.setPower(currentPower);
+
+        //Test 2
+        //currentPower = 0.5;
+        //flywheelMotor.setPower(currentPower);
+
+        //Test 3
+        //currentPower = 1;
+        //flywheelMotor.setSpeed(currentPower);
+
+        //Test 4
+        //currentPower = 0.5;
+        //flywheelMotor.setSpeed(currentPower);
+
+
         lastTimeStamp = currentTimeStamp;
         lastEnc = currEnc;
     }
