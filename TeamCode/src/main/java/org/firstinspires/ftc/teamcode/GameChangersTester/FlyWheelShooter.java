@@ -1,38 +1,51 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
+import ftc.electronvolts.util.PIDController;
 import ftc.evlib.hardware.motors.Motor;
+import ftc.evlib.hardware.motors.MotorEnc;
 import ftc.evlib.hardware.servos.ServoControl;
 
 public class FlyWheelShooter {
 
-    private final Motor flywheelMotor;
+    private final MotorEnc flywheelMotor;
     private final ServoControl elevationServo;
     private final ServoControl pusherServo;
-    private final double maxPower;
-    private double targetPower;
-    private final double rampRate;
-    double currentPower;
+    private final double shootingSpeed; //constant for how fast the shooter needs to be to function
+    private double currentSpeed; //The latest measurement of flywheel speed
+    private double finalTargetSpeed; //the speed that we set for the flywheel shooter to be
+    private final double rampRate; //how fast it accelerates
+    private double currentTargetSpeed; //the desired speed at this point in the acceleration ramp
     private double lastTimeStamp;
+    private PIDController pidController;
+    private double currentPower; //the power we want to set the flywheel shooter to
+    private int lastEnc;
+    private int currEnc;
 
 
-    public FlyWheelShooter(Motor flywheelMotor, ServoControl elevationServo, ServoControl pusherServo, double maxPower,
+
+    public FlyWheelShooter(MotorEnc flywheelMotor, ServoControl elevationServo, ServoControl pusherServo, double maxPower,
                            double rampRate) {
         this.flywheelMotor = flywheelMotor;
         this.elevationServo = elevationServo;
         this.pusherServo = pusherServo;
-        this.maxPower = maxPower;
+        this.shootingSpeed = maxPower;
         this.rampRate = rampRate;
-        targetPower = 0;
+        pidController = new PIDController(1,0,0,1);
+        currentSpeed = 0;
+        finalTargetSpeed = 0;
+        currentTargetSpeed = 0;
         currentPower = 0;
+        lastEnc = 0;
+        currEnc = 0;
         lastTimeStamp = System.currentTimeMillis();
     }
 
     public void turnOnFlywheel() {
-        targetPower = maxPower;
+        finalTargetSpeed = shootingSpeed;
     }
 
     public void reverseFlywheel() {
-        targetPower = -maxPower;
+        finalTargetSpeed = -shootingSpeed;
     }
 
     public void goToShootingAngle() {
@@ -57,32 +70,45 @@ public class FlyWheelShooter {
         pusherServo.goToPreset(ServoPresets.Pusher.RELEASE);
     }
 
+    public double getCurrentSpeed(){ return currentSpeed;}
+    public double getCurrentTargetSpeed(){ return currentTargetSpeed;}
+    public double getFinalTargetSpeed(){ return finalTargetSpeed;}
+    public double getFlywheelEncoderValue(){ return currEnc;}
+
     public void stop() {
         flywheelMotor.setPower(0);
+        currentTargetSpeed = 0;
+        finalTargetSpeed = 0;
     }
 
     public void act() {
         double currentTimeStamp = System.currentTimeMillis();
-        if(currentPower != targetPower) {
-            double cycleTime = currentTimeStamp - lastTimeStamp;
-            double powerDelta = rampRate*cycleTime;
-            if(currentPower < targetPower) {
-                if(currentPower+powerDelta > targetPower) {
-                    currentPower = targetPower;
+        double cycleTime = currentTimeStamp - lastTimeStamp;
+        if(currentTargetSpeed != finalTargetSpeed) {
+            double speedDelta = rampRate*cycleTime;
+            if(currentTargetSpeed < finalTargetSpeed) {
+                if(currentTargetSpeed +speedDelta > finalTargetSpeed) {
+                    currentTargetSpeed = finalTargetSpeed;
                 } else {
-                    currentPower += (powerDelta);
+                    currentTargetSpeed += (speedDelta);
                 }
-            } else if(currentPower > targetPower) {
-                if(currentPower - powerDelta < targetPower) {
-                    currentPower = targetPower;
+            } else if(currentTargetSpeed > finalTargetSpeed) {
+                if(currentTargetSpeed - speedDelta < finalTargetSpeed) {
+                    currentTargetSpeed = finalTargetSpeed;
                 } else {
-                    currentPower -= (powerDelta);
+                    currentTargetSpeed -= (speedDelta);
                 }
             }
-            flywheelMotor.setPower(currentPower);
         }
 
+        currEnc = flywheelMotor.getEncoderPosition();
+        int distance = currEnc - lastEnc;
+        currentSpeed = distance/cycleTime;
+
+        currentPower = pidController.computeCorrection(currentTargetSpeed,currentSpeed);
+        flywheelMotor.setPower(currentPower);
         lastTimeStamp = currentTimeStamp;
+        lastEnc = currEnc;
     }
 
 }

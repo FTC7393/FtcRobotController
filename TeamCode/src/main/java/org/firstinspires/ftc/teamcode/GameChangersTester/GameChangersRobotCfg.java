@@ -43,7 +43,7 @@ public class GameChangersRobotCfg extends RobotCfg {
     private final WobbleGoalCollector wobbleGoal;
     private final IMUGyro gyro;
     private final AnalogSensor potentiometer;
-    private final MotorEnc flyWheelShooter;
+    private final FlyWheelShooter flyWheelShooter;
     private final double flyWheelMotorSpeed = 1;
 //    private final BlinkyControl blinkin;
 
@@ -97,8 +97,8 @@ public class GameChangersRobotCfg extends RobotCfg {
         wobbleGoal = new WobbleGoalCollector(rotator, pinchServo, ServoPresets.WobblePincher.CLOSED,ServoPresets.WobblePincher.OPENED, potentiometer);
 
         //shooter
-        flyWheelShooter = Motors.withEncoder(hardwareMap.get(DcMotor.class,"flyWheelShooter"), false, false, stoppers);
-
+        MotorEnc flyWheelmotor = Motors.withEncoder(hardwareMap.get(DcMotor.class, "flyWheelShooter"), false, false, stoppers);
+        flyWheelShooter = new FlyWheelShooter(flyWheelmotor, getElevation(), getPusher(),1,.5);
         //camera
         webcam = hardwareMap.get(WebcamName.class, "Webcam");
 
@@ -112,13 +112,7 @@ public class GameChangersRobotCfg extends RobotCfg {
         this(hardwareMap, velocity, velocity);
     }
 
-    public ftc.evlib.hardware.motors.MotorEnc getFlyWheelShooter() { return flyWheelShooter; }
-
-    public int getFlywheelEncoderValue() { return flyWheelShooter.getEncoderPosition();}
-
-    public void startFlyWheel() { flyWheelShooter.setPower(flyWheelMotorSpeed);}
-
-    public void stopFlyWheel() { flyWheelShooter.setPower(0);}
+    public FlyWheelShooter getFlyWheelShooter() { return flyWheelShooter; }
 
     public ServoControl getPincher() {
         return getServo(GameChangersServoName.PINCH);

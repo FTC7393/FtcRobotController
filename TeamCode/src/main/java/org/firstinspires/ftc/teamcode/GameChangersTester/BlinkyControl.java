@@ -18,7 +18,7 @@ public class BlinkyControl {
     }
 
     public void update() {
-        if (newPattern != currentPattern){
+        if (newPattern != currentPattern) {
             blinky.setPattern(newPattern);
             currentPattern = newPattern;
         }

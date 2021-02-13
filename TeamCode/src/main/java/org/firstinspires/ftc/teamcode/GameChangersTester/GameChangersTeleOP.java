@@ -78,7 +78,25 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                 new Logger.Column("vuforia pos x", (InputExtractor<Double>) () ->
                         factory == null ? Double.NaN : factory.getXyrControl().getCurrentX()),
                 new Logger.Column("vuforia pos y", (InputExtractor<Double>) () ->
-                        factory == null ? Double.NaN : factory.getXyrControl().getCurrentY())
+                        factory == null ? Double.NaN : factory.getXyrControl().getCurrentY()),
+                new Logger.Column("shooterSpeed", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getFlyWheelShooter().getCurrentSpeed();
+                    }
+                }),
+                new Logger.Column("shooterCurrTargetSpeed", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getFlyWheelShooter().getCurrentTargetSpeed();
+                    }
+                }),
+                new Logger.Column("shooterTargetSpeed", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getFlyWheelShooter().getFinalTargetSpeed();
+                    }
+                })
         ));
     }
 
