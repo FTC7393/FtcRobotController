@@ -97,6 +97,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                         return robotCfg.getFlyWheelShooter().getFinalTargetSpeed();
                     }
                 })
+
         ));
     }
 
@@ -242,6 +243,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         }
 
         telemetry.addData("powershot statemachine state",autoPowerShotSM == null ? "none" : autoPowerShotSM.getCurrentStateName().name());
+        telemetry.addData("current flywheel encoder value",robotCfg.getFlyWheelShooter().getFlywheelEncoderValue());
 
     }
 

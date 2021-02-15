@@ -23,6 +23,7 @@ public class FlyWheelShooter {
 
 
 
+
     public FlyWheelShooter(MotorEnc flywheelMotor, ServoControl elevationServo, ServoControl pusherServo, double maxPower,
                            double rampRate) {
         this.flywheelMotor = flywheelMotor;
