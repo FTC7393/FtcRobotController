@@ -128,6 +128,6 @@ public class FlyWheelShooter {
 
         lastTimeStamp = currentTimeStamp;
         lastEnc = currEnc;
+        flywheelMotor.update();
     }
-
 }
