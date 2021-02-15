@@ -279,7 +279,7 @@ public class PowerShotStateMachineFactory {
 
     private State makeStartFlyWheelState(final StateName nextState) {
         return () -> {
-            robotCfg.startFlyWheel();
+            robotCfg.getFlyWheelShooter().turnOnFlywheel();
             return nextState;
         };
     }
