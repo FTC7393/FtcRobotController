@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -26,6 +27,7 @@ import ftc.evlib.hardware.servos.ServoControl;
 import ftc.evlib.hardware.servos.ServoName;
 import ftc.evlib.hardware.servos.Servos;
 
+import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -50,6 +52,7 @@ public class GameChangersRobotCfg extends RobotCfg {
 
 
     private final WebcamName webcam;
+    private final RevBlinkinLedDriver blinkin;
 
     public AnalogSensor getPotentiometer() {
         return potentiometer;
@@ -58,7 +61,6 @@ public class GameChangersRobotCfg extends RobotCfg {
     public WebcamName getWebcamName() {
         return webcam;
     }
-
 
     public GameChangersRobotCfg(HardwareMap hardwareMap, Velocity velocityX, Velocity velocityY) {
         super(hardwareMap);
@@ -103,7 +105,7 @@ public class GameChangersRobotCfg extends RobotCfg {
         webcam = hardwareMap.get(WebcamName.class, "Webcam");
 
         //Blinkin thing.
-        //blinkin = hardwareMap.get(RevBlinkin)
+        blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
 
 
     }
@@ -155,6 +157,11 @@ public class GameChangersRobotCfg extends RobotCfg {
     public WobbleGoalCollector getWobbleGoalArm() {
         return wobbleGoal;
     }
+
+    public RevBlinkinLedDriver getBlinkin() {
+        return blinkin;
+    }
+
 
     public enum GameChangersServoName implements ServoName {
         //enum name("hardware name", preset enum.values()),

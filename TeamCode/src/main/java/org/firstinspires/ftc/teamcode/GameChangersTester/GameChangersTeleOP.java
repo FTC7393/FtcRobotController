@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -51,6 +52,8 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     private StateMachine autoPowerShotSM;
     private List<VuforiaTrackable> allTrackables;
     private PowerShotStateMachineFactory factory;
+    private StateMachine blinkinStateMachine;
+    private BlinkEventListener listener;
 
     public GameChangersTeleOP() {
 
@@ -102,35 +105,36 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         OptionsFile optionsFile = new OptionsFile(GCConverters.getInstance(), FileUtil.getOptionsFile(GameChangersOptionsOp.FILENAME));
         teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
         shooterStateMachine = buildShooterStateMachine();
+        blinkinStateMachine = buildBlinkinStateMachine();
+        listener = new BlinkEventListener();
 
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    initVuforia();
-                    Continuable button = new Continuable() {
-                        boolean isRunning = false;
-                        @Override
-                        public boolean doContinue() {
-                            if(driver1.a.justPressed()) {
-                                isRunning = !isRunning;
-                            }
-                            return isRunning;
+        Runnable r = () -> {
+            try {
+                initVuforia();
+                Continuable button = new Continuable() {
+                    boolean isRunning = false;
+                    @Override
+                    public boolean doContinue() {
+                        if(driver1.a.justPressed()) {
+                            isRunning = !isRunning;
                         }
-                    };
-                    factory = new PowerShotStateMachineFactory(robotCfg, teamColor, Angle.fromDegrees(0.2),
-                            robotCfg.getGyro(), 0.6, 0.6, robotCfg.getServos(), robotCfg.getMecanumControl(),
-                            button, targetsUltimateGoal, allTrackables);
-                    autoPowerShotSM = factory.create();
-                } catch(RuntimeException r) {
+                        return isRunning;
+                    }
+                };
+                factory = new PowerShotStateMachineFactory(robotCfg, teamColor, Angle.fromDegrees(0.2),
+                        robotCfg.getGyro(), 0.6, 0.6, robotCfg.getServos(), robotCfg.getMecanumControl(),
+                        button, targetsUltimateGoal, allTrackables);
+                autoPowerShotSM = factory.create();
+            } catch(RuntimeException r1) {
 
-                }
             }
         };
 
         Thread t = new Thread(r);
         t.start();
     }
+
+
 
     @Override
     protected void setup_act() {
@@ -164,7 +168,9 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         if (driver1.left_bumper.justPressed()) {
             if (wobbleGoalGrabberIsUp) {
                 robotCfg.getWobbleGoalArm().moveArmDown();
+                listener.requestNewBlinkPattern(BlinkEvent.RED);
             } else {
+                listener.requestNewBlinkPattern(BlinkEvent.RED_AND_BLUE);
                 robotCfg.getWobbleGoalArm().moveArmUp();
             }
             wobbleGoalGrabberIsUp = !wobbleGoalGrabberIsUp;
@@ -234,14 +240,12 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     }
 
     private StateMachine buildShooterStateMachine() {
-        State idleState = new State() {
-            @Override
-            public StateName act() {
-                if (collectorShooterButton.isPressed()) {
-                    return S.SHOOTING;
-                }
-                return null;
+        State idleState = () -> {
+            if (collectorShooterButton.isPressed()) {
+                listener.requestNewBlinkPattern(BlinkEvent.BLINKING_GREEN);
+                return S.SHOOTING;
             }
+            return null;
         };
 
         State shootingState = new ShooterState(collectorShooterButton,robotCfg,150L,800L, S.IDLE);
@@ -258,4 +262,14 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         IDLE,
         SHOOTING
     }
+
+    private StateMachine buildBlinkinStateMachine() {
+        BlinkStateBuilder b = new BlinkStateBuilder(robotCfg.getBlinkin(), listener, BlinkEvent.NONE);
+        b.addSingleColor(BlinkEvent.RED, RevBlinkinLedDriver.BlinkinPattern.RED);
+        b.addTwoColors(BlinkEvent.RED_AND_BLUE, RevBlinkinLedDriver.BlinkinPattern.RED, 300L,
+                RevBlinkinLedDriver.BlinkinPattern.BLUE, 300L);
+        b.addOnAndOff(BlinkEvent.BLINKING_GREEN, RevBlinkinLedDriver.BlinkinPattern.GREEN, 500L);
+        return b.build();
+    }
+
 }

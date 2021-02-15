@@ -7,6 +7,7 @@ public enum BlinkEvent implements StateName {
     RED,
     GREEN,
     BLUE,
+    RED_AND_BLUE,
     BLINKING_RED,
     BLINKING_GREEN,
     BLINKING_BLUE,

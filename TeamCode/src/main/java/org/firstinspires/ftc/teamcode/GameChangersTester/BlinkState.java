@@ -5,7 +5,6 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import java.util.List;
 
 import ftc.electronvolts.statemachine.BasicAbstractState;
-import ftc.electronvolts.statemachine.State;
 import ftc.electronvolts.statemachine.StateName;
 
 public class BlinkState extends BasicAbstractState {
@@ -18,7 +17,7 @@ public class BlinkState extends BasicAbstractState {
     long [] endTimes;
     private StateName nextState;
 
-    public BlinkState(BlinkEventListener listener, List<RevBlinkinLedDriver.BlinkinPattern> blinkinPatternList, List<Long> timeList, RevBlinkinLedDriver blinkin) {
+    public BlinkState(BlinkEventListener listener, RevBlinkinLedDriver blinkin, List<RevBlinkinLedDriver.BlinkinPattern> blinkinPatternList, List<Long> timeList) {
         this.listener = listener;
         this.blinkinPatternList = blinkinPatternList;
         this.timeList = timeList;
