@@ -482,7 +482,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         return new State() {
             @Override
             public StateName act() {
-                robotCfg.startFlyWheel();
+                robotCfg.getFlyWheelShooter().turnOnFlywheel();
                 return nextState;
             }
         };
@@ -494,7 +494,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         return new State() {
             @Override
             public StateName act() {
-                robotCfg.stopFlyWheel();
+                robotCfg.getFlyWheelShooter().stop();
                 robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
                 return nextState;
             }
@@ -670,8 +670,6 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         telemetry.addData("x", xyrControl.getCurrentX());
         telemetry.addData("y", xyrControl.getCurrentY());
         telemetry.addData("robot heading", xyrControl.getHeading());
-        robotCfg.getFlyWheelShooter().update();
-        robotCfg.getWobbleGoalArm().act();
     }
 
 

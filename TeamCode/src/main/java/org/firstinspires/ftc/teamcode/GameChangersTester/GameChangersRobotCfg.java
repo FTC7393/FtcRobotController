@@ -98,7 +98,7 @@ public class GameChangersRobotCfg extends RobotCfg {
 
         //shooter
         MotorEnc flyWheelmotor = Motors.withEncoder(hardwareMap.get(DcMotor.class, "flyWheelShooter"), false, false, stoppers);
-        flyWheelShooter = new FlyWheelShooter(flyWheelmotor, getElevation(), getPusher(),1,.5);
+        flyWheelShooter = new FlyWheelShooter(flyWheelmotor, getElevation(), getPusher(),1,.1);
         //camera
         webcam = hardwareMap.get(WebcamName.class, "Webcam");
 
@@ -195,6 +195,7 @@ public class GameChangersRobotCfg extends RobotCfg {
         collector.act();
         mecanumControl.act();
         wobbleGoal.act();
+        flyWheelShooter.act();
     }
 
     @Override
@@ -203,6 +204,7 @@ public class GameChangersRobotCfg extends RobotCfg {
         mecanumControl.stop();
         wobbleGoal.stop();
         collector.stop();
+        flyWheelShooter.act();
     }
 
 
