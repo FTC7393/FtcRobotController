@@ -110,21 +110,22 @@ public class FlyWheelShooter {
         //flywheelMotor.setPower(currentPower);
 
         //Test 1
-        currentPower = 1;
-        flywheelMotor.setPower(currentPower);
+        if(finalTargetSpeed > 0) {
+            currentPower = 1;
+            flywheelMotor.setPower(currentPower);
 
-        //Test 2
-        //currentPower = 0.5;
-        //flywheelMotor.setPower(currentPower);
+            //Test 2
+            //currentPower = 0.5;
+            //flywheelMotor.setPower(currentPower);
 
-        //Test 3
-        //currentPower = 1;
-        //flywheelMotor.setSpeed(currentPower);
+            //Test 3
+            //currentPower = 1;
+            //flywheelMotor.setSpeed(currentPower);
 
-        //Test 4
-        //currentPower = 0.5;
-        //flywheelMotor.setSpeed(currentPower);
-
+            //Test 4
+            //currentPower = 0.5;
+            //flywheelMotor.setSpeed(currentPower);
+        }
 
         lastTimeStamp = currentTimeStamp;
         lastEnc = currEnc;
