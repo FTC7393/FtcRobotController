@@ -20,6 +20,7 @@ public class FlyWheelShooter {
     private double currentPower; //the power we want to set the flywheel shooter to
     private int lastEnc;
     private int currEnc;
+    private int actCount = 0;
 
 
 
@@ -83,6 +84,12 @@ public class FlyWheelShooter {
     }
 
     public void act() {
+        if(actCount++ < 5)
+        {
+            return;
+
+        }
+        actCount = 0;
         double currentTimeStamp = System.currentTimeMillis();
         double cycleTime = currentTimeStamp - lastTimeStamp;
         if(currentTargetSpeed != finalTargetSpeed) {
