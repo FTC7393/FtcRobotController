@@ -70,7 +70,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected Logger createLogger() {
-        return new Logger("log_", ".csv", ImmutableList.of(
+        return new Logger("teleOP_log", ".csv", ImmutableList.of(
                 new Logger.Column("pshot sm states", (InputExtractor<String>) () ->
                         autoPowerShotSM == null ? "none" : autoPowerShotSM.getCurrentStateName().name()),
                 new Logger.Column("gyro values", (InputExtractor<Double>) () ->
