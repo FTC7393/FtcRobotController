@@ -105,8 +105,8 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         OptionsFile optionsFile = new OptionsFile(GCConverters.getInstance(), FileUtil.getOptionsFile(GameChangersOptionsOp.FILENAME));
         teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
         shooterStateMachine = buildShooterStateMachine();
-        blinkinStateMachine = buildBlinkinStateMachine();
         listener = new BlinkEventListener();
+        blinkinStateMachine = buildBlinkinStateMachine();
 
         Runnable r = () -> {
             try {
@@ -161,6 +161,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         collectorIntakeButton.update();
         collectorShooterButton.update();
         shooterStateMachine.act();
+        blinkinStateMachine.act();
 
 //        telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
         telemetry.addData("Motor Encoder Valies", robotCfg.getFlywheelEncoderValue());
@@ -265,6 +266,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     private StateMachine buildBlinkinStateMachine() {
         BlinkStateBuilder b = new BlinkStateBuilder(robotCfg.getBlinkin(), listener, BlinkEvent.NONE);
+        b.addSingleColor(BlinkEvent.NONE, RevBlinkinLedDriver.BlinkinPattern.BLACK);
         b.addSingleColor(BlinkEvent.RED, RevBlinkinLedDriver.BlinkinPattern.RED);
         b.addTwoColors(BlinkEvent.RED_AND_BLUE, RevBlinkinLedDriver.BlinkinPattern.RED, 300L,
                 RevBlinkinLedDriver.BlinkinPattern.BLUE, 300L);

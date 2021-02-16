@@ -53,7 +53,7 @@ public class BlinkState extends BasicAbstractState {
             }
         }
         if(newPatternIndex != currentPatternIndex) {
-            if(newPatternIndex > blinkinPatternList.size()) {
+            if(newPatternIndex >= blinkinPatternList.size()) {
                 init();
             } else {
                 currentPatternIndex = newPatternIndex;
