@@ -169,9 +169,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         if (driver1.left_bumper.justPressed()) {
             if (wobbleGoalGrabberIsUp) {
                 robotCfg.getWobbleGoalArm().moveArmDown();
-                listener.requestNewBlinkPattern(BlinkEvent.RED);
             } else {
-                listener.requestNewBlinkPattern(BlinkEvent.RED_AND_BLUE);
                 robotCfg.getWobbleGoalArm().moveArmUp();
             }
             wobbleGoalGrabberIsUp = !wobbleGoalGrabberIsUp;
@@ -243,7 +241,6 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     private StateMachine buildShooterStateMachine() {
         State idleState = () -> {
             if (collectorShooterButton.isPressed()) {
-                listener.requestNewBlinkPattern(BlinkEvent.BLINKING_GREEN);
                 return S.SHOOTING;
             }
             return null;
@@ -275,3 +272,17 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     }
 
 }
+
+/*
+teleop colors :
+1. ten seconds till endgame - neutral slow blink, maybe yellow ??
+2. five seconds till endgame - faster blink same color
+3. during powershot - flash green while attempting to get vuforia
+4. if get vuforia lock - go to solid green, otherwise go to solid red
+auto colors :
+1. initialize opencv - solid color - blue
+2. find rings - flashing orange - 1 blink for zero, 2 blinks for one, and 3 blinks for 4 rings
+3. vuforia init - flashing green
+4. vuforia lock outcome - solid green or solid red depending
+5. go to black at the very end
+ */

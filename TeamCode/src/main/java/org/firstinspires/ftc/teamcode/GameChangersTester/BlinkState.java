@@ -23,6 +23,9 @@ public class BlinkState extends BasicAbstractState {
         this.timeList = timeList;
         this.blinkin = blinkin;
         endTimes = new long[timeList.size()];
+        if(blinkinPatternList.size() != timeList.size()) {
+            throw new RuntimeException("blink state lists must be the same");
+        }
     }
 
     @Override

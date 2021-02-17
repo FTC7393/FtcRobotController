@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.GameChangersTester;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 
+import java.util.List;
+
 import ftc.electronvolts.statemachine.StateMachineBuilder;
 import ftc.evlib.util.ImmutableList;
 
@@ -26,6 +28,14 @@ public class BlinkStateBuilder extends StateMachineBuilder {
 
     public void addOnAndOff(BlinkEvent stateName, RevBlinkinLedDriver.BlinkinPattern pattern, Long time) {
         addTwoColors(stateName, pattern, time, RevBlinkinLedDriver.BlinkinPattern.BLACK, time);
+    }
+
+    public void addList(BlinkEvent stateName, List<RevBlinkinLedDriver.BlinkinPattern> patternList, List<Long> timeList) {
+        add(stateName, new BlinkState(listener, blinkin, patternList, timeList));
+    }
+
+    public void addOff(BlinkEvent stateName) {
+        addSingleColor(stateName, RevBlinkinLedDriver.BlinkinPattern.BLACK);
     }
 
 }

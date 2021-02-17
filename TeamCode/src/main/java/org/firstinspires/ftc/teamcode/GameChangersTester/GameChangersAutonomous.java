@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.GameChangersTester;
 
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -62,6 +63,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private ResultReceiver<Boolean> vuforiaInitRR = new BasicResultReceiver<>();
     private long wobbleGoalWaitTime;
     private long servoReleaseWaitTime;
+    private BlinkEventListener listener = new BlinkEventListener();
+    private StateMachine blinkinStateMachine;
 
     public GameChangersAutonomous() {
         super();
@@ -80,85 +83,28 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     protected Logger createLogger_unused() {
         return new Logger("auto_log", ".csv", ImmutableList.of(
-                new Logger.Column("state", new InputExtractor<String>() {
-                    @Override
-                    public String getValue() {
-                        return stateMachine.getCurrentStateName().name();
+                new Logger.Column("state", (InputExtractor<String>) () -> stateMachine.getCurrentStateName().name()),
+                new Logger.Column("pot", (InputExtractor<Double>) () -> robotCfg.getPotentiometer().getValue()),
+                new Logger.Column("velocityR", (InputExtractor<Double>) () -> robotCfg.getMecanumControl().getVelocityR()),
+                new Logger.Column("velocityX", (InputExtractor<Double>) () -> robotCfg.getMecanumControl().getVelocityX()),
+                new Logger.Column("velocityY", (InputExtractor<Double>) () -> robotCfg.getMecanumControl().getVelocityY()),
+                new Logger.Column("currentXCoord", (InputExtractor<Double>) () -> xyrControl.getCurrentX()),
+                new Logger.Column("currentYCoord", (InputExtractor<Double>) () -> xyrControl.getCurrentY()),
+                new Logger.Column("xDestIn", (InputExtractor<Double>) () -> xDestIn),
+                new Logger.Column("yDestIn", (InputExtractor<Double>) () -> yDestIn),
+                new Logger.Column("driveAngle", (InputExtractor<Double>) () -> {
+                    if (xyrControl.getTranslation() != null) {
+                        return xyrControl.getTranslation().getDirection().degrees();
                     }
+                    return Double.NaN;
                 }),
-                new Logger.Column("pot", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return robotCfg.getPotentiometer().getValue();
+                new Logger.Column("driveSpeed", (InputExtractor<Double>) () -> {
+                    if (xyrControl.getTranslation() != null) {
+                        return xyrControl.getTranslation().getLength();
                     }
+                    return Double.NaN;
                 }),
-                new Logger.Column("velocityR", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return robotCfg.getMecanumControl().getVelocityR();
-                    }
-                }),
-                new Logger.Column("velocityX", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return robotCfg.getMecanumControl().getVelocityX();
-                    }
-                }),
-                new Logger.Column("velocityY", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return robotCfg.getMecanumControl().getVelocityY();
-                    }
-                }),
-                new Logger.Column("currentXCoord", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return xyrControl.getCurrentX();
-                    }
-                }),
-                new Logger.Column("currentYCoord", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return xyrControl.getCurrentY();
-                    }
-                }),
-                new Logger.Column("xDestIn", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return xDestIn;
-                    }
-                }),
-                new Logger.Column("yDestIn", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        return yDestIn;
-                    }
-                }),
-                new Logger.Column("driveAngle", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        if (xyrControl.getTranslation() != null) {
-                            return xyrControl.getTranslation().getDirection().degrees();
-                        }
-                        return Double.NaN;
-                    }
-                }),
-                new Logger.Column("driveSpeed", new InputExtractor<Double>() {
-                    @Override
-                    public Double getValue() {
-                        if (xyrControl.getTranslation() != null) {
-                            return xyrControl.getTranslation().getLength();
-                        }
-                        return Double.NaN;
-                    }
-                }),
-                new Logger.Column("robotHeading", new InputExtractor<Double>() {
-
-                    @Override
-                    public Double getValue() {
-                        return xyrControl.getHeading();
-                    }
-                })
+                new Logger.Column("robotHeading", (InputExtractor<Double>) () -> xyrControl.getHeading())
         ));
     }
 
@@ -170,8 +116,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
         startingPosition = optionsFile.get(GameChangersOptionsOp.startingPositionTag, GameChangersOptionsOp.startingPositionDefault);
         ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
-        ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR, startingPosition);
+        ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR, startingPosition, listener);
         webcamName = robotCfg.getWebcamName();
+        blinkinStateMachine = buildBlinkinStateMachine();
 
         //creating xyrcontrol object which will be used during the whole class
         double transGain = 0.03; // need to test
@@ -245,37 +192,28 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.SHOOT_RINGS, new ShooterState(robotCfg, 150L, 500L, S.TURN_OFF_SHOOTER));
             b.add(S.TURN_OFF_SHOOTER, makeFlyWheelStopState(S.DEACTIVATE_TARGETS));
             b.add(S.DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.DETERMINE_RING_STACK));
-            b.add(S.DETERMINE_RING_STACK, new State() {
-                @Override
-                public StateName act() {
-                    if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_0) {
-                        return S.DRIVE_RING_0;
-                    } else if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_1) {
-                        return S.DRIVE_RING_1;
-                    } else {
-                        return S.DRIVE_RING_4;
-                    }
+            b.add(S.DETERMINE_RING_STACK, () -> {
+                if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_0) {
+                    return S.DRIVE_RING_0;
+                } else if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_1) {
+                    return S.DRIVE_RING_1;
+                } else {
+                    return S.DRIVE_RING_4;
                 }
             });
             //-------------------------------------------------------------------------------------------------------------------------------
             //0 rings
             //-------------------------------------------------------------------------------------------------------------------------------
             b.addDrive(S.DRIVE_RING_0, S.MOVE_ARM_DOWN_0, Distance.fromFeet(0.62), 0.7, 225, 0);
-            b.add(S.MOVE_ARM_DOWN_0, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.WAIT_FOR_DROP_0;
-                }
+            b.add(S.MOVE_ARM_DOWN_0, () -> {
+                robotCfg.getWobbleGoalArm().moveArmDown();
+                return S.WAIT_FOR_DROP_0;
             });
             b.addWait(S.WAIT_FOR_DROP_0, S.DROP_WOBBLE_GOAL_0, wobbleGoalWaitTime);
             b.addServo(S.DROP_WOBBLE_GOAL_0, S.MOVE_ARM_UP_0, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED,servoReleaseWaitTime, true);
-            b.add(S.MOVE_ARM_UP_0, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.PARK_0;
-                }
+            b.add(S.MOVE_ARM_UP_0, () -> {
+                robotCfg.getWobbleGoalArm().moveArmUp();
+                return S.PARK_0;
             });
 //            b.addDrive(S.PARK_0_A, S.PARK_0, Distance.fromFeet(1), 1, 0, 0);
             b.addDrive(S.PARK_0, S.STOP, Distance.fromFeet(1.8), 1, 3, 0);
@@ -283,21 +221,15 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             //1 ring
             //-------------------------------------------------------------------------------------------------------------------------------
             b.addDrive(S.DRIVE_RING_1, S.MOVE_ARM_DOWN_1, Distance.fromFeet(.95), 0.7, 275, 0);
-            b.add(S.MOVE_ARM_DOWN_1, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.WAIT_FOR_DROP_1;
-                }
+            b.add(S.MOVE_ARM_DOWN_1, () -> {
+                robotCfg.getWobbleGoalArm().moveArmDown();
+                return S.WAIT_FOR_DROP_1;
             });
             b.addWait(S.WAIT_FOR_DROP_1, S.DROP_WOBBLE_GOAL_1, wobbleGoalWaitTime);
             b.addServo(S.DROP_WOBBLE_GOAL_1, S.MOVE_ARM_UP_1, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED,servoReleaseWaitTime, true);
-            b.add(S.MOVE_ARM_UP_1, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.PARK_1_A;
-                }
+            b.add(S.MOVE_ARM_UP_1, () -> {
+                robotCfg.getWobbleGoalArm().moveArmUp();
+                return S.PARK_1_A;
             });
             b.addDrive(S.PARK_1_A, S.PARK_1, Distance.fromFeet(1), 1, 0, 0);
             b.addDrive(S.PARK_1, S.STOP, Distance.fromFeet(0.8), 1, 65, 0);
@@ -305,21 +237,15 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             //4 rings
             //-------------------------------------------------------------------------------------------------------------------------------
             b.addDrive(S.DRIVE_RING_4, S.MOVE_ARM_DOWN_4, Distance.fromFeet(1.55), 0.7, 255, 0);
-            b.add(S.MOVE_ARM_DOWN_4, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmDown();
-                    return S.WAIT_FOR_DROP_4;
-                }
+            b.add(S.MOVE_ARM_DOWN_4, () -> {
+                robotCfg.getWobbleGoalArm().moveArmDown();
+                return S.WAIT_FOR_DROP_4;
             });
             b.addWait(S.WAIT_FOR_DROP_4, S.DROP_WOBBLE_GOAL_4, wobbleGoalWaitTime);
             b.addServo(S.DROP_WOBBLE_GOAL_4, S.MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, servoReleaseWaitTime,true); // need to be condensed using new method
-            b.add(S.MOVE_ARM_UP_4, new State() {
-                @Override
-                public StateName act() {
-                    robotCfg.getWobbleGoalArm().moveArmUp();
-                    return S.PARK_4_A;
-                }
+            b.add(S.MOVE_ARM_UP_4, () -> {
+                robotCfg.getWobbleGoalArm().moveArmUp();
+                return S.PARK_4_A;
             });
             b.addDrive(S.PARK_4_A, S.PARK_4, Distance.fromFeet(1), 1, 5, 0);
             b.addDrive(S.PARK_4, S.STOP, Distance.fromFeet(1.35), 1, 55, 0);
@@ -358,16 +284,13 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.BLUE_SHOOT_RINGS, new ShooterState(robotCfg, 200L, 650L, S.BLUE_TURN_OFF_SHOOTER));
             b.add(S.BLUE_TURN_OFF_SHOOTER, makeFlyWheelStopState(S.BLUE_DEACTIVATE_TARGETS));
             b.add(S.BLUE_DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.BLUE_DETERMINE_RING_STACK));
-            b.add(S.BLUE_DETERMINE_RING_STACK, new State() {
-                @Override
-                public StateName act() {
-                    if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_0) {
-                        return S.BLUE_DRIVE_RING_0;
-                    } else if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_1) {
-                        return S.BLUE_DRIVE_RING_1;
-                    } else {
-                        return S.BLUE_DRIVE_RING_4;
-                    }
+            b.add(S.BLUE_DETERMINE_RING_STACK, () -> {
+                if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_0) {
+                    return S.BLUE_DRIVE_RING_0;
+                } else if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_1) {
+                    return S.BLUE_DRIVE_RING_1;
+                } else {
+                    return S.BLUE_DRIVE_RING_4;
                 }
             });
             //-------------------------------------------------------------------------------------------------------------------------------
@@ -443,61 +366,46 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         }
     }
     private State makeVuCalcState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                double rotationGain = 0.5;
-                Angle targetHeading = Angle.fromDegrees(2);
-                Angle angleTolerance = Angle.fromDegrees(.5);
-                double maxAngularSpeed = .5;
-                double minAngularSpeed = 0.05;
-                // heavy dependency on robot orientation, refer to vuCalc class at the end of it
-                xyrControl.setVuCalc(sideWallTarget, xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
-                return nextState;
-            }
+        return () -> {
+            double rotationGain = 0.5;
+            Angle targetHeading = Angle.fromDegrees(2);
+            Angle angleTolerance = Angle.fromDegrees(.5);
+            double maxAngularSpeed = .5;
+            double minAngularSpeed = 0.05;
+            // heavy dependency on robot orientation, refer to vuCalc class at the end of it
+            xyrControl.setVuCalc(sideWallTarget, xDestIn, yDestIn, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
+            return nextState;
         };
     }
 
     private State makeTargetsActivateState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                targetsUltimateGoal.activate();
-                return nextState;
-            }
+        return () -> {
+            targetsUltimateGoal.activate();
+            return nextState;
         };
     }
 
     private State makeTargetsDeactivateState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                targetsUltimateGoal.deactivate();
-                return nextState;
-            }
+        return () -> {
+            targetsUltimateGoal.deactivate();
+            return nextState;
         };
     }
 
     private State makeStartFlyWheelState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                robotCfg.startFlyWheel();
-                return nextState;
-            }
+        return () -> {
+            robotCfg.startFlyWheel();
+            return nextState;
         };
     }
 
 
 
     private State makeFlyWheelStopState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                robotCfg.stopFlyWheel();
-                robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
-                return nextState;
-            }
+        return () -> {
+            robotCfg.stopFlyWheel();
+            robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
+            return nextState;
         };
     }
 
@@ -507,23 +415,17 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
             @Override
             public void init() {
-                Runnable r = new Runnable() {
-                    @Override
-                    public void run() {
-                        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-                        webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
-                        webcam.setPipeline(ringPipeline);
-                        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-                            @Override
-                            public void onOpened() {
-                                webcam.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
-                                isDone = true;
-                            }
-                        });
+                Runnable r = () -> {
+                    int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+                    webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
+                    webcam.setPipeline(ringPipeline);
+                    webcam.openCameraDeviceAsync(() -> {
+                        webcam.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
+                        isDone = true;
+                    });
 
-                    }
                 };
-
+                listener.requestNewBlinkPattern(BlinkEvent.BLUE);
                 new Thread(r).start();
             }
 
@@ -546,12 +448,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
             @Override
             public void init() {
-                Runnable r = new Runnable() {
-                    @Override
-                    public void run() {
-                        webcam.stopStreaming();
-                        isDone = true;
-                    }
+                Runnable r = () -> {
+                    webcam.stopStreaming();
+                    isDone = true;
                 };
                 new Thread(r).start();
             }
@@ -569,76 +468,52 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     }
 
     private State makeVuforiaInit(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                Runnable r = new Runnable() {
-                    @Override
-                    public void run() {
-                        initVuforia();
-                        vuforiaInitRR.setValue(true);
-                    }
-                };
-                new Thread(r).start();
-                return nextState;
-            }
-
+        return () -> {
+            Runnable r = () -> {
+                initVuforia();
+                vuforiaInitRR.setValue(true);
+            };
+            new Thread(r).start();
+            return nextState;
         };
     }
     private State getVuforiaPosition() {
-        return new State() {
-            @Override
-            public StateName act() {
-                xyrControl.act();
-                Vector2D vector = new Vector2D(xyrControl.getCurrentX(), xyrControl.getCurrentY());
-                VuforiaPositionHolder vuforiaPositionHolder = new VuforiaPositionHolder(vector);
-                vuforiaPosRR.setValue(vuforiaPositionHolder);
-                return null;
-            }
+        return () -> {
+            xyrControl.act();
+            Vector2D vector = new Vector2D(xyrControl.getCurrentX(), xyrControl.getCurrentY());
+            VuforiaPositionHolder vuforiaPositionHolder = new VuforiaPositionHolder(vector);
+            vuforiaPosRR.setValue(vuforiaPositionHolder);
+            return null;
         };
     }
 
     private State makeArmUpState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                robotCfg.getWobbleGoalArm().moveArmUp();
-                return nextState;
-            }
+        return () -> {
+            robotCfg.getWobbleGoalArm().moveArmUp();
+            return nextState;
         };
     }
 
     private State makeArmDownState(final StateName nextState) {
-        return new State() {
-            @Override
-            public StateName act() {
-                robotCfg.getWobbleGoalArm().moveArmDown();
-                return nextState;
-            }
+        return () -> {
+            robotCfg.getWobbleGoalArm().moveArmDown();
+            return nextState;
         };
     }
 
-//    private State getVuforiaPosition() {
-//        return new BasicAbstractState() {
-//            @Override
-//            public void init() {
-//            }
-//
-//            @Override
-//            public boolean isDone() {
-//                xyrControl.act();
-//                Vector2D vector = new Vector2D(xyrControl.getCurrentX(), xyrControl.getCurrentY());
-//                VuforiaPositionHolder vuforiaPositionHolder = new VuforiaPositionHolder(vector);
-//                vuforiaPosRR.setValue(vuforiaPositionHolder);
-//                return false;
-//            }
-//
-//            @Override
-//            public StateName getNextStateName() {
-//                return null;
-//            }
-//        };
-//    }
+    private StateMachine buildBlinkinStateMachine() {
+        BlinkStateBuilder b = new BlinkStateBuilder(robotCfg.getBlinkin(), listener, BlinkEvent.NONE);
+        RevBlinkinLedDriver.BlinkinPattern blue = RevBlinkinLedDriver.BlinkinPattern.BLUE;
+        b.addSingleColor(BlinkEvent.BLUE, blue);
+        Long t = 200L;
+        RevBlinkinLedDriver.BlinkinPattern orange = RevBlinkinLedDriver.BlinkinPattern.ORANGE;
+        RevBlinkinLedDriver.BlinkinPattern black = RevBlinkinLedDriver.BlinkinPattern.BLACK;
+        b.addOnAndOff(BlinkEvent.ZERO_RINGS, orange, t);
+        b.addList(BlinkEvent.ONE_RING, ImmutableList.of(orange, black, orange, black), ImmutableList.of(t, 300L, t, 600L));
+        b.addOnAndOff(BlinkEvent.FOUR_RINGS, RevBlinkinLedDriver.BlinkinPattern.ORANGE, t);
+
+        return b.build();
+    }
 
     public enum S implements StateName {
         DRIVE_1,
@@ -681,3 +556,12 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     }
 }
+
+/*
+    auto colors :
+        1. initialize opencv - solid color - blue
+        2. find rings - flashing orange - 1 blink for zero, 2 blinks for one, and 3 blinks for 4 rings
+        3. vuforia init - flashing green
+        4. vuforia lock outcome - solid green or solid red depending
+        5. go to black at the very end
+*/

@@ -15,6 +15,7 @@ public class RingPipeline extends OpenCvPipeline {
 
     private final ResultReceiver<RING_NUMBERS> resultReceiver;
     private final ResultReceiver<Boolean> waitForStartRR;
+    private final BlinkEventListener listener;
 
     private RING_NUMBERS ringValue;
 
@@ -37,9 +38,10 @@ public class RingPipeline extends OpenCvPipeline {
     Mat hsv_image = new Mat();
     Mat saturation_channel = new Mat();
 
-    public RingPipeline(ResultReceiver<RING_NUMBERS> resultReceiver, ResultReceiver<Boolean> waitForStartRR, StartingPosition startingPosition) {
+    public RingPipeline(ResultReceiver<RING_NUMBERS> resultReceiver, ResultReceiver<Boolean> waitForStartRR, StartingPosition startingPosition, BlinkEventListener listener) {
         this.resultReceiver = resultReceiver;
         this.waitForStartRR = waitForStartRR;
+        this.listener = listener;
         if(startingPosition == StartingPosition.LEFT) {
             REGION1_TOPLEFT_ANCHOR_POINT = new Point(520, 315);
         } else {
@@ -76,12 +78,16 @@ public class RingPipeline extends OpenCvPipeline {
 
         if(avgSaturation >= 165) {
             ringValue = RING_NUMBERS.ring_4;
+            listener.requestNewBlinkPattern(BlinkEvent.FOUR_RINGS);
         } else if (avgSaturation <= 165 && avgSaturation >= 80) {
             ringValue = RING_NUMBERS.ring_1;
+            listener.requestNewBlinkPattern(BlinkEvent.ONE_RING);
         } else if (avgSaturation <= 80 && avgSaturation >= 0) {
             ringValue = RING_NUMBERS.ring_0;
+            listener.requestNewBlinkPattern(BlinkEvent.ZERO_RINGS);
         } else {
             ringValue = RING_NUMBERS.ring_error;
+            listener.requestNewBlinkPattern(BlinkEvent.ERROR_RINGS);
         }
 
         Imgproc.rectangle( input, region1_pointA, region1_pointB, new Scalar(0, 255, 0), 4);
