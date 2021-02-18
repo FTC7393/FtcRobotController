@@ -94,7 +94,6 @@ public class PowerShotStateMachineFactory {
 
         State idleState = () -> {
             if (button.doContinue()) {
-                button.reset();
                 return S.VUFORIA_TARGETS_ACTIVATE;
             }
             return null;
@@ -121,7 +120,7 @@ public class PowerShotStateMachineFactory {
         // add other pairs of state name end conditions
         EndCondition driverHaltEC = createDriverHaltEC();
         b.addDrive(S.VUFORIA_DRIVE, StateMap.of(S.VUFORIA_TARGETS_DEACTIVATE, vuforiaArrived, S.TIMEOUT_DEACTIVATE,
-                EVEndConditions.timed(Time.fromSeconds(3)), S.TIMEOUT_DEACTIVATE, driverHaltEC), xyrControl);
+                EVEndConditions.timed(Time.fromSeconds(5)), S.TIMEOUT_DEACTIVATE, driverHaltEC), xyrControl);
         b.add(S.VUFORIA_TARGETS_DEACTIVATE, makeTargetsDeactivateState(S.GET_GYRO_HEADING));
         b.add(S.GET_GYRO_HEADING, makeGyroHeadingState(S.SET_SHOOTER_SERVO));
         b.addServo(S.SET_SHOOTER_SERVO, S.START_FLYWHEEL, robotCfg.getElevation().getName(),
@@ -131,7 +130,7 @@ public class PowerShotStateMachineFactory {
         b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE, button));
         b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 4), tolerance, 1);
         b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT, 200, S.TIMEOUT_DEACTIVATE, button));
-        b.addGyroTurn(S.TURN_RIGHT, S.SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 5), tolerance, 1);
+        b.addGyroTurn(S.TURN_RIGHT, S.SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 4), tolerance, 1);
         b.add(S.SHOOT_RIGHT, makeShootRingState(S.STOP_FLYWHEEL, 200, S.TIMEOUT_DEACTIVATE, button));
         b.add(S.STOP_FLYWHEEL, makeStopFlyWheelState(S.IDLE));
 
@@ -291,6 +290,7 @@ public class PowerShotStateMachineFactory {
     private State makeStopFlyWheelState(final StateName nextState) {
         return () -> {
             robotCfg.stopFlyWheel();
+            button.reset();
             return nextState;
         };
     }
