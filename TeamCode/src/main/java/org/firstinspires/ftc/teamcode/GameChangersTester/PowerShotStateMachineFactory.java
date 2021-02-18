@@ -143,7 +143,6 @@ public class PowerShotStateMachineFactory {
         b.addServo(S.TIMEOUT_SET_SHOOTER_SERVO, S.TIMEOUT_START_FLYWHEEL, robotCfg.getElevation().getName(),
                 ServoPresets.Elevation.POWERSHOOTING, true);
         b.add(S.TIMEOUT_START_FLYWHEEL, makeStartFlyWheelState(S.IDLE));
-        b.addStop(S.STOP);
         //TODO: make sure vuforia targets are deactivated
         return b.build();
     }
@@ -310,7 +309,7 @@ public class PowerShotStateMachineFactory {
 
     public enum S implements StateName{
         VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO,
-        TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, STOP, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL,
+        TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL,
         SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, SHOOT_RIGHT, STOP_FLYWHEEL, BUTTON_RESET, IDLE
     }
 
