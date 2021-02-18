@@ -104,7 +104,9 @@ public class PowerShotStateMachineFactory {
         StateMap vSeekSM = StateMap.of(S.VUFORIA_DRIVE, vuforiaSeek, S.TIMEOUT_DEACTIVATE, EndConditions.timed(3000));
 
         AbstractState vuforiaSeekState = new AbstractState(vSeekSM) {
-            @Override public void init() {}
+            @Override public void init() {
+                robotCfg.getCollector().stop();
+            }
 
             @Override public void run() {}
 
@@ -129,7 +131,8 @@ public class PowerShotStateMachineFactory {
         b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 4), tolerance, 1);
         b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT, 200, S.TIMEOUT_DEACTIVATE, button));
         b.addGyroTurn(S.TURN_RIGHT, S.SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 5), tolerance, 1);
-        b.add(S.SHOOT_RIGHT, makeShootRingState(S.STOP, 200, S.TIMEOUT_DEACTIVATE, button));
+        b.add(S.SHOOT_RIGHT, makeShootRingState(S.STOP_FLYWHEEL, 200, S.TIMEOUT_DEACTIVATE, button));
+        b.add(S.STOP_FLYWHEEL, makeStopFlyWheelState(S.IDLE));
 
 
 
@@ -284,6 +287,13 @@ public class PowerShotStateMachineFactory {
         };
     }
 
+    private State makeStopFlyWheelState(final StateName nextState) {
+        return () -> {
+            robotCfg.stopFlyWheel();
+            return nextState;
+        };
+    }
+
     public VuforiaRotationTranslationCntrl getXyrControl() {
         return xyrControl;
     }
@@ -291,7 +301,7 @@ public class PowerShotStateMachineFactory {
 
 
     public enum S implements StateName{
-        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO, TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, STOP, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL, SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, SHOOT_RIGHT, IDLE
+        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO, TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, STOP, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL, SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, SHOOT_RIGHT, STOP_FLYWHEEL, IDLE
     }
 
 }
