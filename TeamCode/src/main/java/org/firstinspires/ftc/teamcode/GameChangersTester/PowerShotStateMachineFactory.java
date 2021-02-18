@@ -127,12 +127,13 @@ public class PowerShotStateMachineFactory {
                 ServoPresets.Elevation.POWERSHOOTING, true);
         b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.WAIT_FOR_FLYWHEEL));
         b.addWait(S.WAIT_FOR_FLYWHEEL, S.SHOOT_MIDDLE, 3000);
-        b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE, button));
+        b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE));
         b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 4), tolerance, 1);
-        b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT, 200, S.TIMEOUT_DEACTIVATE, button));
+        b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT, 200, S.TIMEOUT_DEACTIVATE));
         b.addGyroTurn(S.TURN_RIGHT, S.SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 4), tolerance, 1);
-        b.add(S.SHOOT_RIGHT, makeShootRingState(S.STOP_FLYWHEEL, 200, S.TIMEOUT_DEACTIVATE, button));
-        b.add(S.STOP_FLYWHEEL, makeStopFlyWheelState(S.IDLE));
+        b.add(S.SHOOT_RIGHT, makeShootRingState(S.STOP_FLYWHEEL, 200, S.TIMEOUT_DEACTIVATE));
+        b.add(S.STOP_FLYWHEEL, makeStopFlyWheelState(S.BUTTON_RESET));
+        b.add(S.BUTTON_RESET, makeButtonStopState(S.IDLE));
 
 
 
@@ -145,6 +146,13 @@ public class PowerShotStateMachineFactory {
         b.addStop(S.STOP);
         //TODO: make sure vuforia targets are deactivated
         return b.build();
+    }
+
+    private State makeButtonStopState(final StateName nextState) {
+        return () -> {
+            button.reset();
+            return nextState;
+        };
     }
 
     private State makeGyroHeadingState(final StateName nextState) {
@@ -175,7 +183,7 @@ public class PowerShotStateMachineFactory {
         };
     }
 
-    private State makeShootRingState(final StateName successState, final long delay, final StateName cancelState, final Continuable button) {
+    private State makeShootRingState(final StateName successState, final long delay, final StateName cancelState) {
         return new BasicAbstractState() {
             long endTime;
             StateName nextState;
@@ -290,7 +298,6 @@ public class PowerShotStateMachineFactory {
     private State makeStopFlyWheelState(final StateName nextState) {
         return () -> {
             robotCfg.stopFlyWheel();
-            button.reset();
             return nextState;
         };
     }
@@ -302,7 +309,9 @@ public class PowerShotStateMachineFactory {
 
 
     public enum S implements StateName{
-        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO, TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, STOP, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL, SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, SHOOT_RIGHT, STOP_FLYWHEEL, IDLE
+        VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO,
+        TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, STOP, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL,
+        SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, SHOOT_RIGHT, STOP_FLYWHEEL, BUTTON_RESET, IDLE
     }
 
 }
