@@ -220,7 +220,7 @@ public class PowerShotStateMachineFactory {
 
             @Override
             public boolean isDone() {
-                return false;
+                return !button.doContinue();
             }
         };
     }
