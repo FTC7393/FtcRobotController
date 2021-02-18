@@ -4,4 +4,6 @@ public interface Continuable {
 
     boolean doContinue();
 
+    void reset();
+
 }

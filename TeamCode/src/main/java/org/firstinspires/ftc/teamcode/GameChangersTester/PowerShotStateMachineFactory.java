@@ -94,6 +94,7 @@ public class PowerShotStateMachineFactory {
 
         State idleState = () -> {
             if (button.doContinue()) {
+                button.reset();
                 return S.VUFORIA_TARGETS_ACTIVATE;
             }
             return null;

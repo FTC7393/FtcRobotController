@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.GameChangersTester.BlinkEventListener;
 import org.firstinspires.ftc.teamcode.GameChangersTester.GameChangersRobotCfg;
 import org.firstinspires.ftc.teamcode.GameChangersTester.RingPipeline;
 import org.firstinspires.ftc.teamcode.GameChangersTester.StartingPosition;
@@ -22,7 +23,7 @@ public class WebcamExampleOpMode extends AbstractTeleOp<GameChangersRobotCfg> {
 
     OpenCvCamera webcam;
     ResultReceiver resultReceiver = new BasicResultReceiver();
-    private RingPipeline samplePipeline = new RingPipeline(resultReceiver, new BasicResultReceiver<Boolean>(), StartingPosition.LEFT);
+    private RingPipeline samplePipeline = new RingPipeline(resultReceiver, new BasicResultReceiver<Boolean>(), StartingPosition.LEFT, new BlinkEventListener());
 
 
     @Override
