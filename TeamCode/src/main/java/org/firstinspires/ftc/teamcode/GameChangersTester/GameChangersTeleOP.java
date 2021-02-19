@@ -73,7 +73,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected Logger createLogger() {
-        return new Logger("log_", ".csv", ImmutableList.of(
+        return new Logger("teleOP_log", ".csv", ImmutableList.of(
                 new Logger.Column("pshot sm states", (InputExtractor<String>) () ->
                         autoPowerShotSM == null ? "none" : autoPowerShotSM.getCurrentStateName().name()),
                 new Logger.Column("gyro values", (InputExtractor<Double>) () ->
@@ -81,7 +81,26 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                 new Logger.Column("vuforia pos x", (InputExtractor<Double>) () ->
                         factory == null ? Double.NaN : factory.getXyrControl().getCurrentX()),
                 new Logger.Column("vuforia pos y", (InputExtractor<Double>) () ->
-                        factory == null ? Double.NaN : factory.getXyrControl().getCurrentY())
+                        factory == null ? Double.NaN : factory.getXyrControl().getCurrentY()),
+                new Logger.Column("shooterSpeed", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getFlyWheelShooter().getCurrentSpeed();
+                    }
+                }),
+                new Logger.Column("shooterCurrTargetSpeed", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getFlyWheelShooter().getCurrentTargetSpeed();
+                    }
+                }),
+                new Logger.Column("shooterTargetSpeed", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getFlyWheelShooter().getFinalTargetSpeed();
+                    }
+                })
+
         ));
     }
 
@@ -143,7 +162,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected void setup_act() {
-        robotCfg.getFlyWheelShooter().update();
+        robotCfg.getFlyWheelShooter().act();
     }
 
     @Override
@@ -162,14 +181,13 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
     @Override
     protected void act() {
-        robotCfg.getFlyWheelShooter().update();
         collectorIntakeButton.update();
         collectorShooterButton.update();
         shooterStateMachine.act();
         blinkinStateMachine.act();
 
 //        telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
-        telemetry.addData("Motor Encoder Valies", robotCfg.getFlywheelEncoderValue());
+        telemetry.addData("Motor Encoder Valies", robotCfg.getFlyWheelShooter().getFlywheelEncoderValue());
 
         if (driver1.left_bumper.justPressed()) {
             if (wobbleGoalGrabberIsUp) {
@@ -194,11 +212,11 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             if (collectorIsSucking) {
                 robotCfg.getCollector().stop();
                 robotCfg.getElevation().goToPreset(ServoPresets.Elevation.SHOOTING);
-                robotCfg.startFlyWheel();
+                robotCfg.getFlyWheelShooter().turnOnFlywheel();
             } else {
                 robotCfg.getCollector().ingest();
                 robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
-                robotCfg.stopFlyWheel();
+                robotCfg.getFlyWheelShooter().stop();
             }
             collectorIsSucking = !collectorIsSucking;
         }
@@ -206,7 +224,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         if (driver1.x.justPressed()) {
             robotCfg.getCollector().stop();
             robotCfg.getElevation().goToPreset(ServoPresets.Elevation.POWERSHOOTING);
-            robotCfg.startFlyWheel();
+            robotCfg.getFlyWheelShooter().turnOnFlywheel();
             collectorIsSucking = false;
 
         }
@@ -214,7 +232,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         if (driver1.y.justPressed()) {
             robotCfg.getCollector().stop();
             robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
-            robotCfg.stopFlyWheel();
+            robotCfg.getFlyWheelShooter().stop();
             collectorIsSucking = false;
 
         }
@@ -235,6 +253,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         }
 
         telemetry.addData("powershot statemachine state",autoPowerShotSM == null ? "none" : autoPowerShotSM.getCurrentStateName().name());
+        telemetry.addData("current flywheel encoder value",robotCfg.getFlyWheelShooter().getFlywheelEncoderValue());
 
     }
 

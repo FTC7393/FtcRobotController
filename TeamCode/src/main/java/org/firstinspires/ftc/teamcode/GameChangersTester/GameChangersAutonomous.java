@@ -393,19 +393,25 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     }
 
     private State makeStartFlyWheelState(final StateName nextState) {
-        return () -> {
-            robotCfg.startFlyWheel();
-            return nextState;
+        return new State() {
+            @Override
+            public StateName act() {
+                robotCfg.getFlyWheelShooter().turnOnFlywheel();
+                return nextState;
+            }
         };
     }
 
 
 
     private State makeFlyWheelStopState(final StateName nextState) {
-        return () -> {
-            robotCfg.stopFlyWheel();
-            robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
-            return nextState;
+        return new State() {
+            @Override
+            public StateName act() {
+                robotCfg.getFlyWheelShooter().stop();
+                robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
+                return nextState;
+            }
         };
     }
 
@@ -545,8 +551,6 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         telemetry.addData("x", xyrControl.getCurrentX());
         telemetry.addData("y", xyrControl.getCurrentY());
         telemetry.addData("robot heading", xyrControl.getHeading());
-        robotCfg.getFlyWheelShooter().update();
-        robotCfg.getWobbleGoalArm().act();
     }
 
 
@@ -556,7 +560,6 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     }
 }
-
 /*
     auto colors :
         1. initialize opencv - solid color - blue
