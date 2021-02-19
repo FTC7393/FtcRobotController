@@ -15,10 +15,15 @@ import ftc.electronvolts.statemachine.State;
 import ftc.electronvolts.statemachine.StateMachine;
 import ftc.electronvolts.statemachine.StateMap;
 import ftc.electronvolts.statemachine.StateName;
+import ftc.electronvolts.util.InputExtractor;
+import ftc.electronvolts.util.InputExtractors;
 import ftc.electronvolts.util.TeamColor;
 import ftc.electronvolts.util.units.Angle;
 import ftc.electronvolts.util.units.Time;
+import ftc.evlib.driverstation.GamepadManager;
 import ftc.evlib.hardware.control.MecanumControl;
+import ftc.evlib.hardware.control.RotationControls;
+import ftc.evlib.hardware.control.TranslationControls;
 import ftc.evlib.hardware.sensors.Gyro;
 import ftc.evlib.hardware.servos.Servos;
 import ftc.evlib.statemachine.EVEndConditions;
@@ -39,6 +44,7 @@ public class PowerShotStateMachineFactory {
     private VuforiaRotationTranslationCntrl xyrControl;
     private VuforiaTrackables targetsUltimateGoal;
     private List<VuforiaTrackable> allTrackables;
+    private GamepadManager driver1;
     private VuforiaTrackable trackable;
     private double xDestIn;
     private double yDestIn;
@@ -46,7 +52,7 @@ public class PowerShotStateMachineFactory {
 
     public PowerShotStateMachineFactory(GameChangersRobotCfg robotCfg, TeamColor teamColor, Angle tolerance, Gyro gyro, double gyroGain, double maxAngularSpeed,
                                         Servos servos, MecanumControl mecanumControl, final Continuable button,
-                                        VuforiaTrackables targetsUltimateGoal, List<VuforiaTrackable> allTrackables) {
+                                        VuforiaTrackables targetsUltimateGoal, List<VuforiaTrackable> allTrackables, GamepadManager driver1) {
         this.robotCfg = robotCfg;
 
         this.teamColor = teamColor;
@@ -59,6 +65,7 @@ public class PowerShotStateMachineFactory {
         this.button = button;
         this.targetsUltimateGoal = targetsUltimateGoal;
         this.allTrackables = allTrackables;
+        this.driver1 = driver1;
 
 
         if(teamColor == TeamColor.BLUE) {
@@ -68,7 +75,7 @@ public class PowerShotStateMachineFactory {
         } else {
             trackable = allTrackables.get(2);
             xDestIn = -3; //need to tweak
-            yDestIn = -22; //need to tweak
+            yDestIn = -19.5; //need to tweak
         }
 
         double transGain = 0.03;
@@ -185,6 +192,9 @@ public class PowerShotStateMachineFactory {
     private State makeButtonResetState(final StateName nextState) {
         return () -> {
             button.reset();
+            InputExtractor<Double> invertedRightStick = () -> -driver1.right_stick_x.getValue();
+            robotCfg.getMecanumControl().setTranslationControl(TranslationControls.inputExtractorXY(InputExtractors.negative(driver1.left_stick_x), driver1.left_stick_y));
+            robotCfg.getMecanumControl().setRotationControl(RotationControls.inputExtractor(invertedRightStick));
             return nextState;
         };
     }

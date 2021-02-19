@@ -128,7 +128,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                 };
                 factory = new PowerShotStateMachineFactory(robotCfg, teamColor, Angle.fromDegrees(0.2),
                         robotCfg.getGyro(), 0.6, 0.6, robotCfg.getServos(), robotCfg.getMecanumControl(),
-                        button, targetsUltimateGoal, allTrackables);
+                        button, targetsUltimateGoal, allTrackables, driver1);
                 autoPowerShotSM = factory.create();
             } catch(RuntimeException r1) {
 
