@@ -1627,10 +1627,18 @@ public class EVStates extends States {
     public static State gyroTurn(StateName nextStateName, final MecanumControl mecanumControl,
                                  final Gyro gyro, final double gyroGain, final InputExtractor<Angle> orientation,
                                  final Angle tolerance, final double speed) {
+        return gyroTurn(nextStateName, mecanumControl, gyro, gyroGain, orientation, tolerance, speed, StateMap.of());
+     }
+
+    public static State gyroTurn(StateName nextStateName, final MecanumControl mecanumControl,
+                                 final Gyro gyro, final double gyroGain, final InputExtractor<Angle> orientation,
+                                 final Angle tolerance, final double speed, Map<StateName, EndCondition> stateMap) {
         Map<StateName, EndCondition> transitions = StateMap.of(
                 nextStateName,
                 EVEndConditions.gyroCloseTo(gyro, orientation, tolerance)
         );
+
+        transitions.putAll(stateMap);
 
         return new AbstractState(transitions) {
             @Override

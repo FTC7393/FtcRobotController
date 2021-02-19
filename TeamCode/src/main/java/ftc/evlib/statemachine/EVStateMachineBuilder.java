@@ -3,6 +3,7 @@ package ftc.evlib.statemachine;
 
 import java.util.Map;
 
+import ftc.electronvolts.statemachine.StateMap;
 import ftc.electronvolts.util.InputExtractor;
 import ftc.evlib.hardware.control.MecanumControl;
 import ftc.evlib.hardware.control.RotationControl;
@@ -228,6 +229,10 @@ public class EVStateMachineBuilder extends StateMachineBuilder {
 
     public void addGyroTurn(StateName stateName, StateName nextStateName, InputExtractor<Angle> orientation, Angle tolerance, double speed) {
         add(stateName, ftc.evlib.statemachine.EVStates.gyroTurn(nextStateName, mecanumControl, gyro, gyroGain, orientation, tolerance, speed));
+    }
+
+    public void addGyroTurn(StateName stateName, StateName nextStateName, InputExtractor<Angle> orientation, Angle tolerance, double speed, StateMap map) {
+        add(stateName, ftc.evlib.statemachine.EVStates.gyroTurn(nextStateName, mecanumControl, gyro, gyroGain, orientation, tolerance, speed, map));
     }
     ///// END TURN STATES /////
 
