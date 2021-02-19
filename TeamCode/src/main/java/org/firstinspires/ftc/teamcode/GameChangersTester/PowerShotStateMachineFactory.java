@@ -75,7 +75,7 @@ public class PowerShotStateMachineFactory {
         } else {
             trackable = allTrackables.get(2);
             xDestIn = -3; //need to tweak
-            yDestIn = -19.5; //need to tweak
+            yDestIn = -22; //need to tweak
         }
 
         double transGain = 0.03;
