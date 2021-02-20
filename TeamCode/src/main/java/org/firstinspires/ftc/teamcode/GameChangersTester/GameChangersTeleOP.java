@@ -54,6 +54,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     private PowerShotStateMachineFactory factory;
     private StateMachine blinkinStateMachine;
     private BlinkEventListener listener;
+    private BlinkEvent lastBlinkState = BlinkEvent.NONE;
 
     public GameChangersTeleOP() {
 
@@ -192,12 +193,16 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         shooterStateMachine.act();
         blinkinStateMachine.act();
 
-        double targetVelocity = 1050;
-        if(robotCfg.getFlyWheelShooter().getVelocity() < targetVelocity) {
+        double targetVelocity = 1000;
+        if (robotCfg.getFlyWheelShooter().getVelocity() < targetVelocity && lastBlinkState != BlinkEvent.RED) {
             listener.requestNewBlinkPattern(BlinkEvent.RED);
+            lastBlinkState = BlinkEvent.RED;
         } else {
+            if(lastBlinkState != BlinkEvent.GREEN){
             listener.requestNewBlinkPattern(BlinkEvent.GREEN);
+            lastBlinkState = BlinkEvent.GREEN;
         }
+    }
 
 //        telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
         telemetry.addData("Motor Encoder Valies", robotCfg.getFlyWheelShooter().getFlywheelEncoderValue());
