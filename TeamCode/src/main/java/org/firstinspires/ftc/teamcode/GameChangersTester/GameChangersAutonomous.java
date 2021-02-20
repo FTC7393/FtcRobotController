@@ -65,6 +65,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private long servoReleaseWaitTime;
     private BlinkEventListener listener = new BlinkEventListener();
     private StateMachine blinkinStateMachine;
+    private BlinkEvent lastBlinkState = BlinkEvent.NONE;
 
     public GameChangersAutonomous() {
         super();
@@ -119,7 +120,6 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR, startingPosition, listener);
         webcamName = robotCfg.getWebcamName();
         blinkinStateMachine = buildBlinkinStateMachine();
-
         //creating xyrcontrol object which will be used during the whole class
         double transGain = 0.03; // need to test
         double transDeadZone = 2.0; // need to test
@@ -139,6 +139,16 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         robotCfg.getPincher().act();
         telemetry.addData("state", stateMachine.getCurrentStateName());
         telemetry.addData("number of rings", ringPipeline.getRingNumber());
+        if(ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_0){
+            listener.requestNewBlinkPattern(BlinkEvent.ZERO_RINGS);
+            lastBlinkState = BlinkEvent.ZERO_RINGS;
+        } else if (ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_1){
+            listener.requestNewBlinkPattern(BlinkEvent.ONE_RING);
+            lastBlinkState = BlinkEvent.ONE_RING;
+        } else if (ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_4){
+            listener.requestNewBlinkPattern(BlinkEvent.FOUR_RINGS);
+            lastBlinkState = BlinkEvent.FOUR_RINGS
+        }
         telemetry.update();
     }
 
