@@ -71,7 +71,7 @@ public class PowerShotStateMachineFactory {
         if(teamColor == TeamColor.BLUE) {
             trackable = allTrackables.get(3);
             xDestIn = 0; //need to tweak
-            yDestIn = 20; //need to tweak
+            yDestIn = 8; //need to tweak
         } else {
             trackable = allTrackables.get(2);
             xDestIn = -3; //need to tweak
