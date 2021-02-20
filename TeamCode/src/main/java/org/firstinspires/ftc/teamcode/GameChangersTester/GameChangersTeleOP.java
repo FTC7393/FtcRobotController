@@ -192,6 +192,13 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         shooterStateMachine.act();
         blinkinStateMachine.act();
 
+        double targetVelocity = 1050;
+        if(robotCfg.getFlyWheelShooter().getVelocity() < targetVelocity) {
+            listener.requestNewBlinkPattern(BlinkEvent.RED);
+        } else {
+            listener.requestNewBlinkPattern(BlinkEvent.GREEN);
+        }
+
 //        telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
         telemetry.addData("Motor Encoder Valies", robotCfg.getFlyWheelShooter().getFlywheelEncoderValue());
 
@@ -295,6 +302,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         BlinkStateBuilder b = new BlinkStateBuilder(robotCfg.getBlinkin(), listener, BlinkEvent.NONE);
         b.addSingleColor(BlinkEvent.NONE, RevBlinkinLedDriver.BlinkinPattern.BLACK);
         b.addSingleColor(BlinkEvent.RED, RevBlinkinLedDriver.BlinkinPattern.RED);
+        b.addSingleColor(BlinkEvent.GREEN, RevBlinkinLedDriver.BlinkinPattern.GREEN);
         b.addTwoColors(BlinkEvent.RED_AND_BLUE, RevBlinkinLedDriver.BlinkinPattern.RED, 300L,
                 RevBlinkinLedDriver.BlinkinPattern.BLUE, 300L);
         b.addOnAndOff(BlinkEvent.BLINKING_GREEN, RevBlinkinLedDriver.BlinkinPattern.GREEN, 500L);

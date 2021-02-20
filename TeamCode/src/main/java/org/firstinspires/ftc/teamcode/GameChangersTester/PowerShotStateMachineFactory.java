@@ -19,6 +19,7 @@ import ftc.electronvolts.util.InputExtractor;
 import ftc.electronvolts.util.InputExtractors;
 import ftc.electronvolts.util.TeamColor;
 import ftc.electronvolts.util.units.Angle;
+import ftc.electronvolts.util.units.Distance;
 import ftc.electronvolts.util.units.Time;
 import ftc.evlib.driverstation.GamepadManager;
 import ftc.evlib.hardware.control.MecanumControl;
@@ -71,7 +72,7 @@ public class PowerShotStateMachineFactory {
         if(teamColor == TeamColor.BLUE) {
             trackable = allTrackables.get(3);
             xDestIn = 0; //need to tweak
-            yDestIn = 8; //need to tweak
+            yDestIn = 5; //need to tweak
         } else {
             trackable = allTrackables.get(2);
             xDestIn = -3; //need to tweak
@@ -133,7 +134,9 @@ public class PowerShotStateMachineFactory {
         b.addDrive(S.VUFORIA_DRIVE, StateMap.of(S.VUFORIA_TARGETS_DEACTIVATE, vuforiaArrived, S.TIMEOUT_DEACTIVATE,
                 EVEndConditions.timed(Time.fromSeconds(5)), S.TIMEOUT_DEACTIVATE, driverHaltEC), xyrControl);
         b.add(S.VUFORIA_TARGETS_DEACTIVATE, makeTargetsDeactivateState(S.GET_GYRO_HEADING));
-        b.add(S.GET_GYRO_HEADING, makeGyroHeadingState(S.SET_SHOOTER_SERVO));
+        b.add(S.GET_GYRO_HEADING, makeGyroHeadingState(S.TEAMCOLOR_DECIDE));
+        b.addBranch(S.TEAMCOLOR_DECIDE, S.MECANUM_DRIVE, S.SET_SHOOTER_SERVO, teamColor == TeamColor.BLUE);
+        b.addDrive(S.MECANUM_DRIVE, S.SET_SHOOTER_SERVO, Distance.fromInches(4), 0.5, gyroHeadingAtPowershotTime+180, gyroHeadingAtPowershotTime);
         b.addServo(S.SET_SHOOTER_SERVO, S.START_FLYWHEEL, robotCfg.getElevation().getName(),
                 ServoPresets.Elevation.POWERSHOOTING, true);
         b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.WAIT_FOR_FLYWHEEL));
@@ -141,7 +144,7 @@ public class PowerShotStateMachineFactory {
         b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE));
         b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 4), tolerance, 1, gyroECMap);
         b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT, 200, S.TIMEOUT_DEACTIVATE));
-        b.addGyroTurn(S.TURN_RIGHT, S.SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 4), tolerance, 1, gyroECMap);
+        b.addGyroTurn(S.TURN_RIGHT, S.SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 4.3), tolerance, 1, gyroECMap);
         b.add(S.SHOOT_RIGHT, makeShootRingState(S.STOP_FLYWHEEL, 200, S.TIMEOUT_DEACTIVATE));
         b.add(S.STOP_FLYWHEEL, makeStopFlyWheelState(S.BUTTON_RESET));
         b.add(S.BUTTON_RESET, makeButtonResetState(S.IDLE));
@@ -355,7 +358,7 @@ public class PowerShotStateMachineFactory {
     public enum S implements StateName{
         VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO,
         TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL,
-        SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, SHOOT_RIGHT, STOP_FLYWHEEL, BUTTON_RESET, TIMEOUT_BUTTON_RESET, IDLE
+        SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, SHOOT_RIGHT, STOP_FLYWHEEL, BUTTON_RESET, TIMEOUT_BUTTON_RESET, TEAMCOLOR_DECIDE, MECANUM_DRIVE, IDLE
     }
 
 }
