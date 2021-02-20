@@ -197,7 +197,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         if (robotCfg.getFlyWheelShooter().getVelocity() < targetVelocity && lastBlinkState != BlinkEvent.RED) {
             listener.requestNewBlinkPattern(BlinkEvent.RED);
             lastBlinkState = BlinkEvent.RED;
-        } else {
+        } else if(robotCfg.getFlyWheelShooter().getVelocity() >= targetVelocity) {
             if(lastBlinkState != BlinkEvent.GREEN){
             listener.requestNewBlinkPattern(BlinkEvent.GREEN);
             lastBlinkState = BlinkEvent.GREEN;
