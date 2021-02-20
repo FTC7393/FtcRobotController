@@ -194,18 +194,24 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         blinkinStateMachine.act();
 
         double targetVelocity = 1000;
+
+        if(matchTimer.getElapsedTime() >= 80000L && matchTimer.getElapsedTime() <= 85000 && lastBlinkState != BlinkEvent.BLINKING_ORANGE) {
+            listener.requestNewBlinkPattern(BlinkEvent.BLINKING_ORANGE);
+            lastBlinkState = BlinkEvent.BLINKING_ORANGE;
+        } else {
         if (robotCfg.getFlyWheelShooter().getVelocity() < targetVelocity && lastBlinkState != BlinkEvent.RED) {
             listener.requestNewBlinkPattern(BlinkEvent.RED);
             lastBlinkState = BlinkEvent.RED;
         } else if(robotCfg.getFlyWheelShooter().getVelocity() >= targetVelocity) {
-            if(lastBlinkState != BlinkEvent.GREEN){
-            listener.requestNewBlinkPattern(BlinkEvent.GREEN);
-            lastBlinkState = BlinkEvent.GREEN;
+            if (lastBlinkState != BlinkEvent.GREEN) {
+                listener.requestNewBlinkPattern(BlinkEvent.GREEN);
+                lastBlinkState = BlinkEvent.GREEN;
+            }
         }
     }
 
 //        telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
-        telemetry.addData("Motor Encoder Valies", robotCfg.getFlyWheelShooter().getFlywheelEncoderValue());
+        telemetry.addData("Motor Encoder Values", robotCfg.getFlyWheelShooter().getFlywheelEncoderValue());
 
         if (driver1.left_bumper.justPressed()) {
             if (wobbleGoalGrabberIsUp) {
@@ -311,6 +317,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         b.addTwoColors(BlinkEvent.RED_AND_BLUE, RevBlinkinLedDriver.BlinkinPattern.RED, 300L,
                 RevBlinkinLedDriver.BlinkinPattern.BLUE, 300L);
         b.addOnAndOff(BlinkEvent.BLINKING_GREEN, RevBlinkinLedDriver.BlinkinPattern.GREEN, 500L);
+        b.addOnAndOff(BlinkEvent.BLINKING_ORANGE, RevBlinkinLedDriver.BlinkinPattern.ORANGE, 100L);
         return b.build();
     }
 
