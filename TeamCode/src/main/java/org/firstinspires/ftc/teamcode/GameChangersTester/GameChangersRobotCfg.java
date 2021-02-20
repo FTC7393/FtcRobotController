@@ -10,6 +10,7 @@ import ftc.evlib.hardware.config.RobotCfg;
 import ftc.evlib.hardware.motors.FourMotors;
 import ftc.evlib.hardware.motors.Motor;
 import ftc.evlib.hardware.motors.MotorEnc;
+import ftc.evlib.hardware.motors.MotorEncEx;
 import ftc.evlib.hardware.motors.TwoMotors;
 import ftc.evlib.hardware.sensors.AnalogSensor;
 import ftc.evlib.hardware.sensors.Gyro;
@@ -70,10 +71,10 @@ public class GameChangersRobotCfg extends RobotCfg {
         servos = new Servos(ServoCfg.createServoMap(hardwareMap, servoStartPresetMap));
 
         //Drive Train.
-        DcMotor leftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
-        DcMotor rightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
-        DcMotor backLeftMotor = hardwareMap.get(DcMotor.class, "backLeftMotor");
-        DcMotor backRightMotor = hardwareMap.get(DcMotor.class, "backRightMotor");
+        DcMotor leftMotor = hardwareMap.get(DcMotorEx.class, "frontLeftMotor");
+        DcMotor rightMotor = hardwareMap.get(DcMotorEx.class, "frontRightMotor");
+        DcMotor backLeftMotor = hardwareMap.get(DcMotorEx.class, "backLeftMotor");
+        DcMotor backRightMotor = hardwareMap.get(DcMotorEx.class, "backRightMotor");
         Motor lm =  Motors.withEncoder(leftMotor, true, true, stoppers);
         Motor rm =  Motors.withEncoder(rightMotor, false, true, stoppers);
         Motor blm =  Motors.withEncoder(backLeftMotor, true, true, stoppers);
@@ -82,7 +83,7 @@ public class GameChangersRobotCfg extends RobotCfg {
         mecanumControl = new MecanumControl(new MecanumMotors(lm,rm,blm,brm,true,velocityX,velocityY));
 
         //Collector Stoof
-        DcMotor leftCollector = hardwareMap.get(DcMotor.class, "collectorMotor");
+        DcMotor leftCollector = hardwareMap.get(DcMotorEx.class, "collectorMotor");
         ServoControl windmill = getServo(GameChangersServoName.COLLECTOR);
 
         Motor lc =  Motors.withEncoder(leftCollector, false, false, stoppers);
@@ -92,14 +93,14 @@ public class GameChangersRobotCfg extends RobotCfg {
         gyro = new IMUGyro(hardwareMap.get(BNO055IMU.class, "imu0"));
 
         //Wobble Goal Collector Stouf
-        Motor rotator =  Motors.withoutEncoder(hardwareMap.get(DcMotor.class, "wobbleGoalArmMotor"), false, true, stoppers);
+        Motor rotator =  Motors.withoutEncoder(hardwareMap.get(DcMotorEx.class, "wobbleGoalArmMotor"), false, true, stoppers);
         ServoControl pinchServo = getPincher();
 
         potentiometer = Sensors.analogLinear(hardwareMap, "potentiometer");
         wobbleGoal = new WobbleGoalCollector(rotator, pinchServo, ServoPresets.WobblePincher.CLOSED,ServoPresets.WobblePincher.OPENED, potentiometer);
 
         //shooter
-        MotorEnc flyWheelmotor = Motors.withEncoder(hardwareMap.get(DcMotor.class, "flyWheelShooter"), false, false, stoppers);
+        MotorEncEx flyWheelmotor = Motors.withEncoder(hardwareMap.get(DcMotorEx.class, "flyWheelShooter"), false, false, stoppers);
         flyWheelShooter = new FlyWheelShooter(flyWheelmotor, getElevation(), getPusher(),1,.1);
         //camera
         webcam = hardwareMap.get(WebcamName.class, "Webcam");

@@ -99,6 +99,12 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                     public Double getValue() {
                         return robotCfg.getFlyWheelShooter().getFinalTargetSpeed();
                     }
+                }),
+                new Logger.Column("flywheelMotorVelocity", new InputExtractor<Double>() {
+                    @Override
+                    public Double getValue() {
+                        return robotCfg.getFlyWheelShooter().getVelocity();
+                    }
                 })
 
         ));

@@ -365,10 +365,12 @@ public class Motors {
      * @param stoppers                 the Stoppers object to add the motor to
      * @return the created MotorEnc
      */
-    public static MotorEnc withEncoder(final DcMotor dcMotor, boolean reversed, boolean brake, Stoppers stoppers) {
+    public static MotorEncEx withEncoder(final DcMotor dcMotor, boolean reversed, boolean brake, Stoppers stoppers) {
         final ftc.evlib.hardware.motors.Motor.Mode initMode = ftc.evlib.hardware.motors.Motor.Mode.SPEED;
         dcMotorInit(dcMotor, reversed, brake, motorModeToDcMotorRunMode(initMode)); //start with speed mode
-
+        if(!(dcMotor instanceof DcMotorEx)) {
+            throw new RuntimeException("motor must be of type DcMotorEx, type of motor passed in is " + dcMotor.getClass().getName());
+        }
 //        do {
 //            dcMotor.setMaxSpeed(maxEncoderTicksPerSecond);
 //        } while (dcMotor.getMaxSpeed() != maxEncoderTicksPerSecond);
@@ -389,7 +391,9 @@ public class Motors {
             }
         });
 
-        return new MotorEnc() {
+        return new MotorEncEx() {
+
+
             private int encoderZero = 0, encoderPosition = 0;
             private Mode mode = initMode, lastMode = initMode;
             private double power = 0,lastPower=0;
@@ -432,6 +436,12 @@ public class Motors {
             @Override
             public Mode getMode() {
                 return mode;
+            }
+
+            @Override
+            public double getVelocity() {
+                return ((DcMotorEx) dcMotor).getVelocity();
+
             }
 
             StepTimer t = new StepTimer("MotorRoot", Log.VERBOSE);

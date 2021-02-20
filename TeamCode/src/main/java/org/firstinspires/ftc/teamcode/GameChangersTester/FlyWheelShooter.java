@@ -3,11 +3,12 @@ package org.firstinspires.ftc.teamcode.GameChangersTester;
 import ftc.electronvolts.util.PIDController;
 import ftc.evlib.hardware.motors.Motor;
 import ftc.evlib.hardware.motors.MotorEnc;
+import ftc.evlib.hardware.motors.MotorEncEx;
 import ftc.evlib.hardware.servos.ServoControl;
 
 public class FlyWheelShooter {
 
-    private final MotorEnc flywheelMotor;
+    private final MotorEncEx flywheelMotor;
     private final ServoControl elevationServo;
     private final ServoControl pusherServo;
     private final double shootingSpeed; //constant for how fast the shooter needs to be to function
@@ -25,7 +26,7 @@ public class FlyWheelShooter {
 
 
 
-    public FlyWheelShooter(MotorEnc flywheelMotor, ServoControl elevationServo, ServoControl pusherServo, double maxPower,
+    public FlyWheelShooter(MotorEncEx flywheelMotor, ServoControl elevationServo, ServoControl pusherServo, double maxPower,
                            double rampRate) {
         this.flywheelMotor = flywheelMotor;
         this.elevationServo = elevationServo;
@@ -76,6 +77,7 @@ public class FlyWheelShooter {
     public double getCurrentTargetSpeed(){ return currentTargetSpeed;}
     public double getFinalTargetSpeed(){ return finalTargetSpeed;}
     public double getFlywheelEncoderValue(){ return currEnc;}
+    public double getVelocity() { return flywheelMotor.getVelocity();}
 
     public void stop() {
         flywheelMotor.setPower(0);
