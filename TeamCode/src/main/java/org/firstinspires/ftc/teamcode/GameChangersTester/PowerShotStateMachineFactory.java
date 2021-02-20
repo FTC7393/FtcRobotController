@@ -341,7 +341,7 @@ public class PowerShotStateMachineFactory {
 
     private State makeStopFlyWheelState(final StateName nextState) {
         return () -> {
-            robotCfg.stopFlyWheel();
+            robotCfg.getFlyWheelShooter().stop();
             return nextState;
         };
     }
