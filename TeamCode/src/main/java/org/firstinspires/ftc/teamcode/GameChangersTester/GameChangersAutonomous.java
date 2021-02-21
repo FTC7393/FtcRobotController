@@ -149,6 +149,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             listener.requestNewBlinkPattern(BlinkEvent.FOUR_RINGS);
             lastBlinkState = BlinkEvent.FOUR_RINGS;
         }
+        blinkinStateMachine.act();
         telemetry.update();
     }
 
