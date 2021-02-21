@@ -32,6 +32,7 @@ import ftc.electronvolts.util.files.OptionsFile;
 import ftc.electronvolts.util.units.Angle;
 import ftc.electronvolts.util.units.Distance;
 import ftc.electronvolts.util.units.Time;
+import ftc.evlib.hardware.config.RobotCfg;
 import ftc.evlib.opmodes.AbstractAutoOp;
 import ftc.evlib.statemachine.EVEndConditions;
 import ftc.evlib.statemachine.EVStateMachineBuilder;
@@ -524,10 +525,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         Long t = 200L;
         RevBlinkinLedDriver.BlinkinPattern orange = RevBlinkinLedDriver.BlinkinPattern.ORANGE;
         RevBlinkinLedDriver.BlinkinPattern black = RevBlinkinLedDriver.BlinkinPattern.BLACK;
+        RevBlinkinLedDriver.BlinkinPattern yellow  = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
         b.addSingleColor(BlinkEvent.NONE, black);
         b.addList(BlinkEvent.ZERO_RINGS, ImmutableList.of(orange, black), ImmutableList.of(t, 900L) );
-        b.addList(BlinkEvent.ONE_RING, ImmutableList.of(orange, black, orange, black), ImmutableList.of(t, 300L, t, 900L));
-        b.addList(BlinkEvent.FOUR_RINGS, ImmutableList.of(orange, black, orange, black, orange, black), ImmutableList.of(t, 300L, t, 300L, t, 900L));
+        b.addList(BlinkEvent.ONE_RING, ImmutableList.of(blue, black, blue, black), ImmutableList.of(t, 300L, t, 900L));
+        b.addList(BlinkEvent.FOUR_RINGS, ImmutableList.of(yellow, black, yellow, black, yellow, black), ImmutableList.of(t, 300L, t, 300L, t, 900L));
 
         return b.build();
     }
@@ -552,6 +554,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     @Override
     protected void go() {
         waitForStartRR.setValue(true);
+        robotCfg.getBlinkin().setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
     }
 
     @Override
