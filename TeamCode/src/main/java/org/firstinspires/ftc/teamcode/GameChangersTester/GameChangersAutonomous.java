@@ -521,13 +521,13 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private StateMachine buildBlinkinStateMachine() {
         BlinkStateBuilder b = new BlinkStateBuilder(robotCfg.getBlinkin(), listener, BlinkEvent.NONE);
         RevBlinkinLedDriver.BlinkinPattern blue = RevBlinkinLedDriver.BlinkinPattern.BLUE;
-        b.addSingleColor(BlinkEvent.BLUE, blue);
         Long t = 200L;
         RevBlinkinLedDriver.BlinkinPattern orange = RevBlinkinLedDriver.BlinkinPattern.ORANGE;
         RevBlinkinLedDriver.BlinkinPattern black = RevBlinkinLedDriver.BlinkinPattern.BLACK;
-        b.addOnAndOff(BlinkEvent.ZERO_RINGS, orange, t);
-        b.addList(BlinkEvent.ONE_RING, ImmutableList.of(orange, black, orange, black), ImmutableList.of(t, 300L, t, 600L));
-        b.addOnAndOff(BlinkEvent.FOUR_RINGS, RevBlinkinLedDriver.BlinkinPattern.ORANGE, t);
+        b.addSingleColor(BlinkEvent.NONE, black);
+        b.addList(BlinkEvent.ZERO_RINGS, ImmutableList.of(orange, black, orange, black), ImmutableList.of(t, 900L) );
+        b.addList(BlinkEvent.ONE_RING, ImmutableList.of(orange, black, orange, black), ImmutableList.of(t, 300L, t, 900L));
+        b.addList(BlinkEvent.FOUR_RINGS, ImmutableList.of(orange, black, orange, black), ImmutableList.of(t, 300L, t, 300L, t, 900L));
 
         return b.build();
     }
