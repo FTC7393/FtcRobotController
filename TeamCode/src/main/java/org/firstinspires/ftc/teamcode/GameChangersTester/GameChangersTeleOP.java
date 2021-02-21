@@ -195,9 +195,11 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
         double targetVelocity = 1000;
 
-        if(matchTimer.getElapsedTime() >= 80000L && matchTimer.getElapsedTime() <= 85000 && lastBlinkState != BlinkEvent.BLINKING_ORANGE) {
-            listener.requestNewBlinkPattern(BlinkEvent.BLINKING_ORANGE);
-            lastBlinkState = BlinkEvent.BLINKING_ORANGE;
+        if(matchTimer.getElapsedTime() >= 80000L && matchTimer.getElapsedTime() <= 85000) {
+            if(lastBlinkState != BlinkEvent.BLINKING_ORANGE){
+                listener.requestNewBlinkPattern(BlinkEvent.BLINKING_ORANGE);
+                lastBlinkState = BlinkEvent.BLINKING_ORANGE;
+            }
         } else {
         if (robotCfg.getFlyWheelShooter().getVelocity() < targetVelocity && lastBlinkState != BlinkEvent.RED) {
             listener.requestNewBlinkPattern(BlinkEvent.RED);
