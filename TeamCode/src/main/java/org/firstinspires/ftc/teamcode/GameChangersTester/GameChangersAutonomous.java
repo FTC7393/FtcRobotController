@@ -527,7 +527,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         b.addSingleColor(BlinkEvent.NONE, black);
         b.addList(BlinkEvent.ZERO_RINGS, ImmutableList.of(orange, black, orange, black), ImmutableList.of(t, 900L) );
         b.addList(BlinkEvent.ONE_RING, ImmutableList.of(orange, black, orange, black), ImmutableList.of(t, 300L, t, 900L));
-        b.addList(BlinkEvent.FOUR_RINGS, ImmutableList.of(orange, black, orange, black), ImmutableList.of(t, 300L, t, 300L, t, 900L));
+        b.addList(BlinkEvent.FOUR_RINGS, ImmutableList.of(orange, black, orange, black, orange, black), ImmutableList.of(t, 300L, t, 300L, t, 900L));
 
         return b.build();
     }
