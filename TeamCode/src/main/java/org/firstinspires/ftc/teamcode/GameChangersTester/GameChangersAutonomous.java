@@ -523,13 +523,13 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         BlinkStateBuilder b = new BlinkStateBuilder(robotCfg.getBlinkin(), listener, BlinkEvent.NONE);
         RevBlinkinLedDriver.BlinkinPattern blue = RevBlinkinLedDriver.BlinkinPattern.BLUE;
         Long t = 200L;
-        RevBlinkinLedDriver.BlinkinPattern orange = RevBlinkinLedDriver.BlinkinPattern.ORANGE;
+        RevBlinkinLedDriver.BlinkinPattern red = RevBlinkinLedDriver.BlinkinPattern.RED;
         RevBlinkinLedDriver.BlinkinPattern black = RevBlinkinLedDriver.BlinkinPattern.BLACK;
-        RevBlinkinLedDriver.BlinkinPattern yellow  = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+        RevBlinkinLedDriver.BlinkinPattern green  = RevBlinkinLedDriver.BlinkinPattern.GREEN;
         b.addSingleColor(BlinkEvent.NONE, black);
-        b.addList(BlinkEvent.ZERO_RINGS, ImmutableList.of(orange, black), ImmutableList.of(t, 900L) );
-        b.addList(BlinkEvent.ONE_RING, ImmutableList.of(blue, black, blue, black), ImmutableList.of(t, 300L, t, 900L));
-        b.addList(BlinkEvent.FOUR_RINGS, ImmutableList.of(yellow, black, yellow, black, yellow, black), ImmutableList.of(t, 300L, t, 300L, t, 900L));
+        b.addList(BlinkEvent.ZERO_RINGS, ImmutableList.of(red, black), ImmutableList.of(t, 900L) );
+        b.addList(BlinkEvent.ONE_RING, ImmutableList.of(green, black, green, black), ImmutableList.of(t, 300L, t, 900L));
+        b.addList(BlinkEvent.FOUR_RINGS, ImmutableList.of(blue, black, blue, black, blue, black), ImmutableList.of(t, 300L, t, 300L, t, 900L));
 
         return b.build();
     }
