@@ -139,15 +139,15 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         robotCfg.getPincher().act();
         telemetry.addData("state", stateMachine.getCurrentStateName());
         telemetry.addData("number of rings", ringPipeline.getRingNumber());
-        if(ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_0){
+        if(ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_0 && lastBlinkState != BlinkEvent.ZERO_RINGS){
             listener.requestNewBlinkPattern(BlinkEvent.ZERO_RINGS);
             lastBlinkState = BlinkEvent.ZERO_RINGS;
-        } else if (ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_1){
+        } else if (ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_1 && lastBlinkState != BlinkEvent.ONE_RING){
             listener.requestNewBlinkPattern(BlinkEvent.ONE_RING);
             lastBlinkState = BlinkEvent.ONE_RING;
-        } else if (ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_4){
+        } else if (ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_4 && lastBlinkState != BlinkEvent.FOUR_RINGS){
             listener.requestNewBlinkPattern(BlinkEvent.FOUR_RINGS);
-            lastBlinkState = BlinkEvent.FOUR_RINGS
+            lastBlinkState = BlinkEvent.FOUR_RINGS;
         }
         telemetry.update();
     }
