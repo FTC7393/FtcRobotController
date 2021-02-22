@@ -8,13 +8,13 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.util.List;
 
+import ftc.electronvolts.statemachine.AbstractState;
 import ftc.electronvolts.statemachine.BasicAbstractState;
 import ftc.electronvolts.statemachine.EndCondition;
 import ftc.electronvolts.statemachine.State;
@@ -104,7 +104,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     }
                     return Double.NaN;
                 }),
-                new Logger.Column("robotHeading", (InputExtractor<Double>) () -> xyrControl.getHeading())
+                new Logger.Column("robotHeading", (InputExtractor<Double>) () -> xyrControl.getHeading()),
+                new Logger.Column("flywheelVelocity", (InputExtractor<Double>) () -> robotCfg.getFlyWheelShooter().getVelocity())
         ));
     }
 
@@ -163,6 +164,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         b.add(S.VUFORIA_INIT, makeVuforiaInit(S.WAIT_FOR_OTHER_TEAM));
         b.addWait(S.WAIT_FOR_OTHER_TEAM, S.ELEVATE_SHOOTER, Time.fromSeconds(initialDelay));
         b.addServo(S.ELEVATE_SHOOTER,teamColor == TeamColor.RED?S.DRIVE_1:S.BLUE_DRIVE_1,robotCfg.getElevation().getName(),ServoPresets.Elevation.SHOOTING,false);
+        double minVelocityValue = 1020;
+        int speedRepeatCount = 3;
         if (teamColor == TeamColor.RED) {
             if (startingPosition == StartingPosition.LEFT) {
                 b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(1.5), 1.0, 275, 0);
@@ -186,7 +189,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addDrive(S.TIMEOUT_PARK,S.TIMEOUT_LINE ,Distance.fromFeet(1.6),1,0,0);
             //END timeout drive
 
-            b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.TURN_AIM_SHOOT));
+            b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
             b.addGyroTurn(S.TURN_AIM_SHOOT, S.WAIT_ELEVATION_STABILIZE, -1);
             b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 2000L);
             b.add(S.SHOOT_RINGS, new ShooterState(robotCfg, 150L, 500L, S.TURN_OFF_SHOOTER));
@@ -278,7 +281,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addDrive(S.BLUE_TIMEOUT_PARK,S.BLUE_TIMEOUT_LINE ,Distance.fromFeet(1.6),1,180,0);
             //END timeout drive
 
-            b.add(S.BLUE_START_FLYWHEEL,makeStartFlyWheelState(S.BLUE_TURN_AIM_SHOOT));
+            b.add(S.BLUE_START_FLYWHEEL,makeStartFlyWheelState(S.BLUE_TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
             b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT, S.BLUE_WAIT_ELEVATION_STABILIZE, 0);
             b.addWait(S.BLUE_WAIT_ELEVATION_STABILIZE, S.BLUE_SHOOT_RINGS, 2500L);
             b.add(S.BLUE_SHOOT_RINGS, new ShooterState(robotCfg, 200L, 650L, S.BLUE_TURN_OFF_SHOOTER));
@@ -392,12 +395,42 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         };
     }
 
-    private State makeStartFlyWheelState(final StateName nextState) {
-        return new State() {
+    private State makeStartFlyWheelState(final StateName nextState, double minVelocityValue, int speedRepeatCount) {
+
+        EndCondition waitEC = EVEndConditions.timed(3000L);
+        EndCondition spinUpEC = new EndCondition() {
+            int count;
             @Override
-            public StateName act() {
+            public void init() {
+                count = 0;
+            }
+
+            @Override
+            public boolean isDone() {
+                if(robotCfg.getFlyWheelShooter().getVelocity() >= minVelocityValue) {
+                    count++;
+                } else {
+                    count = 0;
+                }
+                return count >= speedRepeatCount;            }
+        };
+
+        StateMap flywheelSM = StateMap.of(nextState, waitEC, nextState, spinUpEC);
+
+        return new AbstractState(flywheelSM) {
+            @Override
+            public void init() {
                 robotCfg.getFlyWheelShooter().turnOnFlywheel();
-                return nextState;
+            }
+
+            @Override
+            public void run() {
+
+            }
+
+            @Override
+            public void dispose() {
+
             }
         };
     }
