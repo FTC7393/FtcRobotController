@@ -45,7 +45,7 @@ public class RingPipeline extends OpenCvPipeline {
         if(startingPosition == StartingPosition.LEFT) {
             REGION1_TOPLEFT_ANCHOR_POINT = new Point(520, 315);
         } else {
-            REGION1_TOPLEFT_ANCHOR_POINT = new Point(1, 305);
+            REGION1_TOPLEFT_ANCHOR_POINT = new Point(1, 295);
         }
 
         region1_pointA = new Point(

@@ -32,6 +32,7 @@ import ftc.electronvolts.util.files.OptionsFile;
 import ftc.electronvolts.util.units.Angle;
 import ftc.electronvolts.util.units.Distance;
 import ftc.electronvolts.util.units.Time;
+import ftc.evlib.hardware.config.RobotCfg;
 import ftc.evlib.opmodes.AbstractAutoOp;
 import ftc.evlib.statemachine.EVEndConditions;
 import ftc.evlib.statemachine.EVStateMachineBuilder;
@@ -65,6 +66,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private long servoReleaseWaitTime;
     private BlinkEventListener listener = new BlinkEventListener();
     private StateMachine blinkinStateMachine;
+    private BlinkEvent lastBlinkState = BlinkEvent.NONE;
 
     public GameChangersAutonomous() {
         super();
@@ -120,7 +122,6 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR, startingPosition, listener);
         webcamName = robotCfg.getWebcamName();
         blinkinStateMachine = buildBlinkinStateMachine();
-
         //creating xyrcontrol object which will be used during the whole class
         double transGain = 0.03; // need to test
         double transDeadZone = 2.0; // need to test
@@ -140,6 +141,17 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         robotCfg.getPincher().act();
         telemetry.addData("state", stateMachine.getCurrentStateName());
         telemetry.addData("number of rings", ringPipeline.getRingNumber());
+        if(ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_0 && lastBlinkState != BlinkEvent.ZERO_RINGS){
+            listener.requestNewBlinkPattern(BlinkEvent.ZERO_RINGS);
+            lastBlinkState = BlinkEvent.ZERO_RINGS;
+        } else if (ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_1 && lastBlinkState != BlinkEvent.ONE_RING){
+            listener.requestNewBlinkPattern(BlinkEvent.ONE_RING);
+            lastBlinkState = BlinkEvent.ONE_RING;
+        } else if (ringPipeline.getRingNumber() == RingPipeline.RING_NUMBERS.ring_4 && lastBlinkState != BlinkEvent.FOUR_RINGS){
+            listener.requestNewBlinkPattern(BlinkEvent.FOUR_RINGS);
+            lastBlinkState = BlinkEvent.FOUR_RINGS;
+        }
+        blinkinStateMachine.act();
         telemetry.update();
     }
 
@@ -543,13 +555,14 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private StateMachine buildBlinkinStateMachine() {
         BlinkStateBuilder b = new BlinkStateBuilder(robotCfg.getBlinkin(), listener, BlinkEvent.NONE);
         RevBlinkinLedDriver.BlinkinPattern blue = RevBlinkinLedDriver.BlinkinPattern.BLUE;
-        b.addSingleColor(BlinkEvent.BLUE, blue);
         Long t = 200L;
-        RevBlinkinLedDriver.BlinkinPattern orange = RevBlinkinLedDriver.BlinkinPattern.ORANGE;
+        RevBlinkinLedDriver.BlinkinPattern red = RevBlinkinLedDriver.BlinkinPattern.RED;
         RevBlinkinLedDriver.BlinkinPattern black = RevBlinkinLedDriver.BlinkinPattern.BLACK;
-        b.addOnAndOff(BlinkEvent.ZERO_RINGS, orange, t);
-        b.addList(BlinkEvent.ONE_RING, ImmutableList.of(orange, black, orange, black), ImmutableList.of(t, 300L, t, 600L));
-        b.addOnAndOff(BlinkEvent.FOUR_RINGS, RevBlinkinLedDriver.BlinkinPattern.ORANGE, t);
+        RevBlinkinLedDriver.BlinkinPattern green  = RevBlinkinLedDriver.BlinkinPattern.GREEN;
+        b.addSingleColor(BlinkEvent.NONE, black);
+        b.addList(BlinkEvent.ZERO_RINGS, ImmutableList.of(red, black), ImmutableList.of(t, 900L) );
+        b.addList(BlinkEvent.ONE_RING, ImmutableList.of(green, black, green, black), ImmutableList.of(t, 300L, t, 900L));
+        b.addList(BlinkEvent.FOUR_RINGS, ImmutableList.of(blue, black, blue, black, blue, black), ImmutableList.of(t, 300L, t, 300L, t, 900L));
 
         return b.build();
     }
@@ -574,6 +587,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     @Override
     protected void go() {
         waitForStartRR.setValue(true);
+        robotCfg.getBlinkin().setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
     }
 
     @Override
