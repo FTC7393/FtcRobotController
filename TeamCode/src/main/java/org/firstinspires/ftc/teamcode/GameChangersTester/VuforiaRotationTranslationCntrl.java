@@ -52,6 +52,10 @@ public class VuforiaRotationTranslationCntrl extends XYRControl {
         roTnCtnrl = RotationControls.headingSource(vuCalc, rotationGain, targetHeading, angleTolerance, maxAngularSpeed, minAngularSpeed);
         this.targetHeading = targetHeading;
         this.angleTolerance = angleTolerance;
+        rawTrans = null;
+        translation = null;
+        velocityR = 0;
+        polarDirectionCorrection = null;
     }
 
     @Override
