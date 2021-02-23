@@ -409,7 +409,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     private State makeStartFlyWheelState(final StateName nextState, double minVelocityValue, int speedRepeatCount) {
 
-        EndCondition waitEC = EVEndConditions.timed(3000L);
+        EndCondition waitEC = EVEndConditions.timed(2500L);
         EndCondition spinUpEC = new EndCondition() {
             int count;
             @Override
