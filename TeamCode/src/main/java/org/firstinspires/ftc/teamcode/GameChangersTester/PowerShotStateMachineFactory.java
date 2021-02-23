@@ -140,7 +140,7 @@ public class PowerShotStateMachineFactory {
         b.addServo(S.SET_SHOOTER_SERVO, S.START_FLYWHEEL, robotCfg.getElevation().getName(),
                 ServoPresets.Elevation.POWERSHOOTING, true);
         b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.WAIT_FOR_FLYWHEEL));
-        b.add(S.WAIT_FOR_FLYWHEEL, makeFlywheelWaitState(S.SHOOT_MIDDLE, S.TIMEOUT_DEACTIVATE, 3000L, 3, 1020));
+        b.add(S.WAIT_FOR_FLYWHEEL, makeFlywheelWaitState(S.SHOOT_MIDDLE, S.TIMEOUT_DEACTIVATE, 2500L, 3, 1020));
         b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE));
         b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 4), tolerance, 1, gyroECMap);
         b.add(S.SHOOT_LEFT, makeShootRingState(S.TURN_RIGHT, 200, S.TIMEOUT_DEACTIVATE));
@@ -162,13 +162,15 @@ public class PowerShotStateMachineFactory {
         return b.build();
     }
 
-    private State makeFlywheelWaitState(S continueState, S cancelState, long waitTime, int speedRepeatCount, double minVelocityValue) {
+    private State makeFlywheelWaitState(final S continueState, S cancelState, long waitTime, int speedRepeatCount, double minVelocityValue) {
         return new BasicAbstractState() {
             long endTime;
             S nextStateName;
+            int count = 0;
             @Override
             public void init() {
                 endTime = waitTime + System.currentTimeMillis();
+                count = 0;
             }
 
             @Override
@@ -181,12 +183,12 @@ public class PowerShotStateMachineFactory {
                     nextStateName = continueState;
                     return true;
                 }
-                int count = 0;
                 if(robotCfg.getFlyWheelShooter().getVelocity() >= minVelocityValue) {
                     count++;
                 } else {
                     count = 0;
                 }
+                nextStateName = continueState;
                 return count >= speedRepeatCount;
             }
 
