@@ -191,26 +191,31 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.SET_VUCALC, makeVuCalcState(S.WAIT_FOR_VUFORIA_INIT));
             b.addResultReceiverReady(S.WAIT_FOR_VUFORIA_INIT, S.ACTIVATE_TARGETS, vuforiaInitRR);
             b.add(S.ACTIVATE_TARGETS, makeTargetsActivateState(S.DRIVE_VUFORIA_TO_POWERSHOT));
-            b.add(S.VUFORIA_EXPLORE, getVuforiaPosition());
             EndCondition vuforiaArrived = createXYREndCondition();
             // add other pairs of state name end conditions
-            b.addDrive(S.DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.START_FLYWHEEL, vuforiaArrived, S.START_FLYWHEEL, EVEndConditions.timed(Time.fromSeconds(3))), xyrControl);
+            b.addDrive(S.DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.DEACTIVATE_TARGETS, vuforiaArrived, S.DEACTIVATE_TARGETS, EVEndConditions.timed(Time.fromSeconds(3))), xyrControl);
 
-            //START timeout drive
-            b.addDrive(S.TIMEOUT_DRIVE, S.TIMEOUT_PARK,Distance.fromFeet(.3),.7,270,0);
-            b.addDrive(S.TIMEOUT_PARK,S.TIMEOUT_LINE ,Distance.fromFeet(1.6),1,0,0);
-            //END timeout drive
 
+            b.add(S.DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.START_FLYWHEEL));
             b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
             b.addGyroTurn(S.TURN_AIM_SHOOT, S.WAIT_ELEVATION_STABILIZE, -1);
             b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 2000L);
             b.add(S.SHOOT_RINGS, new ShooterState(robotCfg, 150L, 500L, S.TURN_OFF_SHOOTER));
-            b.add(S.TURN_OFF_SHOOTER, makeFlyWheelStopState(S.DEACTIVATE_TARGETS));
-            b.add(S.DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.DETERMINE_RING_STACK));
-            b.add(S.DETERMINE_RING_STACK, () -> {
+            b.add(S.TURN_OFF_SHOOTER, makeFlyWheelStopState(S.SECOND_RING_COLLECTION));
+            b.add(S.SECOND_RING_COLLECTION, () -> {
                 if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_0) {
                     return S.DRIVE_RING_0;
-                } else if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_1) {
+                } else {
+                    //this handles ring 1, ring 4 and error
+                    return S.TURN_ON_COLLECTOR;
+                }
+            });
+            b.add(S.TURN_ON_COLLECTOR, makeCollectorOnState(S.DRIVE_BACKWARDS_TO_COLLECT));
+            b.addDrive(S.DRIVE_BACKWARDS_TO_COLLECT, S.TURN_OFF_COLLECTOR, Distance.fromFeet(1.2), 0.7, 90, 0);
+            b.add(S.TURN_OFF_COLLECTOR, makeCollectorOffState(S.ACTIVATE_TARGETS_2));
+            b.add(S.ACTIVATE_TARGETS_2, makeTargetsActivateState(S.VUFORIA_LINEUP));
+            b.add(S.DETERMINE_RING_STACK, () -> {
+                if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_1) {
                     return S.DRIVE_RING_1;
                 } else {
                     return S.DRIVE_RING_4;
@@ -266,7 +271,6 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addDrive(S.PARK_4, S.STOP, Distance.fromFeet(1.35), 1, 55, 0);
 
 
-            b.addStop(S.TIMEOUT_LINE);
             b.addStop(S.STOP);
         } else {
             if (startingPosition == StartingPosition.LEFT) {
@@ -288,10 +292,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             // add other pairs of state name end conditions
             b.addDrive(S.BLUE_DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.BLUE_START_FLYWHEEL, vuforiaArrived, S.BLUE_START_FLYWHEEL, EVEndConditions.timed(Time.fromSeconds(3))), xyrControl);
 
-            //START timeout drive
-            b.addDrive(S.BLUE_TIMEOUT_DRIVE, S.BLUE_TIMEOUT_PARK,Distance.fromFeet(.3),.7,270,0);
-            b.addDrive(S.BLUE_TIMEOUT_PARK,S.BLUE_TIMEOUT_LINE ,Distance.fromFeet(1.6),1,180,0);
-            //END timeout drive
+
 
             b.add(S.BLUE_START_FLYWHEEL,makeStartFlyWheelState(S.BLUE_TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
             b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT, S.BLUE_WAIT_ELEVATION_STABILIZE, 0);
@@ -342,10 +343,23 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addDrive(S.BLUE_PARK_4_A, S.BLUE_PARK_4, Distance.fromFeet(.5), 1, 180, 180);
             b.addDrive(S.BLUE_PARK_4, S.BLUE_STOP, Distance.fromFeet(1.5), 1, 135, 180);
 
-            b.addStop(S.BLUE_TIMEOUT_LINE);
             b.addStop(S.BLUE_STOP);
         }
         return b.build();
+    }
+
+    private State makeCollectorOffState(S nextStateName) {
+        return () -> {
+            robotCfg.getCollector().stop();
+            return nextStateName;
+        };
+    }
+
+    private State makeCollectorOnState(S nextStateName) {
+        return () -> {
+            robotCfg.getCollector().ingest();
+            return nextStateName;
+        };
     }
 
     private EndCondition createXYREndCondition() {
@@ -424,7 +438,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 } else {
                     count = 0;
                 }
-                return count >= speedRepeatCount;            }
+                return count >= speedRepeatCount;
+            }
         };
 
         StateMap flywheelSM = StateMap.of(nextState, waitEC, nextState, spinUpEC);
@@ -579,7 +594,19 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         OPENCV_RESULT,
         VUFORIA_INIT,
         VUFORIA_EXPLORE,
-        WAIT_FOR_START, WAIT_FOR_OTHER_TEAM, SET_CAMERA_SERVO, START_FLYWHEEL, SHOOT_RINGS, WAIT_ELEVATION_STABILIZE, TURN_OFF_SHOOTER, DETERMINE_RING_STACK, DRIVE_RING_0, DRIVE_RING_1, DRIVE_RING_4, PARK_0, PARK_1, PARK_4, DROP_WOBBLE_GOAL, MOVE_ARM_DOWN, WAIT_FOR_DROP, WAIT_FOR_DROP_0, DROP_WOBBLE_GOAL_0, DROP_WOBBLE_GOAL_1, DROP_WOBBLE_GOAL_4, MOVE_ARM_DOWN_0, MOVE_ARM_DOWN_1, WAIT_FOR_DROP_4, WAIT_FOR_DROP_1, MOVE_ARM_UP_4, MOVE_ARM_UP_1, MOVE_ARM_UP_0, TURN_AIM_SHOOT, MOVE_ARM_DOWN_4, BLUE_STOP, BLUE_TIMEOUT_LINE, BLUE_PARK_4, BLUE_MOVE_ARM_UP_4, BLUE_DROP_WOBBLE_GOAL_4, BLUE_WAIT_FOR_DROP_4, BLUE_MOVE_ARM_DOWN_4, BLUE_DRIVE_RING_4, BLUE_PARK_1, BLUE_MOVE_ARM_UP_1, BLUE_DROP_WOBBLE_GOAL_1, BLUE_WAIT_FOR_DROP_1, BLUE_MOVE_ARM_DOWN_1, BLUE_DRIVE_RING_1, BLUE_PARK_0, BLUE_MOVE_ARM_UP_0, BLUE_DROP_WOBBLE_GOAL_0, BLUE_WAIT_FOR_DROP_0, BLUE_MOVE_ARM_DOWN_0, BLUE_DRIVE_RING_0, BLUE_DETERMINE_RING_STACK, BLUE_TURN_OFF_SHOOTER, BLUE_SHOOT_RINGS, BLUE_WAIT_ELEVATION_STABILIZE, BLUE_TURN_AIM_SHOOT, BLUE_DRIVE_VUFORIA_TO_POWERSHOT, BLUE_VUFORIA_EXPLORE, BLUE_WAIT, BLUE_DRIVE_1C, BLUE_DRIVE_1B, BLUE_DRIVE_1, SET_VUCALC, WAIT_FOR_VUFORIA_INIT, ACTIVATE_TARGETS, DEACTIVATE_TARGETS, BLUE_SET_VUCALC, BLUE_TARGETS_ACTIVATE, BLUE_WAIT_FOR_VUFORIA_INIT, BLUE_DEACTIVATE_TARGETS, ELEVATE_SHOOTER, BLUE_START_FLYWHEEL, BLUE_WOBBLE_TURN, BLUE_WOBBLE_TURN_1, BLUE_WOBBLE_TURN_4, AFTER_PARK, PARK_0_A, PARK_1_A, PARK_4_A, BLUE_PARK_0_A, BLUE_PARK_1_A, BLUE_PARK_4_A, BLUE_PARK_4C, BLUE_TIMEOUT_DRIVE, BLUE_TIMEOUT_PARK, TIMEOUT_DRIVE, TIMEOUT_PARK, OPENCV_INIT
+        WAIT_FOR_START, WAIT_FOR_OTHER_TEAM, SET_CAMERA_SERVO, START_FLYWHEEL, SHOOT_RINGS, WAIT_ELEVATION_STABILIZE,
+        TURN_OFF_SHOOTER, DETERMINE_RING_STACK, DRIVE_RING_0, DRIVE_RING_1, DRIVE_RING_4, PARK_0, PARK_1, PARK_4,
+        DROP_WOBBLE_GOAL, MOVE_ARM_DOWN, WAIT_FOR_DROP, WAIT_FOR_DROP_0, DROP_WOBBLE_GOAL_0, DROP_WOBBLE_GOAL_1,
+        DROP_WOBBLE_GOAL_4, MOVE_ARM_DOWN_0, MOVE_ARM_DOWN_1, WAIT_FOR_DROP_4, WAIT_FOR_DROP_1, MOVE_ARM_UP_4, MOVE_ARM_UP_1,
+        MOVE_ARM_UP_0, TURN_AIM_SHOOT, MOVE_ARM_DOWN_4, BLUE_STOP, BLUE_TIMEOUT_LINE, BLUE_PARK_4, BLUE_MOVE_ARM_UP_4,
+        BLUE_DROP_WOBBLE_GOAL_4, BLUE_WAIT_FOR_DROP_4, BLUE_MOVE_ARM_DOWN_4, BLUE_DRIVE_RING_4, BLUE_PARK_1, BLUE_MOVE_ARM_UP_1,
+        BLUE_DROP_WOBBLE_GOAL_1, BLUE_WAIT_FOR_DROP_1, BLUE_MOVE_ARM_DOWN_1, BLUE_DRIVE_RING_1, BLUE_PARK_0, BLUE_MOVE_ARM_UP_0,
+        BLUE_DROP_WOBBLE_GOAL_0, BLUE_WAIT_FOR_DROP_0, BLUE_MOVE_ARM_DOWN_0, BLUE_DRIVE_RING_0, BLUE_DETERMINE_RING_STACK,
+        BLUE_TURN_OFF_SHOOTER, BLUE_SHOOT_RINGS, BLUE_WAIT_ELEVATION_STABILIZE, BLUE_TURN_AIM_SHOOT, BLUE_DRIVE_VUFORIA_TO_POWERSHOT,
+        BLUE_VUFORIA_EXPLORE, BLUE_WAIT, BLUE_DRIVE_1C, BLUE_DRIVE_1B, BLUE_DRIVE_1, SET_VUCALC, WAIT_FOR_VUFORIA_INIT, ACTIVATE_TARGETS,
+        DEACTIVATE_TARGETS, BLUE_SET_VUCALC, BLUE_TARGETS_ACTIVATE, BLUE_WAIT_FOR_VUFORIA_INIT, BLUE_DEACTIVATE_TARGETS, ELEVATE_SHOOTER, BLUE_START_FLYWHEEL,
+        BLUE_WOBBLE_TURN, BLUE_WOBBLE_TURN_1, BLUE_WOBBLE_TURN_4, AFTER_PARK, PARK_0_A, PARK_1_A, PARK_4_A, BLUE_PARK_0_A, BLUE_PARK_1_A, BLUE_PARK_4_A, BLUE_PARK_4C,
+        SECOND_RING_COLLECTION, DRIVE_BACKWARDS_TO_COLLECT, TURN_ON_COLLECTOR, TURN_OFF_COLLECTOR, ACTIVATE_TARGETS_2, VUFORIA_LINEUP, OPENCV_INIT
     }
 
 
