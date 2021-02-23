@@ -47,15 +47,6 @@ public class Collector {
         collectorMotor.update();
     }
 
-    //Cause this sucks!
-    public void suck()
-    {
-        ingest();
-    }
-    //and blows too!
-//    public void Spew()
-//    {
-//        expel();
-//    }
+
 
 }
