@@ -203,7 +203,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
             b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
             b.addGyroTurn(S.TURN_AIM_SHOOT, S.WAIT_ELEVATION_STABILIZE, -1);
-            b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 2000L);
+            b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 10L);
             b.add(S.SHOOT_RINGS, new ShooterState(robotCfg, 150L, 500L, S.TURN_OFF_SHOOTER));
             b.add(S.TURN_OFF_SHOOTER, makeFlyWheelStopState(S.DEACTIVATE_TARGETS));
             b.add(S.DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.DETERMINE_RING_STACK));
@@ -295,7 +295,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
             b.add(S.BLUE_START_FLYWHEEL,makeStartFlyWheelState(S.BLUE_TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
             b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT, S.BLUE_WAIT_ELEVATION_STABILIZE, 0);
-            b.addWait(S.BLUE_WAIT_ELEVATION_STABILIZE, S.BLUE_SHOOT_RINGS, 2500L);
+            b.addWait(S.BLUE_WAIT_ELEVATION_STABILIZE, S.BLUE_SHOOT_RINGS, 10L);
             b.add(S.BLUE_SHOOT_RINGS, new ShooterState(robotCfg, 200L, 650L, S.BLUE_TURN_OFF_SHOOTER));
             b.add(S.BLUE_TURN_OFF_SHOOTER, makeFlyWheelStopState(S.BLUE_DEACTIVATE_TARGETS));
             b.add(S.BLUE_DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.BLUE_DETERMINE_RING_STACK));
