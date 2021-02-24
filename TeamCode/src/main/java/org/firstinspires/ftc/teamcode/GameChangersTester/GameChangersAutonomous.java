@@ -67,7 +67,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private BlinkEventListener listener = new BlinkEventListener();
     private StateMachine blinkinStateMachine;
     private BlinkEvent lastBlinkState = BlinkEvent.NONE;
-    private boolean shootExtraRings;
+    private boolean shootExtraRings = true;
     private boolean getSecondWobbleGoal;
     private boolean parkClose;
     private boolean shootFourthRing;
@@ -250,10 +250,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addDrive(S.THREE_RING_COLLECTION_1,S.PAUSE_1,Distance.fromFeet(slowDrive),.1,90,0);
             b.addWait(S.PAUSE_1, S.THREE_RING_COLLECTION_2, ringPause);
             b.addDrive(S.THREE_RING_COLLECTION_2,S.PAUSE_2,Distance.fromFeet(slowDrive),.1,90,0);
-            b.addWait(S.PAUSE_2, S.THREE_RING_COLLECTION_3, ringPause);
-            b.addDrive(S.THREE_RING_COLLECTION_3,S.PAUSE_3,Distance.fromFeet(slowDrive),.1,90,0);
-            b.addWait(S.PAUSE_3, S.RETURN_FROM_FOUR_RINGS, ringPause);
-            b.addDrive(S.RETURN_FROM_FOUR_RINGS,S.TURN_OFF_COLLECTOR, Distance.fromFeet(bumpDrive + 3*slowDrive),0.7,270,0);
+            b.addWait(S.PAUSE_2, S.RETURN_FROM_FOUR_RINGS, ringPause);
+            b.addDrive(S.RETURN_FROM_FOUR_RINGS,S.TURN_OFF_COLLECTOR, Distance.fromFeet(bumpDrive + 2*slowDrive),0.7,270,0);
 
 
             b.add(S.TURN_OFF_COLLECTOR, makeCollectorOffState(S.SET_VUCALC_2));
@@ -262,7 +260,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addDrive(S.VUFORIA_LINEUP, StateMap.of(S.DEACTIVATE_TARGETS_2, vuforiaArrived, S.DEACTIVATE_TARGETS_2, EVEndConditions.timed(Time.fromSeconds(4))), xyrControl);
             b.add(S.DEACTIVATE_TARGETS_2, makeTargetsDeactivateState(S.START_FLYWHEEL_2));
             b.add(S.START_FLYWHEEL_2,makeStartFlyWheelState(S.TURN_AIM_SHOOT_2, minVelocityValue, speedRepeatCount));
-            b.addGyroTurn(S.TURN_AIM_SHOOT_2, S.SHOOT_RINGS_2, -5);
+            b.addGyroTurn(S.TURN_AIM_SHOOT_2, S.SET_SHOOTER_SERVO, -5);
+            b.addServo(S.SET_SHOOTER_SERVO, S.SHOOT_RINGS_2, robotCfg.getElevation().getName(), ServoPresets.Elevation.SHOOTING, true);
             b.add(S.SHOOT_RINGS_2, new ShooterState(robotCfg, 150L, 500L, S.TURN_OFF_SHOOTER_2));
             b.add(S.TURN_OFF_SHOOTER_2, makeFlyWheelStopState(S.CHOOSE_WOBBLE_DESTINATION));
 
@@ -662,7 +661,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         BLUE_VUFORIA_EXPLORE, BLUE_WAIT, BLUE_DRIVE_1C, BLUE_DRIVE_1B, BLUE_DRIVE_1, SET_VUCALC, WAIT_FOR_VUFORIA_INIT, ACTIVATE_TARGETS,
         DEACTIVATE_TARGETS, BLUE_SET_VUCALC, BLUE_TARGETS_ACTIVATE, BLUE_WAIT_FOR_VUFORIA_INIT, BLUE_DEACTIVATE_TARGETS, ELEVATE_SHOOTER, BLUE_START_FLYWHEEL,
         BLUE_WOBBLE_TURN, BLUE_WOBBLE_TURN_1, BLUE_WOBBLE_TURN_4, AFTER_PARK, PARK_0_A, PARK_1_A, PARK_4_A, BLUE_PARK_0_A, BLUE_PARK_1_A, BLUE_PARK_4_A, BLUE_PARK_4C,
-        SECOND_RING_COLLECTION, DRIVE_BACKWARDS_TO_COLLECT, TURN_ON_COLLECTOR, TURN_OFF_COLLECTOR, ACTIVATE_TARGETS_2, VUFORIA_LINEUP, RETURN_TO_SHOOT, SET_VUCALC_2, START_FLYWHEEL_2, DEACTIVATE_TARGETS_2, TURN_OFF_SHOOTER_2, SHOOT_RINGS_2, TURN_AIM_SHOOT_2, DRIVE_SLOW_SHOOT, THREE_RING_COLLECTION, BUMP_RING_STACK, TURN_ON_COLLECTOR_B, PAUSE_1, THREE_RING_COLLECTION_1, THREE_RING_COLLECTION_2, PAUSE_2, THREE_RING_COLLECTION_3, PAUSE_3, RETURN_FROM_FOUR_RINGS, OPENCV_INIT
+        SECOND_RING_COLLECTION, DRIVE_BACKWARDS_TO_COLLECT, TURN_ON_COLLECTOR, TURN_OFF_COLLECTOR, ACTIVATE_TARGETS_2, VUFORIA_LINEUP, RETURN_TO_SHOOT, SET_VUCALC_2, START_FLYWHEEL_2, DEACTIVATE_TARGETS_2, TURN_OFF_SHOOTER_2, SHOOT_RINGS_2, TURN_AIM_SHOOT_2, DRIVE_SLOW_SHOOT, THREE_RING_COLLECTION, BUMP_RING_STACK, TURN_ON_COLLECTOR_B, PAUSE_1, THREE_RING_COLLECTION_1, THREE_RING_COLLECTION_2, PAUSE_2, THREE_RING_COLLECTION_3, PAUSE_3, RETURN_FROM_FOUR_RINGS, SET_SHOOTER_SERVO, OPENCV_INIT
     }
 
 
