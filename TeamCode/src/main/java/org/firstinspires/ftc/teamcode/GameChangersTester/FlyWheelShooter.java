@@ -48,9 +48,9 @@ public class FlyWheelShooter {
         flywheelMotor.setVelocity(finalTargetSpeed);
     }
 
-    public void reverseFlywheel() {
-        finalTargetSpeed = -shootingSpeed;
-    }
+//    public void reverseFlywheel() {
+//        finalTargetSpeed = -shootingSpeed;
+//    }
 
     public void goToShootingAngle() {
         elevationServo.goToPreset(ServoPresets.Elevation.SHOOTING);
