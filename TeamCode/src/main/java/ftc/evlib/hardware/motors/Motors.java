@@ -444,6 +444,11 @@ public class Motors {
 
             }
 
+            @Override
+            public void setVelocity(double ticksPerSecond) {
+                ((DcMotorEx) dcMotor).setVelocity(ticksPerSecond);
+            }
+
             StepTimer t = new StepTimer("MotorRoot", Log.VERBOSE);
 
             @Override
