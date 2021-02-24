@@ -44,7 +44,7 @@ public class FlyWheelShooter {
     }
 
     public void turnOnFlywheel() {
-//        finalTargetSpeed = shootingSpeed;
+        finalTargetSpeed = shootingSpeed;
         flywheelMotor.setVelocity(finalTargetSpeed);
     }
 
