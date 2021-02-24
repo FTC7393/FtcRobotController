@@ -202,7 +202,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
 
             double ringDrive = 0.5;
-            double slowDrive = 0.3;
+            double slowDrive = 0.2;
 
             b.add(S.DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.START_FLYWHEEL));
             b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
@@ -244,7 +244,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
             //4 rings collection
             double bumpDrive = 0.4;
-            long ringPause = 500;
+            long ringPause = 2000;
             b.addDrive(S.BUMP_RING_STACK, S.TURN_ON_COLLECTOR_B, Distance.fromFeet(bumpDrive), 0.5, 90, 0);
             b.add(S.TURN_ON_COLLECTOR_B, makeCollectorOnState(S.THREE_RING_COLLECTION_1));
             b.addDrive(S.THREE_RING_COLLECTION_1,S.PAUSE_1,Distance.fromFeet(slowDrive),.1,90,0);
