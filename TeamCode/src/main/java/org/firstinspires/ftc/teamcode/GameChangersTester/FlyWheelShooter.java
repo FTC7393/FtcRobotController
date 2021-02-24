@@ -22,6 +22,8 @@ public class FlyWheelShooter {
     private int lastEnc;
     private int currEnc;
     private int actCount = 0;
+    public static final double targetFlywheelVelocity = 840;
+
 
 
 
@@ -44,7 +46,7 @@ public class FlyWheelShooter {
     }
 
     public void turnOnFlywheel() {
-//        finalTargetSpeed = shootingSpeed;
+        finalTargetSpeed = shootingSpeed;
         flywheelMotor.setVelocity(finalTargetSpeed);
     }
 
