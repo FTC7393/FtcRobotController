@@ -67,6 +67,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private BlinkEventListener listener = new BlinkEventListener();
     private StateMachine blinkinStateMachine;
     private BlinkEvent lastBlinkState = BlinkEvent.NONE;
+    private boolean shootExtraRings;
+    private boolean getSecondWobbleGoal;
+    private boolean parkClose;
+    private boolean shootFourthRing;
+    private double returnDrive;
 
     public GameChangersAutonomous() {
         super();
@@ -196,6 +201,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addDrive(S.DRIVE_VUFORIA_TO_POWERSHOT, StateMap.of(S.DEACTIVATE_TARGETS, vuforiaArrived, S.DEACTIVATE_TARGETS, EVEndConditions.timed(Time.fromSeconds(4))), xyrControl);
 
 
+            double ringDrive = 0.5;
+            double slowDrive = 0.3;
+
             b.add(S.DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.START_FLYWHEEL));
             b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
             b.addGyroTurn(S.TURN_AIM_SHOOT, S.WAIT_ELEVATION_STABILIZE, -5);
@@ -203,21 +211,52 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.SHOOT_RINGS, new ShooterState(robotCfg, 150L, 500L, S.TURN_OFF_SHOOTER));
             b.add(S.TURN_OFF_SHOOTER, makeFlyWheelStopState(S.SECOND_RING_COLLECTION));
             b.add(S.SECOND_RING_COLLECTION, () -> {
-                if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_0) {
+                RingPipeline.RING_NUMBERS ringNumber = ringNumbersResultReceiver.getValue();
+                if (ringNumber == RingPipeline.RING_NUMBERS.ring_0) {
                     return S.DRIVE_RING_0;
                 } else {
-                    //this handles ring 1, ring 4 and error
-                    return S.TURN_ON_COLLECTOR;
+                    if(shootExtraRings) {
+                        if(ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
+                            returnDrive = ringDrive + slowDrive;
+                            return S.TURN_ON_COLLECTOR;
+                        }
+                        return S.BUMP_RING_STACK;
+                    }
+                    if(ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
+                        return S.DRIVE_RING_1;
+                    } else {
+                        return S.DRIVE_RING_4;
+                    }
                 }
             });
-            //second collection attempt and then go on to shoot rings
+
+
+
+
+
+            //second collection attempt and then go on to shoot rings - one ring
             b.add(S.TURN_ON_COLLECTOR, makeCollectorOnState(S.DRIVE_BACKWARDS_TO_COLLECT));
-            double ringDrive = 0.5;
-            double slowDrive = 0.3;
-            b.addDrive(S.DRIVE_BACKWARDS_TO_COLLECT, S.DRIVE_SLOW_SHOOT, Distance.fromFeet(ringDrive), 0.5, 90, 0);
-            b.addDrive(S.DRIVE_SLOW_SHOOT,S.TURN_OFF_COLLECTOR,Distance.fromFeet(slowDrive),.1,90,0);
-            b.add(S.TURN_OFF_COLLECTOR, makeCollectorOffState(S.RETURN_TO_SHOOT));
-            b.addDrive(S.RETURN_TO_SHOOT,S.SET_VUCALC_2, Distance.fromFeet(ringDrive+slowDrive),0.5,270,0);
+            b.addDrive(S.DRIVE_BACKWARDS_TO_COLLECT, S.RETURN_TO_SHOOT, Distance.fromFeet(ringDrive), 0.4, 90, 0);
+            b.addDrive(S.RETURN_TO_SHOOT,S.TURN_OFF_COLLECTOR, Distance.fromFeet(ringDrive),0.7,270,0);
+            //--------------------------------------------------------------------------------------------------------------------------------
+
+
+
+            //4 rings collection
+            double bumpDrive = 0.4;
+            long ringPause = 500;
+            b.addDrive(S.BUMP_RING_STACK, S.TURN_ON_COLLECTOR_B, Distance.fromFeet(bumpDrive), 0.5, 90, 0);
+            b.add(S.TURN_ON_COLLECTOR_B, makeCollectorOnState(S.THREE_RING_COLLECTION_1));
+            b.addDrive(S.THREE_RING_COLLECTION_1,S.PAUSE_1,Distance.fromFeet(slowDrive),.1,90,0);
+            b.addWait(S.PAUSE_1, S.THREE_RING_COLLECTION_2, ringPause);
+            b.addDrive(S.THREE_RING_COLLECTION_2,S.PAUSE_2,Distance.fromFeet(slowDrive),.1,90,0);
+            b.addWait(S.PAUSE_2, S.THREE_RING_COLLECTION_3, ringPause);
+            b.addDrive(S.THREE_RING_COLLECTION_3,S.PAUSE_3,Distance.fromFeet(slowDrive),.1,90,0);
+            b.addWait(S.PAUSE_3, S.RETURN_FROM_FOUR_RINGS, ringPause);
+            b.addDrive(S.RETURN_FROM_FOUR_RINGS,S.TURN_OFF_COLLECTOR, Distance.fromFeet(bumpDrive + 3*slowDrive),0.7,270,0);
+
+
+            b.add(S.TURN_OFF_COLLECTOR, makeCollectorOffState(S.SET_VUCALC_2));
             b.add(S.SET_VUCALC_2, makeVuCalcState(S.ACTIVATE_TARGETS_2));
             b.add(S.ACTIVATE_TARGETS_2, makeTargetsActivateState(S.VUFORIA_LINEUP));
             b.addDrive(S.VUFORIA_LINEUP, StateMap.of(S.DEACTIVATE_TARGETS_2, vuforiaArrived, S.DEACTIVATE_TARGETS_2, EVEndConditions.timed(Time.fromSeconds(4))), xyrControl);
@@ -226,6 +265,10 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addGyroTurn(S.TURN_AIM_SHOOT_2, S.SHOOT_RINGS_2, -5);
             b.add(S.SHOOT_RINGS_2, new ShooterState(robotCfg, 150L, 500L, S.TURN_OFF_SHOOTER_2));
             b.add(S.TURN_OFF_SHOOTER_2, makeFlyWheelStopState(S.CHOOSE_WOBBLE_DESTINATION));
+
+
+
+
             //go drop off wobble goal
             b.add(S.CHOOSE_WOBBLE_DESTINATION, () -> {
                 if (ringNumbersResultReceiver.getValue() == RingPipeline.RING_NUMBERS.ring_1) {
@@ -619,7 +662,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         BLUE_VUFORIA_EXPLORE, BLUE_WAIT, BLUE_DRIVE_1C, BLUE_DRIVE_1B, BLUE_DRIVE_1, SET_VUCALC, WAIT_FOR_VUFORIA_INIT, ACTIVATE_TARGETS,
         DEACTIVATE_TARGETS, BLUE_SET_VUCALC, BLUE_TARGETS_ACTIVATE, BLUE_WAIT_FOR_VUFORIA_INIT, BLUE_DEACTIVATE_TARGETS, ELEVATE_SHOOTER, BLUE_START_FLYWHEEL,
         BLUE_WOBBLE_TURN, BLUE_WOBBLE_TURN_1, BLUE_WOBBLE_TURN_4, AFTER_PARK, PARK_0_A, PARK_1_A, PARK_4_A, BLUE_PARK_0_A, BLUE_PARK_1_A, BLUE_PARK_4_A, BLUE_PARK_4C,
-        SECOND_RING_COLLECTION, DRIVE_BACKWARDS_TO_COLLECT, TURN_ON_COLLECTOR, TURN_OFF_COLLECTOR, ACTIVATE_TARGETS_2, VUFORIA_LINEUP, RETURN_TO_SHOOT, SET_VUCALC_2, START_FLYWHEEL_2, DEACTIVATE_TARGETS_2, TURN_OFF_SHOOTER_2, SHOOT_RINGS_2, TURN_AIM_SHOOT_2, DRIVE_SLOW_SHOOT, OPENCV_INIT
+        SECOND_RING_COLLECTION, DRIVE_BACKWARDS_TO_COLLECT, TURN_ON_COLLECTOR, TURN_OFF_COLLECTOR, ACTIVATE_TARGETS_2, VUFORIA_LINEUP, RETURN_TO_SHOOT, SET_VUCALC_2, START_FLYWHEEL_2, DEACTIVATE_TARGETS_2, TURN_OFF_SHOOTER_2, SHOOT_RINGS_2, TURN_AIM_SHOOT_2, DRIVE_SLOW_SHOOT, THREE_RING_COLLECTION, BUMP_RING_STACK, TURN_ON_COLLECTOR_B, PAUSE_1, THREE_RING_COLLECTION_1, THREE_RING_COLLECTION_2, PAUSE_2, THREE_RING_COLLECTION_3, PAUSE_3, RETURN_FROM_FOUR_RINGS, OPENCV_INIT
     }
 
 
