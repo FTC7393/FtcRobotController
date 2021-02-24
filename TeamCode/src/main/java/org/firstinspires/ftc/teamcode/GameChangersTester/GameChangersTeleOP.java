@@ -194,22 +194,29 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         blinkinStateMachine.act();
 
 
-        if(matchTimer.getElapsedTime() >= 80000L && matchTimer.getElapsedTime() <= 85000) {
-            if(lastBlinkState != BlinkEvent.BLINKING_ORANGE){
+        if (matchTimer.getElapsedTime() >= 80000L && matchTimer.getElapsedTime() <= 85000) {
+            if (lastBlinkState != BlinkEvent.BLINKING_ORANGE) {
                 listener.requestNewBlinkPattern(BlinkEvent.BLINKING_ORANGE);
                 lastBlinkState = BlinkEvent.BLINKING_ORANGE;
             }
         } else {
-        if (robotCfg.getFlyWheelShooter().getVelocity() < FlyWheelShooter.targetFlywheelVelocity && lastBlinkState != BlinkEvent.RED) {
-            listener.requestNewBlinkPattern(BlinkEvent.RED);
-            lastBlinkState = BlinkEvent.RED;
-        } else if(robotCfg.getFlyWheelShooter().getVelocity() >= FlyWheelShooter.targetFlywheelVelocity) {
-            if (lastBlinkState != BlinkEvent.GREEN) {
-                listener.requestNewBlinkPattern(BlinkEvent.GREEN);
-                lastBlinkState = BlinkEvent.GREEN;
+            if (robotCfg.getFlyWheelShooter().getVelocity() >= FlyWheelShooter.targetFlywheelVelocity) {
+                if (lastBlinkState != BlinkEvent.GREEN) {
+                    listener.requestNewBlinkPattern(BlinkEvent.GREEN);
+                    lastBlinkState = BlinkEvent.GREEN;
+                }
+            } else if (robotCfg.getFlyWheelShooter().getVelocity() >= 500) {
+                if (lastBlinkState != BlinkEvent.RED) {
+                    listener.requestNewBlinkPattern(BlinkEvent.RED);
+                    lastBlinkState = BlinkEvent.RED;
+                }
+            } else {
+                if (lastBlinkState != BlinkEvent.NONE) {
+                    listener.requestNewBlinkPattern(BlinkEvent.NONE);
+                    lastBlinkState = BlinkEvent.NONE;
+                }
             }
         }
-    }
 
 //        telemetry.addData("potentiometer values", robotCfg.getPotentiometer().getValue());
         telemetry.addData("Motor Encoder Values", robotCfg.getFlyWheelShooter().getFlywheelEncoderValue());
@@ -295,7 +302,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             return null;
         };
 
-        State shootingState = new ShooterState(collectorShooterButton,robotCfg,150L,800L, S.IDLE);
+        State shootingState = new ShooterState(collectorShooterButton,robotCfg,75,300, S.IDLE);
 
         StateMachineBuilder b = new StateMachineBuilder(S.IDLE);
         b.add(S.IDLE, idleState);
