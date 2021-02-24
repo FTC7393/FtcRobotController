@@ -145,4 +145,8 @@ public class FlyWheelShooter {
 //        lastEnc = currEnc;
         flywheelMotor.update();
     }
+
+    public MotorEncEx getMotor() {
+        return flywheelMotor;
+    }
 }
