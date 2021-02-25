@@ -83,7 +83,7 @@ public class FlyWheelShooter {
     public double getVelocity() { return flywheelMotor.getVelocity();}
 
     public void stop() {
-        flywheelMotor.setPower(0);
+        flywheelMotor.setVelocity(0);
         currentTargetSpeed = 0;
         finalTargetSpeed = 0;
     }
