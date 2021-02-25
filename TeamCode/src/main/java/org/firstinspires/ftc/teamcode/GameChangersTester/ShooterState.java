@@ -11,6 +11,8 @@ public class ShooterState extends BasicAbstractState {
     private GameChangersRobotCfg robotCfg;
     private long initTime;
     private long firstPause;
+    private long retractTime;
+    private long secondPause = 5000L;
     private double targetSpeed;
     private int numCycles = 0;
     private final StateName nextState;
@@ -62,12 +64,17 @@ public class ShooterState extends BasicAbstractState {
             if (!released) {
                 released = true;
                 robotCfg.getPusher().goToPreset(ServoPresets.Pusher.RELEASE);
-            }
-            if (shooterMotor.getVelocity() >= targetSpeed) {
-                robotCfg.getPusher().goToPreset(ServoPresets.Pusher.PUSH);
-                released = false;
-                numCycles++;
-                initTime = System.currentTimeMillis();
+                retractTime = System.currentTimeMillis();
+
+            } else {
+                long timeSinceRetract = System.currentTimeMillis() - retractTime;
+
+                if (shooterMotor.getVelocity() >= targetSpeed && timeSinceRetract > secondPause) {
+                    robotCfg.getPusher().goToPreset(ServoPresets.Pusher.PUSH);
+                    released = false;
+                    numCycles++;
+                    initTime = System.currentTimeMillis();
+                }
             }
         }
         return false;
