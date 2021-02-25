@@ -38,6 +38,8 @@ import java.util.Map;
 //Find max speed of robot.
 public class GameChangersRobotCfg extends RobotCfg {
 
+    public static final double shooterTargetSpeed = 800;
+    public static final double shooterMaxSpeed = 880;
     //private final TwoMotors twoMotors;
     private final Collector collector;
     private final MecanumControl mecanumControl;
@@ -54,6 +56,7 @@ public class GameChangersRobotCfg extends RobotCfg {
 
     private final WebcamName webcam;
     private final RevBlinkinLedDriver blinkin;
+    private final double shootingSpeed=880;
 
     public AnalogSensor getPotentiometer() {
         return potentiometer;
@@ -101,7 +104,7 @@ public class GameChangersRobotCfg extends RobotCfg {
 
         //shooter
         MotorEncEx flyWheelmotor = Motors.withEncoder(hardwareMap.get(DcMotorEx.class, "flyWheelShooter"), false, false, stoppers);
-        flyWheelShooter = new FlyWheelShooter(flyWheelmotor, getElevation(), getPusher(),880,.1);
+        flyWheelShooter = new FlyWheelShooter(flyWheelmotor, getElevation(), getPusher(),shootingSpeed,.1);
         //camera
         webcam = hardwareMap.get(WebcamName.class, "Webcam");
 

@@ -73,7 +73,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private boolean parkClose;
     private boolean shootFourthRing;
     private double returnDrive;
-    private double shooterTargetSpeed = 860;
+
 
     public GameChangersAutonomous() {
         super();
@@ -210,7 +210,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
             b.addGyroTurn(S.TURN_AIM_SHOOT, S.WAIT_ELEVATION_STABILIZE, -5);
             b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 10L);
-            b.add(S.SHOOT_RINGS, new ShooterState( robotCfg,150L,robotCfg.getFlyWheelShooter().getMotor(), shooterTargetSpeed, S.TURN_OFF_SHOOTER));
+            b.add(S.SHOOT_RINGS, new ShooterState( robotCfg, GameChangersRobotCfg.shooterTargetSpeed, GameChangersRobotCfg.shooterMaxSpeed, S.TURN_OFF_SHOOTER));
             b.add(S.TURN_OFF_SHOOTER, makeFlyWheelStopState(S.SECOND_RING_COLLECTION));
             b.add(S.SECOND_RING_COLLECTION, () -> {
                 RingPipeline.RING_NUMBERS ringNumber = ringNumbersResultReceiver.getValue();
@@ -264,7 +264,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.START_FLYWHEEL_2,makeStartFlyWheelState(S.TURN_AIM_SHOOT_2, minVelocityValue, speedRepeatCount));
             b.addGyroTurn(S.TURN_AIM_SHOOT_2, S.SET_SHOOTER_SERVO, -5);
             b.addServo(S.SET_SHOOTER_SERVO, S.SHOOT_RINGS_2, robotCfg.getElevation().getName(), ServoPresets.Elevation.SHOOTING, true);
-            b.add(S.SHOOT_RINGS_2, new ShooterState(robotCfg, 150L, robotCfg.getFlyWheelShooter().getMotor(), shooterTargetSpeed, S.TURN_OFF_SHOOTER_2));
+            b.add(S.SHOOT_RINGS_2, new ShooterState(robotCfg, GameChangersRobotCfg.shooterTargetSpeed, GameChangersRobotCfg.shooterMaxSpeed, S.TURN_OFF_SHOOTER_2));
             b.add(S.TURN_OFF_SHOOTER_2, makeFlyWheelStopState(S.CHOOSE_WOBBLE_DESTINATION));
 
 
@@ -354,7 +354,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.BLUE_START_FLYWHEEL,makeStartFlyWheelState(S.BLUE_TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
             b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT, S.BLUE_WAIT_ELEVATION_STABILIZE, 0);
             b.addWait(S.BLUE_WAIT_ELEVATION_STABILIZE, S.BLUE_SHOOT_RINGS, 10L);
-            b.add(S.BLUE_SHOOT_RINGS, new ShooterState(robotCfg, 200L, robotCfg.getFlyWheelShooter().getMotor(), shooterTargetSpeed, S.BLUE_TURN_OFF_SHOOTER));
+            b.add(S.BLUE_SHOOT_RINGS, new ShooterState(robotCfg, GameChangersRobotCfg.shooterTargetSpeed, GameChangersRobotCfg.shooterMaxSpeed, S.BLUE_TURN_OFF_SHOOTER));
             b.add(S.BLUE_TURN_OFF_SHOOTER, makeFlyWheelStopState(S.BLUE_DEACTIVATE_TARGETS));
             b.add(S.BLUE_DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.BLUE_DETERMINE_RING_STACK));
             b.add(S.BLUE_DETERMINE_RING_STACK, () -> {
