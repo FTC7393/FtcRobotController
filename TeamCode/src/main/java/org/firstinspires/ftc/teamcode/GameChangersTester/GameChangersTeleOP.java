@@ -302,7 +302,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             return null;
         };
 
-        double targetSpeed = 860;
+        double targetSpeed = 800;
         State shootingState = new ShooterState(collectorShooterButton,robotCfg,75,robotCfg.getFlyWheelShooter().getMotor(), targetSpeed, S.IDLE);
 
         StateMachineBuilder b = new StateMachineBuilder(S.IDLE);
