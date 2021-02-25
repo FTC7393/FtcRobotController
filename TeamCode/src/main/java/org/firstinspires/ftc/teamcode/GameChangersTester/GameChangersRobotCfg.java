@@ -101,7 +101,7 @@ public class GameChangersRobotCfg extends RobotCfg {
 
         //shooter
         MotorEncEx flyWheelmotor = Motors.withEncoder(hardwareMap.get(DcMotorEx.class, "flyWheelShooter"), false, false, stoppers);
-        flyWheelShooter = new FlyWheelShooter(flyWheelmotor, getElevation(), getPusher(),860,.1);
+        flyWheelShooter = new FlyWheelShooter(flyWheelmotor, getElevation(), getPusher(),880,.1);
         //camera
         webcam = hardwareMap.get(WebcamName.class, "Webcam");
 
