@@ -238,8 +238,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
             //second collection attempt and then go on to shoot rings - one ring
             b.add(S.TURN_ON_COLLECTOR, makeCollectorOnState(S.DRIVE_BACKWARDS_TO_COLLECT));
-            b.addDrive(S.DRIVE_BACKWARDS_TO_COLLECT, S.RETURN_TO_SHOOT, Distance.fromFeet(ringDrive), 0.4, 110, 0);
-            b.addDrive(S.RETURN_TO_SHOOT,S.TURN_OFF_COLLECTOR, Distance.fromFeet(ringDrive),0.7,290,0);
+            b.addDrive(S.DRIVE_BACKWARDS_TO_COLLECT, S.RETURN_TO_SHOOT, Distance.fromFeet(ringDrive), 0.4, 100, 0);
+            b.addDrive(S.RETURN_TO_SHOOT,S.TURN_OFF_COLLECTOR, Distance.fromFeet(ringDrive),0.7,280,0);
             //--------------------------------------------------------------------------------------------------------------------------------
 
 
