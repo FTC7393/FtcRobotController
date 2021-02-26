@@ -235,7 +235,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                         }
                     }
                     else {
-                        return S.DRIVE_RING_0;
+                        if (ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
+                            return S.DRIVE_RING_1;
+                        } else {
+                            return S.DRIVE_RING_4;
+                        }
                     }
                 }
             });
