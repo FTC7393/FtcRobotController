@@ -72,7 +72,7 @@ public class PowerShotStateMachineFactory {
         if(teamColor == TeamColor.BLUE) {
             trackable = allTrackables.get(3);
             xDestIn = 0; //need to tweak
-            yDestIn = 5; //need to tweak
+            yDestIn = 17; //need to tweak
         } else {
             trackable = allTrackables.get(2);
             xDestIn = -1; //need to tweak
@@ -134,12 +134,29 @@ public class PowerShotStateMachineFactory {
         b.addDrive(S.VUFORIA_DRIVE, StateMap.of(S.VUFORIA_TARGETS_DEACTIVATE, vuforiaArrived, S.VUFORIA_FAIL_LIGHTS,
                 EVEndConditions.timed(Time.fromSeconds(5)), S.TIMEOUT_DEACTIVATE, driverHaltEC), xyrControl);
         b.add(S.VUFORIA_TARGETS_DEACTIVATE, makeTargetsDeactivateState(S.GET_GYRO_HEADING));
-        b.add(S.GET_GYRO_HEADING, makeGyroHeadingState(S.TEAMCOLOR_DECIDE));
-        b.addBranch(S.TEAMCOLOR_DECIDE, S.MECANUM_DRIVE, S.SET_SHOOTER_SERVO, teamColor == TeamColor.BLUE);
-        b.addDrive(S.MECANUM_DRIVE, S.SET_SHOOTER_SERVO, Distance.fromInches(4), 0.5, gyroHeadingAtPowershotTime+180, gyroHeadingAtPowershotTime);
+        b.add(S.GET_GYRO_HEADING, makeGyroHeadingState(S.SET_SHOOTER_SERVO));
+//        b.addDrive(S.MECANUM_DRIVE, S.SET_SHOOTER_SERVO, Distance.fromInches(4), 0.5, gyroHeadingAtPowershotTime+180, gyroHeadingAtPowershotTime);
         b.addServo(S.SET_SHOOTER_SERVO, S.START_FLYWHEEL, robotCfg.getElevation().getName(),
                 ServoPresets.Elevation.POWERSHOOTING, true);
-        b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.TURN_RIGHT));
+        b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.TEAMCOLOR_DECIDE));
+
+
+
+        b.addBranch(S.TEAMCOLOR_DECIDE, S.BLUE_TURN_RIGHT, S.TURN_RIGHT, teamColor == TeamColor.BLUE);
+
+
+        //blue branch
+        b.addGyroTurn(S.BLUE_TURN_RIGHT, S.BLUE_WAIT_FOR_FLYWHEEL, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 0), tolerance, 1, gyroECMap);
+        b.add(S.BLUE_WAIT_FOR_FLYWHEEL, makeFlywheelWaitState(S.BLUE_SHOOT_RIGHT, S.TIMEOUT_DEACTIVATE, 2500L, 3, 1020));
+        b.add(S.BLUE_SHOOT_RIGHT, makeShootRingState(S.BLUE_TURN_MIDDLE, 200, S.TIMEOUT_DEACTIVATE));
+        b.addGyroTurn(S.BLUE_TURN_MIDDLE, S.BLUE_SHOOT_MIDDLE, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 4.5), tolerance, 1, gyroECMap);
+        b.add(S.BLUE_SHOOT_MIDDLE, makeShootRingState(S.BLUE_TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE));
+        b.addGyroTurn(S.BLUE_TURN_LEFT, S.BLUE_SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 9), tolerance, 1, gyroECMap);
+        b.add(S.BLUE_SHOOT_LEFT, makeShootRingState(S.STOP_FLYWHEEL, 200, S.TIMEOUT_DEACTIVATE));
+
+
+
+        //red branch
         b.addGyroTurn(S.TURN_RIGHT, S.WAIT_FOR_FLYWHEEL, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 0), tolerance, 1, gyroECMap);
         b.add(S.WAIT_FOR_FLYWHEEL, makeFlywheelWaitState(S.SHOOT_RIGHT, S.TIMEOUT_DEACTIVATE, 2500L, 3, 1020));
         b.add(S.SHOOT_RIGHT, makeShootRingState(S.TURN_MIDDLE, 200, S.TIMEOUT_DEACTIVATE));
@@ -147,6 +164,8 @@ public class PowerShotStateMachineFactory {
         b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE));
         b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 9), tolerance, 1, gyroECMap);
         b.add(S.SHOOT_LEFT, makeShootRingState(S.STOP_FLYWHEEL, 200, S.TIMEOUT_DEACTIVATE));
+
+        //common
         b.add(S.STOP_FLYWHEEL, makeStopFlyWheelState(S.BUTTON_RESET));
         b.add(S.BUTTON_RESET, makeButtonResetState(S.IDLE));
 
@@ -374,7 +393,7 @@ public class PowerShotStateMachineFactory {
     public enum S implements StateName{
         VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO,
         TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL,
-        SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, SHOOT_RIGHT, STOP_FLYWHEEL, BUTTON_RESET, TIMEOUT_BUTTON_RESET, TEAMCOLOR_DECIDE, MECANUM_DRIVE, TURN_MIDDLE, VUFORIA_FAIL_LIGHTS, IDLE
+        SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, SHOOT_RIGHT, STOP_FLYWHEEL, BUTTON_RESET, TIMEOUT_BUTTON_RESET, TEAMCOLOR_DECIDE, MECANUM_DRIVE, TURN_MIDDLE, VUFORIA_FAIL_LIGHTS, BLUE_TURN_RIGHT, BLUE_SHOOT_LEFT, BLUE_TURN_LEFT, BLUE_SHOOT_MIDDLE, BLUE_TURN_MIDDLE, BLUE_SHOOT_RIGHT, BLUE_WAIT_FOR_FLYWHEEL, IDLE
     }
 
 }
