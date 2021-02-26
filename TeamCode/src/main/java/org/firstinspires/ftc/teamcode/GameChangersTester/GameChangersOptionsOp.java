@@ -24,8 +24,10 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
         public static final StartingPosition startingPositionDefault = StartingPosition.LEFT;
         public static final TeamColor teamColorDefault = TeamColor.BLUE;
         public static final String initialAutoDelayTag = "initialAutoDelay";
-        public static final String collectMoreRingsTag = true;
-        public static final String parkCloseTag = false;
+        public static final String collectMoreRingsTag = "doCollectMoreRings";
+        public static final String parkCloseTag = "doParkClose";
+        public static final boolean collectMoreRingsDefault = true;
+        public static final boolean parkCloseDefault = false;
         private int index = 0;
         private Opts[] values;
         public static final double initialAutoDelayDefault = 0;
@@ -149,6 +151,11 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
             telemetry.addData(initialAutoDelayTag, optionsFile.get(Opts.INITIAL_AUTO_DELAY.s, initialAutoDelayDefault));
 
             telemetry.addData(startingPositionTag, optionsFile.get(Opts.START_POSITION.s, startingPositionDefault));
+
+            telemetry.addData(startingPositionTag, optionsFile.get(Opts.COLLECT_MORE_RINGS.s, collectMoreRingsDefault));
+
+            telemetry.addData(startingPositionTag, optionsFile.get(Opts.PARK_CLOSE.s, parkCloseDefault));
+
 
         }
 
