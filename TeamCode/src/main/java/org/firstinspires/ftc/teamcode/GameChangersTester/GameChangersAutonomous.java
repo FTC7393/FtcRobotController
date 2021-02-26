@@ -299,9 +299,13 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addServo(S.DROP_WOBBLE_GOAL_0, S.MOVE_ARM_UP_0, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED,servoReleaseWaitTime, true);
             b.add(S.MOVE_ARM_UP_0, () -> {
                 robotCfg.getWobbleGoalArm().moveArmUp();
-                return S.PARK_0;
+                if(parkClose){
+                    return S.PARK_0;
+                }else{
+                    return S.PARK_0_A;
+                }
             });
-//            b.addDrive(S.PARK_0_A, S.PARK_0, Distance.fromFeet(1), 1, 0, 0);
+            b.addDrive(S.PARK_0_A, S.STOP, Distance.fromFeet(.8), 1, 3, 0);
             b.addDrive(S.PARK_0, S.STOP, Distance.fromFeet(1.8), 1, 3, 0);
             //-------------------------------------------------------------------------------------------------------------------------------
             //1 ring
@@ -315,7 +319,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addServo(S.DROP_WOBBLE_GOAL_1, S.MOVE_ARM_UP_1, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED,servoReleaseWaitTime, true);
             b.add(S.MOVE_ARM_UP_1, () -> {
                 robotCfg.getWobbleGoalArm().moveArmUp();
-                return S.PARK_1_A;
+                if(parkClose){
+                    return S.PARK_1;
+                }else{
+                    return S.PARK_1_A;
+                }
             });
             b.addDrive(S.PARK_1_A, S.PARK_1, Distance.fromFeet(1), 1, 0, 0);
             b.addDrive(S.PARK_1, S.STOP, Distance.fromFeet(0.8), 1, 65, 0);
@@ -331,8 +339,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addServo(S.DROP_WOBBLE_GOAL_4, S.MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, servoReleaseWaitTime,true); // need to be condensed using new method
             b.add(S.MOVE_ARM_UP_4, () -> {
                 robotCfg.getWobbleGoalArm().moveArmUp();
-                return S.PARK_4_A;
-            });
+                if(parkClose){
+                    return S.PARK_4;
+                }else{
+                    return S.PARK_4_A;
+                }            });
             b.addDrive(S.PARK_4_A, S.PARK_4, Distance.fromFeet(1), 1, 5, 0);
             b.addDrive(S.PARK_4, S.STOP, Distance.fromFeet(1.35), 1, 55, 0);
 
