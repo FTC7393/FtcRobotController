@@ -304,9 +304,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.MOVE_ARM_UP_0, () -> {
                 robotCfg.getWobbleGoalArm().moveArmUp();
                 if(parkClose){
-                    return S.PARK_0;
-                }else{
                     return S.PARK_0_A;
+                }else{
+                    return S.PARK_0;
                 }
             });
             b.addDrive(S.PARK_0_A, S.STOP, Distance.fromFeet(.8), 1, 3, 0);
