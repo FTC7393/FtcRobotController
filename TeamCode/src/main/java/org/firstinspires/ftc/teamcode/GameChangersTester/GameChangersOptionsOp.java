@@ -157,9 +157,9 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
 
             telemetry.addData(startingPositionTag, optionsFile.get(Opts.START_POSITION.s, startingPositionDefault));
 
-            telemetry.addData(startingPositionTag, optionsFile.get(Opts.COLLECT_MORE_RINGS.s, collectMoreRingsDefault));
+            telemetry.addData(collectMoreRingsTag, optionsFile.get(Opts.COLLECT_MORE_RINGS.s, collectMoreRingsDefault));
 
-            telemetry.addData(startingPositionTag, optionsFile.get(Opts.PARK_CLOSE.s, parkCloseDefault));
+            telemetry.addData(parkCloseTag, optionsFile.get(Opts.PARK_CLOSE.s, parkCloseDefault));
 
 
         }
