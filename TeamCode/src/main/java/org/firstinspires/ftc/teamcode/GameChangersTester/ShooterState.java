@@ -18,7 +18,7 @@ public class ShooterState extends BasicAbstractState {
     private final StateName nextState;
     private MotorEncEx shooterMotor;
     private boolean released;
-    private boolean firstPush;
+    private boolean firstPushStarted;
     private final double maxMotorSpeed;
 
 
@@ -46,7 +46,7 @@ public class ShooterState extends BasicAbstractState {
     public void init() {
         //initTime = System.currentTimeMillis();
         //robotCfg.getPusher().goToPreset(ServoPresets.Pusher.PUSH);
-        firstPush=false;
+        firstPushStarted =false;
         numCycles = 0;
         released = false;
     }
@@ -65,11 +65,11 @@ public class ShooterState extends BasicAbstractState {
                 return true;
             }
         }
-        if(!firstPush){
-            if(shooterMotor.getVelocity() < maxMotorSpeed){
+        if(!firstPushStarted){
+            if(shooterMotor.getVelocity() < maxMotorSpeed || GameChangersTeleOP.powershotMode){
                 initTime = System.currentTimeMillis();
                 robotCfg.getPusher().goToPreset(ServoPresets.Pusher.PUSH);
-                firstPush=true;
+                firstPushStarted =true;
             }
         }else {
             long timeSinceInit = System.currentTimeMillis() - initTime;

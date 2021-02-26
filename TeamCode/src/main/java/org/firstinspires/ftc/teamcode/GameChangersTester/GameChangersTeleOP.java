@@ -57,6 +57,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     private BlinkEvent lastBlinkState = BlinkEvent.NONE;
     private Long timeVuforiaFailed;
     public static boolean blinkVuforiaFail=false;
+    public static boolean powershotMode=false;
 
     public GameChangersTeleOP() {
 
@@ -266,6 +267,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
 
         if (collectorIntakeButton.justPressed()) {
+            powershotMode=false;
             if (collectorIsSucking) {
                 robotCfg.getCollector().stop();
                 robotCfg.getElevation().goToPreset(ServoPresets.Elevation.SHOOTING);
@@ -283,6 +285,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             robotCfg.getElevation().goToPreset(ServoPresets.Elevation.POWERSHOOTING);
             robotCfg.getFlyWheelShooter().turnOnFlywheel();
             collectorIsSucking = false;
+            powershotMode=true;
 
         }
 
@@ -291,6 +294,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
             robotCfg.getFlyWheelShooter().stop();
             collectorIsSucking = false;
+            powershotMode=false;
 
         }
 

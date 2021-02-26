@@ -146,7 +146,7 @@ public class PowerShotStateMachineFactory {
 
         //blue branch
         b.addDrive(S.MECANUM_DRIVE, S.BLUE_TURN_LEFT, Distance.fromInches(4), 0.3, gyroHeadingAtPowershotTime+180, gyroHeadingAtPowershotTime);
-        b.addGyroTurn(S.BLUE_TURN_LEFT, S.BLUE_WAIT_FOR_FLYWHEEL, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 3), tolerance, 0.7, gyroECMap);
+        b.addGyroTurn(S.BLUE_TURN_LEFT, S.BLUE_WAIT_FOR_FLYWHEEL, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 2.7), tolerance, 0.7, gyroECMap);
         b.add(S.BLUE_WAIT_FOR_FLYWHEEL, makeFlywheelWaitState(S.BLUE_SHOOT_LEFT, S.TIMEOUT_DEACTIVATE, 2500L, 3, 1020));
         b.add(S.BLUE_SHOOT_LEFT, makeShootRingState(S.BLUE_TURN_MIDDLE, 200, S.TIMEOUT_DEACTIVATE));
         b.addGyroTurn(S.BLUE_TURN_MIDDLE, S.BLUE_SHOOT_MIDDLE, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime -8), tolerance, 0.7, gyroECMap);
@@ -365,6 +365,7 @@ public class PowerShotStateMachineFactory {
 
     private State makeTargetsDeactivateState(final StateName nextState) {
         return () -> {
+            GameChangersTeleOP.powershotMode=true;
             targetsUltimateGoal.deactivate();
             return nextState;
         };
@@ -372,6 +373,7 @@ public class PowerShotStateMachineFactory {
 
     private State makeStartFlyWheelState(final StateName nextState) {
         return () -> {
+            GameChangersTeleOP.powershotMode=true;
             robotCfg.getFlyWheelShooter().turnOnFlywheel();
             return nextState;
         };
