@@ -27,6 +27,8 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
         public static final String collectMoreRingsTag = "doCollectMoreRings";
         public static final String parkCloseTag = "doParkClose";
         public static final boolean collectMoreRingsDefault = true;
+    public static final String extraWobbleGoalTag = "doParkClose";
+    public static final boolean extraWobbleGoalDefault = true;
         public static final boolean parkCloseDefault = false;
         private int index = 0;
         private Opts[] values;
@@ -131,6 +133,14 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
                     saveOptionsFile();
                 }
             }
+            if (driver1.right_bumper.justPressed() || driver1.left_bumper.justPressed()) {
+                if (values[index] == Opts.PARK_CLOSE) {
+                    boolean extraWobbleGoal = optionsFile.get(Opts.PARK_CLOSE.s, extraWobbleGoalDefault);
+                    extraWobbleGoal = !extraWobbleGoal;
+                    optionsFile.set(Opts.EXTRA_WOBBLE_GOAL.s, extraWobbleGoal);
+                    saveOptionsFile();
+                }
+            }
 
 //        if(driver1.right_bumper.justPressed()) {
 //            if (values[index] == Opts.WAIT_TIME) {
@@ -161,6 +171,8 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
 
             telemetry.addData(parkCloseTag, optionsFile.get(Opts.PARK_CLOSE.s, parkCloseDefault));
 
+            telemetry.addData(extraWobbleGoalTag, optionsFile.get(Opts.EXTRA_WOBBLE_GOAL.s, extraWobbleGoalDefault));
+
 
         }
 
@@ -179,7 +191,7 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
 
 
     public enum Opts {
-            TEAM_COLOR(teamColorTag), INITIAL_AUTO_DELAY(initialAutoDelayTag), START_POSITION(startingPositionTag), COLLECT_MORE_RINGS(collectMoreRingsTag),
+            TEAM_COLOR(teamColorTag), INITIAL_AUTO_DELAY(initialAutoDelayTag), START_POSITION(startingPositionTag), COLLECT_MORE_RINGS(collectMoreRingsTag), EXTRA_WOBBLE_GOAL(extraWobbleGoalTag),
         PARK_CLOSE(parkCloseTag);
 
             //        public boolean b;

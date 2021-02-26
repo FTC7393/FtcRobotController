@@ -55,6 +55,8 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
     private StateMachine blinkinStateMachine;
     private BlinkEventListener listener;
     private BlinkEvent lastBlinkState = BlinkEvent.NONE;
+    private Long timeVuforiaFailed;
+    public static boolean blinkVuforiaFail=false;
 
     public GameChangersTeleOP() {
 
@@ -141,10 +143,17 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                     boolean isRunning = false;
                     @Override
                     public boolean doContinue() {
-                        if(driver1.a.justPressed()) {
-                            isRunning = !isRunning;
-                        }
-                        return isRunning;
+//                        if(driver1.a.justPressed()) {
+//                            isRunning = !isRunning;
+//                        }
+
+//                        if(driver1.a.isPressed()){
+//                            isRunning = true;
+//                        }else{
+//                            isRunning = false;
+//                        }
+//                        return isRunning;
+                        return driver1.a.isPressed();
                     }
 
                     @Override
@@ -152,7 +161,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                         isRunning = false;
                     }
                 };
-                factory = new PowerShotStateMachineFactory(robotCfg, teamColor, Angle.fromDegrees(0.2),
+                factory = new PowerShotStateMachineFactory(robotCfg, teamColor,
                         robotCfg.getGyro(), 0.6, 0.6, robotCfg.getServos(), robotCfg.getMecanumControl(),
                         button, targetsUltimateGoal, allTrackables, driver1);
                 autoPowerShotSM = factory.create();
@@ -200,20 +209,36 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                 lastBlinkState = BlinkEvent.BLINKING_ORANGE;
             }
         } else {
-            if (robotCfg.getFlyWheelShooter().getVelocity() >= FlyWheelShooter.targetFlywheelVelocity) {
-                if (lastBlinkState != BlinkEvent.GREEN) {
-                    listener.requestNewBlinkPattern(BlinkEvent.GREEN);
-                    lastBlinkState = BlinkEvent.GREEN;
-                }
-            } else if (robotCfg.getFlyWheelShooter().getVelocity() >= 500) {
-                if (lastBlinkState != BlinkEvent.RED) {
-                    listener.requestNewBlinkPattern(BlinkEvent.RED);
-                    lastBlinkState = BlinkEvent.RED;
-                }
-            } else {
-                if (lastBlinkState != BlinkEvent.NONE) {
+            if(blinkVuforiaFail){
+//                if (lastBlinkState != BlinkEvent.RED_AND_PURPLE) {
+                    listener.requestNewBlinkPattern(BlinkEvent.RED_AND_PURPLE);
+                    lastBlinkState = BlinkEvent.RED_AND_PURPLE;
+                    timeVuforiaFailed = System.currentTimeMillis();
+                    blinkVuforiaFail=false;
+//                }
+            } else if(timeVuforiaFailed!=null){
+                long timeSinceVuforiaFailed = System.currentTimeMillis() - timeVuforiaFailed;
+                if(timeSinceVuforiaFailed>2000L){
+                    timeVuforiaFailed=null;
                     listener.requestNewBlinkPattern(BlinkEvent.NONE);
                     lastBlinkState = BlinkEvent.NONE;
+                }
+            }else {
+                if (robotCfg.getFlyWheelShooter().getVelocity() >= FlyWheelShooter.targetFlywheelVelocity) {
+                    if (lastBlinkState != BlinkEvent.GREEN) {
+                        listener.requestNewBlinkPattern(BlinkEvent.GREEN);
+                        lastBlinkState = BlinkEvent.GREEN;
+                    }
+                } else if (robotCfg.getFlyWheelShooter().getVelocity() >= 500) {
+                    if (lastBlinkState != BlinkEvent.RED) {
+                        listener.requestNewBlinkPattern(BlinkEvent.RED);
+                        lastBlinkState = BlinkEvent.RED;
+                    }
+                } else {
+                    if (lastBlinkState != BlinkEvent.NONE) {
+                        listener.requestNewBlinkPattern(BlinkEvent.NONE);
+                        lastBlinkState = BlinkEvent.NONE;
+                    }
                 }
             }
         }
@@ -273,7 +298,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             robotCfg.getWobbleGoalArm().moveArmMoreDown();
             wobbleGoalGrabberIsUp = false;
         }
-        if (driver1.dpad_down.justPressed() && collectorIsSucking) {
+        if (driver1.dpad_down.isPressed() && collectorIsSucking) {
             robotCfg.getCollector().expel();
         }
         if (driver1.dpad_down.justReleased() && collectorIsSucking) {
@@ -324,7 +349,9 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
         b.addTwoColors(BlinkEvent.RED_AND_BLUE, RevBlinkinLedDriver.BlinkinPattern.RED, 300L,
                 RevBlinkinLedDriver.BlinkinPattern.BLUE, 300L);
         b.addOnAndOff(BlinkEvent.BLINKING_GREEN, RevBlinkinLedDriver.BlinkinPattern.GREEN, 500L);
-        b.addOnAndOff(BlinkEvent.BLINKING_ORANGE, RevBlinkinLedDriver.BlinkinPattern.ORANGE, 100L);
+        b.addOnAndOff(BlinkEvent.BLINKING_ORANGE, RevBlinkinLedDriver.BlinkinPattern.ORANGE, 200L);
+        b.addTwoColors(BlinkEvent.RED_AND_PURPLE, RevBlinkinLedDriver.BlinkinPattern.RED, 200L,
+                RevBlinkinLedDriver.BlinkinPattern.VIOLET, 200L);
         return b.build();
     }
 

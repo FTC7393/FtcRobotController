@@ -51,13 +51,13 @@ public class PowerShotStateMachineFactory {
     private double yDestIn;
     private double gyroHeadingAtPowershotTime;
 
-    public PowerShotStateMachineFactory(GameChangersRobotCfg robotCfg, TeamColor teamColor, Angle tolerance, Gyro gyro, double gyroGain, double maxAngularSpeed,
+    public PowerShotStateMachineFactory(GameChangersRobotCfg robotCfg, TeamColor teamColor, Gyro gyro, double gyroGain, double maxAngularSpeed,
                                         Servos servos, MecanumControl mecanumControl, final Continuable button,
                                         VuforiaTrackables targetsUltimateGoal, List<VuforiaTrackable> allTrackables, GamepadManager driver1) {
         this.robotCfg = robotCfg;
 
         this.teamColor = teamColor;
-        this.tolerance = tolerance;
+        this.tolerance = Angle.fromDegrees(.4);
         this.gyro = gyro;
         this.gyroGain = gyroGain;
         this.maxAngularSpeed = maxAngularSpeed;
@@ -76,11 +76,11 @@ public class PowerShotStateMachineFactory {
         } else {
             trackable = allTrackables.get(2);
             xDestIn = -3; //need to tweak
-            yDestIn = -22; //need to tweak
+            yDestIn = -19; //need to tweak
         }
 
         double transGain = 0.03;
-        double transDeadZone = 0.3;
+        double transDeadZone = 0.6;
         double transMinPower = .15;
         double transMaxPower = 1.0;
         double upperGainDistanceTreshold = 12;
@@ -114,7 +114,7 @@ public class PowerShotStateMachineFactory {
         StateMap gyroECMap = StateMap.of(S.TIMEOUT_DEACTIVATE, driverHaltEC);
 
 
-        StateMap vSeekSM = StateMap.of(S.VUFORIA_DRIVE, vuforiaSeek, S.TIMEOUT_DEACTIVATE, EndConditions.timed(3000), S.TIMEOUT_DEACTIVATE, driverHaltEC);
+        StateMap vSeekSM = StateMap.of(S.VUFORIA_DRIVE, vuforiaSeek, S.VUFORIA_FAIL_LIGHTS, EndConditions.timed(3000), S.TIMEOUT_DEACTIVATE, driverHaltEC);
 
         AbstractState vuforiaSeekState = new AbstractState(vSeekSM) {
             @Override public void init() {
@@ -131,7 +131,7 @@ public class PowerShotStateMachineFactory {
         b.add(S.VUFORIA_SEEK, vuforiaSeekState);
         EndCondition vuforiaArrived = createXYREndCondition();
         // add other pairs of state name end conditions
-        b.addDrive(S.VUFORIA_DRIVE, StateMap.of(S.VUFORIA_TARGETS_DEACTIVATE, vuforiaArrived, S.TIMEOUT_DEACTIVATE,
+        b.addDrive(S.VUFORIA_DRIVE, StateMap.of(S.VUFORIA_TARGETS_DEACTIVATE, vuforiaArrived, S.VUFORIA_FAIL_LIGHTS,
                 EVEndConditions.timed(Time.fromSeconds(5)), S.TIMEOUT_DEACTIVATE, driverHaltEC), xyrControl);
         b.add(S.VUFORIA_TARGETS_DEACTIVATE, makeTargetsDeactivateState(S.GET_GYRO_HEADING));
         b.add(S.GET_GYRO_HEADING, makeGyroHeadingState(S.TEAMCOLOR_DECIDE));
@@ -139,7 +139,8 @@ public class PowerShotStateMachineFactory {
         b.addDrive(S.MECANUM_DRIVE, S.SET_SHOOTER_SERVO, Distance.fromInches(4), 0.5, gyroHeadingAtPowershotTime+180, gyroHeadingAtPowershotTime);
         b.addServo(S.SET_SHOOTER_SERVO, S.START_FLYWHEEL, robotCfg.getElevation().getName(),
                 ServoPresets.Elevation.POWERSHOOTING, true);
-        b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.WAIT_FOR_FLYWHEEL));
+        b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.TURN_MIDDLE));
+        b.addGyroTurn(S.TURN_MIDDLE, S.WAIT_FOR_FLYWHEEL, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 0), tolerance, 1, gyroECMap);
         b.add(S.WAIT_FOR_FLYWHEEL, makeFlywheelWaitState(S.SHOOT_MIDDLE, S.TIMEOUT_DEACTIVATE, 2500L, 3, 1020));
         b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE));
         b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 4), tolerance, 1, gyroECMap);
@@ -150,16 +151,24 @@ public class PowerShotStateMachineFactory {
         b.add(S.BUTTON_RESET, makeButtonResetState(S.IDLE));
 
 
-
+//vuforia never locked, cue the disco
+        b.add(S.VUFORIA_FAIL_LIGHTS, createBlinkState(S.TIMEOUT_DEACTIVATE));
 
         //timeout branch - deactivate targets, prep shooter for driver
         b.add(S.TIMEOUT_DEACTIVATE, makeTargetsDeactivateState(S.TIMEOUT_SET_SHOOTER_SERVO));
-        b.addServo(S.TIMEOUT_SET_SHOOTER_SERVO, S.TIMEOUT_START_FLYWHEEL, robotCfg.getElevation().getName(),
+        b.addServo(S.TIMEOUT_SET_SHOOTER_SERVO, S.BUTTON_RESET, robotCfg.getElevation().getName(),
                 ServoPresets.Elevation.POWERSHOOTING, true);
-        b.add(S.TIMEOUT_START_FLYWHEEL, makeStartFlyWheelState(S.BUTTON_RESET));
+//        b.add(S.TIMEOUT_START_FLYWHEEL, makeStartFlyWheelState(S.BUTTON_RESET));
         b.add(S.BUTTON_RESET, makeButtonResetState(S.IDLE));
         //TODO: make sure vuforia targets are deactivated
         return b.build();
+    }
+
+    private State createBlinkState(StateName nextState) {
+        return () -> {
+            GameChangersTeleOP.blinkVuforiaFail=true;
+            return nextState;
+        };
     }
 
     private State makeFlywheelWaitState(final S continueState, S cancelState, long waitTime, int speedRepeatCount, double minVelocityValue) {
@@ -365,7 +374,7 @@ public class PowerShotStateMachineFactory {
     public enum S implements StateName{
         VUFORIA_SEEK, VUFORIA_TARGETS_ACTIVATE, VUFORIA_DRIVE, VUFORIA_TARGETS_DEACTIVATE, START_FLYWHEEL, SET_CAMERA_SERVO,
         TIMEOUT_DEACTIVATE, SET_SHOOTER_SERVO, TIMEOUT_SET_SHOOTER_SERVO, TIMEOUT_START_FLYWHEEL, WAIT_FOR_FLYWHEEL,
-        SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, SHOOT_RIGHT, STOP_FLYWHEEL, BUTTON_RESET, TIMEOUT_BUTTON_RESET, TEAMCOLOR_DECIDE, MECANUM_DRIVE, IDLE
+        SHOOT_MIDDLE, SHOOT_LEFT, TURN_LEFT, GET_GYRO_HEADING, TURN_RIGHT, SHOOT_RIGHT, STOP_FLYWHEEL, BUTTON_RESET, TIMEOUT_BUTTON_RESET, TEAMCOLOR_DECIDE, MECANUM_DRIVE, TURN_MIDDLE, VUFORIA_FAIL_LIGHTS, IDLE
     }
 
 }
