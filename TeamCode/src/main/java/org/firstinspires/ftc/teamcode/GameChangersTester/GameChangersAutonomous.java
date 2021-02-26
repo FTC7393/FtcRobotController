@@ -220,17 +220,22 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 if (ringNumber == RingPipeline.RING_NUMBERS.ring_0) {
                     return S.DRIVE_RING_0;
                 } else {
-                    if(shootExtraRings) {
-                        if(ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
-                            returnDrive = ringDrive + slowDrive;
-                            return S.TURN_ON_COLLECTOR;
+                    if (collectMoreRings == true) {
+                        if (shootExtraRings) {
+                            if (ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
+                                returnDrive = ringDrive + slowDrive;
+                                return S.TURN_ON_COLLECTOR;
+                            }
+                            return S.BUMP_RING_STACK;
                         }
-                        return S.BUMP_RING_STACK;
+                        if (ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
+                            return S.DRIVE_RING_1;
+                        } else {
+                            return S.DRIVE_RING_4;
+                        }
                     }
-                    if(ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
-                        return S.DRIVE_RING_1;
-                    } else {
-                        return S.DRIVE_RING_4;
+                    else {
+                        return S.DRIVE_RING_0;
                     }
                 }
             });
