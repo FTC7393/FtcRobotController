@@ -27,8 +27,8 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
         public static final String collectMoreRingsTag = "doCollectMoreRings";
         public static final String parkCloseTag = "doParkClose";
         public static final boolean collectMoreRingsDefault = true;
-    public static final String extraWobbleGoalTag = "doParkClose";
-    public static final boolean extraWobbleGoalDefault = true;
+    public static final String extraWobbleGoalTag = "extraWobbleGoal";
+    public static final boolean extraWobbleGoalDefault = false;
         public static final boolean parkCloseDefault = false;
         private int index = 0;
         private Opts[] values;

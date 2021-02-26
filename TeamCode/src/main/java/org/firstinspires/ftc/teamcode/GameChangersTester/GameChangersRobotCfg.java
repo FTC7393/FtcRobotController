@@ -56,7 +56,7 @@ public class GameChangersRobotCfg extends RobotCfg {
 
     private final WebcamName webcam;
     private final RevBlinkinLedDriver blinkin;
-    private final double shootingSpeed=880;
+    private final double shootingSpeed=860;
 
     public AnalogSensor getPotentiometer() {
         return potentiometer;

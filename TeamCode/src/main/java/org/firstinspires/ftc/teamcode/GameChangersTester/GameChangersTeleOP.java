@@ -273,7 +273,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
             } else {
                 robotCfg.getCollector().ingest();
                 robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
-                robotCfg.getFlyWheelShooter().stop();
+//                robotCfg.getFlyWheelShooter().stop();
             }
             collectorIsSucking = !collectorIsSucking;
         }

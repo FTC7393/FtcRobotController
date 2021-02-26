@@ -83,7 +83,7 @@ public class ShooterState extends BasicAbstractState {
                 } else {
                     long timeSinceRetract = System.currentTimeMillis() - retractTime;
 
-                    if (shooterMotor.getVelocity() >= targetSpeed && timeSinceRetract > secondPause) {
+                    if (shooterMotor.getVelocity() >= targetSpeed && timeSinceRetract > secondPause ) {
                         robotCfg.getPusher().goToPreset(ServoPresets.Pusher.PUSH);
                         released = false;
                         numCycles++;
