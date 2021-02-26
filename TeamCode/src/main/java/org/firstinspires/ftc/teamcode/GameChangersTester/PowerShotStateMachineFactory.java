@@ -145,13 +145,13 @@ public class PowerShotStateMachineFactory {
 
 
         //blue branch
-        b.addDrive(S.MECANUM_DRIVE, S.BLUE_TURN_LEFT, Distance.fromInches(4), 0.5, gyroHeadingAtPowershotTime+180, gyroHeadingAtPowershotTime);
-        b.addGyroTurn(S.BLUE_TURN_LEFT, S.BLUE_WAIT_FOR_FLYWHEEL, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 4.5), tolerance, 1, gyroECMap);
+        b.addDrive(S.MECANUM_DRIVE, S.BLUE_TURN_LEFT, Distance.fromInches(4), 0.3, gyroHeadingAtPowershotTime+180, gyroHeadingAtPowershotTime);
+        b.addGyroTurn(S.BLUE_TURN_LEFT, S.BLUE_WAIT_FOR_FLYWHEEL, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 3), tolerance, 0.7, gyroECMap);
         b.add(S.BLUE_WAIT_FOR_FLYWHEEL, makeFlywheelWaitState(S.BLUE_SHOOT_LEFT, S.TIMEOUT_DEACTIVATE, 2500L, 3, 1020));
         b.add(S.BLUE_SHOOT_LEFT, makeShootRingState(S.BLUE_TURN_MIDDLE, 200, S.TIMEOUT_DEACTIVATE));
-        b.addGyroTurn(S.BLUE_TURN_MIDDLE, S.BLUE_SHOOT_MIDDLE, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime -9), tolerance, 1, gyroECMap);
+        b.addGyroTurn(S.BLUE_TURN_MIDDLE, S.BLUE_SHOOT_MIDDLE, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime -8), tolerance, 0.7, gyroECMap);
         b.add(S.BLUE_SHOOT_MIDDLE, makeShootRingState(S.BLUE_TURN_RIGHT, 200, S.TIMEOUT_DEACTIVATE));
-        b.addGyroTurn(S.BLUE_TURN_RIGHT, S.BLUE_SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 13.5), tolerance, 1, gyroECMap);
+        b.addGyroTurn(S.BLUE_TURN_RIGHT, S.BLUE_SHOOT_RIGHT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime - 12), tolerance, 0.7, gyroECMap);
         b.add(S.BLUE_SHOOT_RIGHT, makeShootRingState(S.STOP_FLYWHEEL, 200, S.TIMEOUT_DEACTIVATE));
 
 
