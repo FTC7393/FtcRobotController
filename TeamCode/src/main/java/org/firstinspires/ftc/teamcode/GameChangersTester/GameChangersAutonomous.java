@@ -465,8 +465,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.BLUE_MOVE_ARM_DOWN_0, makeArmDownState(S.BLUE_WAIT_FOR_DROP_0));
             b.addWait(S.BLUE_WAIT_FOR_DROP_0, S.BLUE_DROP_WOBBLE_GOAL_0, wobbleGoalWaitTime);
             b.addServo(S.BLUE_DROP_WOBBLE_GOAL_0, S.BLUE_MOVE_ARM_UP_0, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, servoReleaseWaitTime,true);
-            b.add(S.BLUE_MOVE_ARM_UP_0, makeArmUpState(S.BLUE_PARK_0));
-//            b.addDrive(S.BLUE_PARK_0_A, S.BLUE_PARK_0, Distance.fromFeet(1), 1, 180, 180);
+            b.add(S.BLUE_MOVE_ARM_UP_0, makeArmUpState(parkClose ? S.BLUE_PARK_0_A : S.BLUE_PARK_0));
+            b.addDrive(S.BLUE_PARK_0_A, S.BLUE_STOP, Distance.fromFeet(.8), 1, 180, 180);
             b.addDrive(S.BLUE_PARK_0, S.BLUE_STOP, Distance.fromFeet(1.8), 1, 183, 180);
             //-------------------------------------------------------------------------------------------------------------------------------
             //1 ring (untested changes)
@@ -476,7 +476,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.BLUE_MOVE_ARM_DOWN_1, makeArmDownState(S.BLUE_WAIT_FOR_DROP_1));
             b.addWait(S.BLUE_WAIT_FOR_DROP_1, S.BLUE_DROP_WOBBLE_GOAL_1, wobbleGoalWaitTime);
             b.addServo(S.BLUE_DROP_WOBBLE_GOAL_1, S.BLUE_MOVE_ARM_UP_1, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED,servoReleaseWaitTime, true);
-            b.add(S.BLUE_MOVE_ARM_UP_1, makeArmUpState(S.BLUE_PARK_1_A));
+            b.add(S.BLUE_MOVE_ARM_UP_1, makeArmUpState(parkClose ? S.BLUE_PARK_1 : S.BLUE_PARK_1_A));
             b.addDrive(S.BLUE_PARK_1_A, S.BLUE_PARK_1, Distance.fromFeet(1), 1, 180, 180);
             b.addDrive(S.BLUE_PARK_1, S.BLUE_STOP, Distance.fromFeet(0.6), 1, 115, 180);
             //-------------------------------------------------------------------------------------------------------------------------------
@@ -487,7 +487,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.add(S.BLUE_MOVE_ARM_DOWN_4, makeArmDownState(S.BLUE_WAIT_FOR_DROP_4));
             b.addWait(S.BLUE_WAIT_FOR_DROP_4, S.BLUE_DROP_WOBBLE_GOAL_4, wobbleGoalWaitTime);
             b.addServo(S.BLUE_DROP_WOBBLE_GOAL_4, S.BLUE_MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, servoReleaseWaitTime,true);
-            b.add(S.BLUE_MOVE_ARM_UP_4, makeArmUpState(S.BLUE_PARK_4_A));
+            b.add(S.BLUE_MOVE_ARM_UP_4, makeArmUpState(parkClose ? S.BLUE_PARK_4 : S.BLUE_PARK_4_A));
             b.addDrive(S.BLUE_PARK_4_A, S.BLUE_PARK_4, Distance.fromFeet(.5), 1, 180, 180);
             b.addDrive(S.BLUE_PARK_4, S.BLUE_STOP, Distance.fromFeet(1.5), 1, 135, 180);
 
