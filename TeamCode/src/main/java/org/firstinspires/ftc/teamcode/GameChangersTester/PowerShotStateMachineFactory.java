@@ -75,8 +75,8 @@ public class PowerShotStateMachineFactory {
             yDestIn = 5; //need to tweak
         } else {
             trackable = allTrackables.get(2);
-            xDestIn = -3; //need to tweak
-            yDestIn = -24; //need to tweak
+            xDestIn = -1; //need to tweak
+            yDestIn = -27; //need to tweak
         }
 
         double transGain = 0.03;
@@ -143,9 +143,9 @@ public class PowerShotStateMachineFactory {
         b.addGyroTurn(S.TURN_RIGHT, S.WAIT_FOR_FLYWHEEL, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 0), tolerance, 1, gyroECMap);
         b.add(S.WAIT_FOR_FLYWHEEL, makeFlywheelWaitState(S.SHOOT_RIGHT, S.TIMEOUT_DEACTIVATE, 2500L, 3, 1020));
         b.add(S.SHOOT_RIGHT, makeShootRingState(S.TURN_MIDDLE, 200, S.TIMEOUT_DEACTIVATE));
-        b.addGyroTurn(S.TURN_MIDDLE, S.SHOOT_MIDDLE, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 5), tolerance, 1, gyroECMap);
+        b.addGyroTurn(S.TURN_MIDDLE, S.SHOOT_MIDDLE, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 4.5), tolerance, 1, gyroECMap);
         b.add(S.SHOOT_MIDDLE, makeShootRingState(S.TURN_LEFT, 200, S.TIMEOUT_DEACTIVATE));
-        b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 8), tolerance, 1, gyroECMap);
+        b.addGyroTurn(S.TURN_LEFT, S.SHOOT_LEFT, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 9), tolerance, 1, gyroECMap);
         b.add(S.SHOOT_LEFT, makeShootRingState(S.STOP_FLYWHEEL, 200, S.TIMEOUT_DEACTIVATE));
         b.add(S.STOP_FLYWHEEL, makeStopFlyWheelState(S.BUTTON_RESET));
         b.add(S.BUTTON_RESET, makeButtonResetState(S.IDLE));
