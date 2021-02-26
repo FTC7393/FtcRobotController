@@ -114,18 +114,23 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
                 }
             }
 
-//            if (driver1.right_bumper.justPressed() || driver1.left_bumper.justPressed()) {
-//                if () {
-//                    TeamColor teamColor = optionsFile.get(Opts.TEAM_COLOR.s, teamColorDefault);
-//                    if (teamColor == TeamColor.BLUE) {
-//                        teamColor = TeamColor.RED;
-//                    } else {
-//                        teamColor = TeamColor.BLUE;
-//                    }
-//                    optionsFile.set(Opts.TEAM_COLOR.s, teamColor);
-//                    saveOptionsFile();
-//                }
-//            }
+            if (driver1.right_bumper.justPressed() || driver1.left_bumper.justPressed()) {
+                if (values[index] == Opts.COLLECT_MORE_RINGS) {
+                    boolean collectMoreRings = optionsFile.get(Opts.COLLECT_MORE_RINGS.s, collectMoreRingsDefault);
+                    collectMoreRings = !collectMoreRings;
+                    optionsFile.set(Opts.COLLECT_MORE_RINGS.s, collectMoreRings);
+                    saveOptionsFile();
+                }
+            }
+
+            if (driver1.right_bumper.justPressed() || driver1.left_bumper.justPressed()) {
+                if (values[index] == Opts.PARK_CLOSE) {
+                    boolean parkClose = optionsFile.get(Opts.PARK_CLOSE.s, parkCloseDefault);
+                    parkClose = !parkClose;
+                    optionsFile.set(Opts.PARK_CLOSE.s, parkClose);
+                    saveOptionsFile();
+                }
+            }
 
 //        if(driver1.right_bumper.justPressed()) {
 //            if (values[index] == Opts.WAIT_TIME) {
