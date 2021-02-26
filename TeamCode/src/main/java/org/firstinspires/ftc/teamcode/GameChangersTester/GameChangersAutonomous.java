@@ -69,8 +69,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private StateMachine blinkinStateMachine;
     private BlinkEvent lastBlinkState = BlinkEvent.NONE;
     private boolean shootExtraRings = true;
-    private boolean getSecondWobbleGoal;
     private boolean parkClose;
+    private boolean collectMoreRings;
+    private boolean getSecondWobbleGoal;
     private boolean shootFourthRing;
     private double returnDrive;
 
@@ -125,6 +126,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         teamColor = optionsFile.get(GameChangersOptionsOp.teamColorTag, GameChangersOptionsOp.teamColorDefault);
         initialDelay = optionsFile.get(GameChangersOptionsOp.initialAutoDelayTag, GameChangersOptionsOp.initialAutoDelayDefault);
         startingPosition = optionsFile.get(GameChangersOptionsOp.startingPositionTag, GameChangersOptionsOp.startingPositionDefault);
+        parkClose = optionsFile.get(GameChangersOptionsOp.parkCloseTag, GameChangersOptionsOp.parkCloseDefault);
+        collectMoreRings = optionsFile.get(GameChangersOptionsOp.collectMoreRingsTag, GameChangersOptionsOp.collectMoreRingsDefault);
         ringNumbersResultReceiver = new RepeatedResultReceiver<>(5);
         ringPipeline = new RingPipeline(ringNumbersResultReceiver, waitForStartRR, startingPosition, listener);
         webcamName = robotCfg.getWebcamName();
