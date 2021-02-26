@@ -378,7 +378,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
             b.add(S.BLUE_DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.BLUE_START_FLYWHEEL));
             b.add(S.BLUE_START_FLYWHEEL,makeStartFlyWheelState(S.BLUE_TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
-            b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT, S.BLUE_WAIT_ELEVATION_STABILIZE, -5);
+            b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT, S.BLUE_WAIT_ELEVATION_STABILIZE, -2);
             b.addWait(S.BLUE_WAIT_ELEVATION_STABILIZE, S.BLUE_SHOOT_RINGS, 10L);
             b.add(S.BLUE_SHOOT_RINGS, new ShooterState( robotCfg, GameChangersRobotCfg.shooterTargetSpeed, GameChangersRobotCfg.shooterMaxSpeed, S.BLUE_TURN_OFF_SHOOTER));
             b.add(S.BLUE_TURN_OFF_SHOOTER, makeFlyWheelStopState(S.BLUE_SECOND_RING_COLLECTION));
@@ -417,8 +417,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
             //second collection attempt and then go on to shoot rings - one ring
             b.add(S.BLUE_TURN_ON_COLLECTOR, makeCollectorOnState(S.BLUE_DRIVE_BACKWARDS_TO_COLLECT));
-            b.addDrive(S.BLUE_DRIVE_BACKWARDS_TO_COLLECT, S.BLUE_RETURN_TO_SHOOT, Distance.fromFeet(ringDrive), 0.4, 80, 0);
-            b.addDrive(S.BLUE_RETURN_TO_SHOOT,S.BLUE_TURN_OFF_COLLECTOR, Distance.fromFeet(ringDrive),0.7,260,0);
+            b.addDrive(S.BLUE_DRIVE_BACKWARDS_TO_COLLECT, S.BLUE_RETURN_TO_SHOOT, Distance.fromFeet(ringDrive), 0.4, 88, 0);
+            b.addDrive(S.BLUE_RETURN_TO_SHOOT,S.BLUE_TURN_OFF_COLLECTOR, Distance.fromFeet(ringDrive),0.7,268,0);
             //--------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -426,14 +426,14 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             //4 rings collection
             double bumpDrive = 0.4;
             long ringPause = 500;
-            b.addDrive(S.BLUE_BUMP_RING_STACK, S.BLUE_WAIT_COLLECT, Distance.fromFeet(bumpDrive), 1.0, 80, 0);
+            b.addDrive(S.BLUE_BUMP_RING_STACK, S.BLUE_WAIT_COLLECT, Distance.fromFeet(bumpDrive), 1.0, 88, 0);
             b.addWait(S.BLUE_WAIT_COLLECT,S.BLUE_TURN_ON_COLLECTOR_B,500L);
             b.add(S.BLUE_TURN_ON_COLLECTOR_B, makeCollectorOnState(S.BLUE_THREE_RING_COLLECTION_1));
             b.addDrive(S.BLUE_THREE_RING_COLLECTION_1,S.BLUE_PAUSE_1,Distance.fromFeet(slowDrive),.1,90,0);
             b.addWait(S.BLUE_PAUSE_1, S.BLUE_THREE_RING_COLLECTION_2, ringPause);
             b.addDrive(S.BLUE_THREE_RING_COLLECTION_2,S.BLUE_PAUSE_2,Distance.fromFeet(slowDrive),.1,90,0);
             b.addWait(S.BLUE_PAUSE_2, S.BLUE_RETURN_FROM_FOUR_RINGS, ringPause);
-            b.addDrive(S.BLUE_RETURN_FROM_FOUR_RINGS,S.BLUE_TURN_OFF_COLLECTOR, Distance.fromFeet(bumpDrive + 2*slowDrive),0.7,270,0);
+            b.addDrive(S.BLUE_RETURN_FROM_FOUR_RINGS,S.BLUE_TURN_OFF_COLLECTOR, Distance.fromFeet(bumpDrive + 2*slowDrive),0.7,268,0);
 
 
             b.add(S.BLUE_TURN_OFF_COLLECTOR, makeCollectorOffState(S.BLUE_SET_VUCALC_2));
@@ -442,7 +442,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addDrive(S.BLUE_VUFORIA_LINEUP, StateMap.of(S.BLUE_DEACTIVATE_TARGETS_2, vuforiaArrived, S.BLUE_DEACTIVATE_TARGETS_2, EVEndConditions.timed(Time.fromSeconds(4))), xyrControl);
             b.add(S.BLUE_DEACTIVATE_TARGETS_2, makeTargetsDeactivateState(S.BLUE_START_FLYWHEEL_2));
             b.add(S.BLUE_START_FLYWHEEL_2,makeStartFlyWheelState(S.BLUE_TURN_AIM_SHOOT_2, minVelocityValue, speedRepeatCount));
-            b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT_2, S.BLUE_SET_SHOOTER_SERVO, 0);
+            b.addGyroTurn(S.BLUE_TURN_AIM_SHOOT_2, S.BLUE_SET_SHOOTER_SERVO, -2);
             b.addServo(S.BLUE_SET_SHOOTER_SERVO, S.BLUE_SHOOT_RINGS_2, robotCfg.getElevation().getName(), ServoPresets.Elevation.SHOOTING, true);
             b.add(S.BLUE_SHOOT_RINGS_2, new ShooterState(robotCfg, GameChangersRobotCfg.shooterTargetSpeed, GameChangersRobotCfg.shooterMaxSpeed, S.BLUE_TURN_OFF_SHOOTER_2));
             b.add(S.BLUE_TURN_OFF_SHOOTER_2, makeFlyWheelStopState(S.BLUE_DETERMINE_RING_STACK));
@@ -478,7 +478,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             b.addServo(S.BLUE_DROP_WOBBLE_GOAL_1, S.BLUE_MOVE_ARM_UP_1, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED,servoReleaseWaitTime, true);
             b.add(S.BLUE_MOVE_ARM_UP_1, makeArmUpState(parkClose ? S.BLUE_PARK_1 : S.BLUE_PARK_1_A));
             b.addDrive(S.BLUE_PARK_1_A, S.BLUE_PARK_1, Distance.fromFeet(1), 1, 180, 180);
-            b.addDrive(S.BLUE_PARK_1, S.BLUE_STOP, Distance.fromFeet(0.6), 1, 115, 180);
+            b.addDrive(S.BLUE_PARK_1, S.BLUE_STOP, Distance.fromFeet(0.8), 1, 115, 180);
             //-------------------------------------------------------------------------------------------------------------------------------
             //4 rings
             //-------------------------------------------------------------------------------------------------------------------------------
@@ -534,7 +534,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         allTrackables = VuLocalizer.setVuLocalizer(teamColor, targetsUltimateGoal, parameters);
         if (teamColor == TeamColor.BLUE) {
             sideWallTarget = allTrackables.get(3);
-            xDestIn = 0;
+            xDestIn = 2;
             yDestIn = 33;
         } else {
             sideWallTarget = allTrackables.get(2);
