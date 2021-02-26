@@ -135,17 +135,17 @@ public class PowerShotStateMachineFactory {
                 EVEndConditions.timed(Time.fromSeconds(5)), S.TIMEOUT_DEACTIVATE, driverHaltEC), xyrControl);
         b.add(S.VUFORIA_TARGETS_DEACTIVATE, makeTargetsDeactivateState(S.GET_GYRO_HEADING));
         b.add(S.GET_GYRO_HEADING, makeGyroHeadingState(S.SET_SHOOTER_SERVO));
-//        b.addDrive(S.MECANUM_DRIVE, S.SET_SHOOTER_SERVO, Distance.fromInches(4), 0.5, gyroHeadingAtPowershotTime+180, gyroHeadingAtPowershotTime);
         b.addServo(S.SET_SHOOTER_SERVO, S.START_FLYWHEEL, robotCfg.getElevation().getName(),
                 ServoPresets.Elevation.POWERSHOOTING, true);
         b.add(S.START_FLYWHEEL, makeStartFlyWheelState(S.TEAMCOLOR_DECIDE));
 
 
 
-        b.addBranch(S.TEAMCOLOR_DECIDE, S.BLUE_TURN_RIGHT, S.TURN_RIGHT, teamColor == TeamColor.BLUE);
+        b.addBranch(S.TEAMCOLOR_DECIDE, S.BLUE_SHOOT_LEFT, S.TURN_RIGHT, teamColor == TeamColor.BLUE);
 
 
         //blue branch
+        //        b.addDrive(S.MECANUM_DRIVE, S.SET_SHOOTER_SERVO, Distance.fromInches(4), 0.5, gyroHeadingAtPowershotTime+180, gyroHeadingAtPowershotTime);
         b.addGyroTurn(S.BLUE_TURN_LEFT, S.BLUE_WAIT_FOR_FLYWHEEL, () -> Angle.fromDegrees(gyroHeadingAtPowershotTime + 0), tolerance, 1, gyroECMap);
         b.add(S.BLUE_WAIT_FOR_FLYWHEEL, makeFlywheelWaitState(S.BLUE_SHOOT_LEFT, S.TIMEOUT_DEACTIVATE, 2500L, 3, 1020));
         b.add(S.BLUE_TURN_LEFT, makeShootRingState(S.BLUE_TURN_MIDDLE, 200, S.TIMEOUT_DEACTIVATE));
