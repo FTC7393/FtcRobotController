@@ -24,6 +24,8 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
         public static final StartingPosition startingPositionDefault = StartingPosition.LEFT;
         public static final TeamColor teamColorDefault = TeamColor.BLUE;
         public static final String initialAutoDelayTag = "initialAutoDelay";
+        public static final String collectMoreRingsTag = true;
+        public static final String parkCloseTag = false;
         private int index = 0;
         private Opts[] values;
         public static final double initialAutoDelayDefault = 0;
@@ -109,6 +111,20 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
                     saveOptionsFile();
                 }
             }
+
+//            if (driver1.right_bumper.justPressed() || driver1.left_bumper.justPressed()) {
+//                if () {
+//                    TeamColor teamColor = optionsFile.get(Opts.TEAM_COLOR.s, teamColorDefault);
+//                    if (teamColor == TeamColor.BLUE) {
+//                        teamColor = TeamColor.RED;
+//                    } else {
+//                        teamColor = TeamColor.BLUE;
+//                    }
+//                    optionsFile.set(Opts.TEAM_COLOR.s, teamColor);
+//                    saveOptionsFile();
+//                }
+//            }
+
 //        if(driver1.right_bumper.justPressed()) {
 //            if (values[index] == Opts.WAIT_TIME) {
 //                double waitTime = optionsFile.get(wait, waitDefault);
@@ -151,7 +167,8 @@ public class GameChangersOptionsOp extends AbstractOptionsOp{
 
 
     public enum Opts {
-            TEAM_COLOR(teamColorTag), INITIAL_AUTO_DELAY(initialAutoDelayTag), START_POSITION(startingPositionTag);
+            TEAM_COLOR(teamColorTag), INITIAL_AUTO_DELAY(initialAutoDelayTag), START_POSITION(startingPositionTag), COLLECT_MORE_RINGS(collectMoreRingsTag),
+        PARK_CLOSE(parkCloseTag);
 
             //        public boolean b;
 //        public double f;
