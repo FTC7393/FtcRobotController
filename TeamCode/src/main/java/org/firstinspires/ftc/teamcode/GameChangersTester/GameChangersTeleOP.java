@@ -274,7 +274,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
                 robotCfg.getFlyWheelShooter().turnOnFlywheel();
             } else {
                 robotCfg.getCollector().ingest();
-                robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
+                robotCfg.getElevation().goToPreset(ServoPresets.Elevation.SHOOTING);
 //                robotCfg.getFlyWheelShooter().stop();
             }
             collectorIsSucking = !collectorIsSucking;
@@ -291,7 +291,7 @@ public class GameChangersTeleOP extends AbstractTeleOp<GameChangersRobotCfg>  {
 
         if (driver1.y.justPressed()) {
             robotCfg.getCollector().stop();
-            robotCfg.getElevation().goToPreset(ServoPresets.Elevation.COLLECTING);
+            robotCfg.getElevation().goToPreset(ServoPresets.Elevation.SHOOTING);
             robotCfg.getFlyWheelShooter().stop();
             collectorIsSucking = false;
             powershotMode=false;
