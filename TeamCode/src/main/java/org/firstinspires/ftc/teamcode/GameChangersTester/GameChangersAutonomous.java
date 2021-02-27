@@ -258,9 +258,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
             //4 rings collection
             double bumpDrive = 0.4;
-            long ringPause = 500;
+            long ringPause = 200;
             b.addDrive(S.BUMP_RING_STACK, S.WAIT_COLLECT, Distance.fromFeet(bumpDrive), 1.0, 100, 0);
-            b.addWait(S.WAIT_COLLECT,S.TURN_ON_COLLECTOR_B,500L);
+            b.addWait(S.WAIT_COLLECT,S.TURN_ON_COLLECTOR_B,400L);
             b.add(S.TURN_ON_COLLECTOR_B, makeCollectorOnState(S.THREE_RING_COLLECTION_1));
             b.addDrive(S.THREE_RING_COLLECTION_1,S.PAUSE_1,Distance.fromFeet(slowDrive),.1,90,0);
             b.addWait(S.PAUSE_1, S.THREE_RING_COLLECTION_2, ringPause);
@@ -425,9 +425,9 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
             //4 rings collection
             double bumpDrive = 0.4;
-            long ringPause = 500;
+            long ringPause = 300;
             b.addDrive(S.BLUE_BUMP_RING_STACK, S.BLUE_WAIT_COLLECT, Distance.fromFeet(bumpDrive), 1.0, 88, 0);
-            b.addWait(S.BLUE_WAIT_COLLECT,S.BLUE_TURN_ON_COLLECTOR_B,500L);
+            b.addWait(S.BLUE_WAIT_COLLECT,S.BLUE_TURN_ON_COLLECTOR_B,400L);
             b.add(S.BLUE_TURN_ON_COLLECTOR_B, makeCollectorOnState(S.BLUE_THREE_RING_COLLECTION_1));
             b.addDrive(S.BLUE_THREE_RING_COLLECTION_1,S.BLUE_PAUSE_1,Distance.fromFeet(slowDrive),.1,90,0);
             b.addWait(S.BLUE_PAUSE_1, S.BLUE_THREE_RING_COLLECTION_2, ringPause);
