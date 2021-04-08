@@ -199,6 +199,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 //                b.addDrive(S.DRIVE_1C, S.SET_VUCALC, Distance.fromFeet(.3), 1.0, 0, 0);
             }
             b.add(S.SET_VUCALC, makeVuCalcState(S.WAIT_FOR_VUFORIA_INIT));
+            b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.WAIT_FOR_VUFORIA_INIT, minVelocityValue, speedRepeatCount));
             b.addResultReceiverReady(S.WAIT_FOR_VUFORIA_INIT, S.ACTIVATE_TARGETS, vuforiaInitRR);
             b.add(S.ACTIVATE_TARGETS, makeTargetsActivateState(S.DRIVE_VUFORIA_TO_POWERSHOT));
             EndCondition vuforiaArrived = createXYREndCondition();
@@ -209,8 +210,8 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
             double ringDrive = 0.5;
             double slowDrive = 0.09; //.1 if ur feeling lucky
 
-            b.add(S.DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.START_FLYWHEEL));
-            b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.TURN_AIM_SHOOT, minVelocityValue, speedRepeatCount));
+            b.add(S.DEACTIVATE_TARGETS, makeTargetsDeactivateState(S.TURN_AIM_SHOOT));
+            //used to turn on flywheel here
             b.addGyroTurn(S.TURN_AIM_SHOOT, S.WAIT_ELEVATION_STABILIZE, -3);
             b.addWait(S.WAIT_ELEVATION_STABILIZE, S.SHOOT_RINGS, 10L);
             b.add(S.SHOOT_RINGS, new ShooterState( robotCfg, GameChangersRobotCfg.shooterTargetSpeed, GameChangersRobotCfg.shooterMaxSpeed, S.TURN_OFF_SHOOTER));
