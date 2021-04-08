@@ -198,7 +198,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 b.addDrive(S.DRIVE_1C, S.SET_VUCALC, Distance.fromFeet(.3), 1.0, 0, 0);
 //                b.addDrive(S.DRIVE_1C, S.SET_VUCALC, Distance.fromFeet(.3), 1.0, 0, 0);
             }
-            b.add(S.SET_VUCALC, makeVuCalcState(S.WAIT_FOR_VUFORIA_INIT));
+            b.add(S.SET_VUCALC, makeVuCalcState(S.START_FLYWHEEL));
             b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.WAIT_FOR_VUFORIA_INIT, minVelocityValue, speedRepeatCount));
             b.addResultReceiverReady(S.WAIT_FOR_VUFORIA_INIT, S.ACTIVATE_TARGETS, vuforiaInitRR);
             b.add(S.ACTIVATE_TARGETS, makeTargetsActivateState(S.DRIVE_VUFORIA_TO_POWERSHOT));
