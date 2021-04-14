@@ -185,9 +185,10 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         b.addServo(S.SET_CAMERA_SERVO, S.VUFORIA_INIT, robotCfg.getCameraServo().getName(), cameraServoPreset, false);
         b.add(S.VUFORIA_INIT, makeVuforiaInit(S.WAIT_FOR_OTHER_TEAM));
         b.addWait(S.WAIT_FOR_OTHER_TEAM, S.ELEVATE_SHOOTER, Time.fromSeconds(initialDelay));
-        b.addServo(S.ELEVATE_SHOOTER,teamColor == TeamColor.RED?S.DRIVE_1:S.BLUE_DRIVE_1,robotCfg.getElevation().getName(),ServoPresets.Elevation.SHOOTING,false);
+        b.addServo(S.ELEVATE_SHOOTER,S.START_FLYWHEEL,robotCfg.getElevation().getName(),ServoPresets.Elevation.SHOOTING,false);
         double minVelocityValue = 1020;
         int speedRepeatCount = 3;
+        b.add(S.START_FLYWHEEL,makeStartFlyWheelState(teamColor == TeamColor.RED?S.DRIVE_1:S.BLUE_DRIVE_1, minVelocityValue, speedRepeatCount));
         if (teamColor == TeamColor.RED) {
             if (startingPosition == StartingPosition.LEFT) {
                 b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(1.5), 1.0, 275, 0);
@@ -198,8 +199,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 b.addDrive(S.DRIVE_1C, S.SET_VUCALC, Distance.fromFeet(.3), 1.0, 0, 0);
 //                b.addDrive(S.DRIVE_1C, S.SET_VUCALC, Distance.fromFeet(.3), 1.0, 0, 0);
             }
-            b.add(S.SET_VUCALC, makeVuCalcState(S.START_FLYWHEEL));
-            b.add(S.START_FLYWHEEL,makeStartFlyWheelState(S.WAIT_FOR_VUFORIA_INIT, minVelocityValue, speedRepeatCount));
+            b.add(S.SET_VUCALC, makeVuCalcState(S.WAIT_FOR_VUFORIA_INIT));
             b.addResultReceiverReady(S.WAIT_FOR_VUFORIA_INIT, S.ACTIVATE_TARGETS, vuforiaInitRR);
             b.add(S.ACTIVATE_TARGETS, makeTargetsActivateState(S.DRIVE_VUFORIA_TO_POWERSHOT));
             EndCondition vuforiaArrived = createXYREndCondition();
