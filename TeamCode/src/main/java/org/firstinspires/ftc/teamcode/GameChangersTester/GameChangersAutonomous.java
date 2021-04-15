@@ -68,7 +68,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
     private BlinkEventListener listener = new BlinkEventListener();
     private StateMachine blinkinStateMachine;
     private BlinkEvent lastBlinkState = BlinkEvent.NONE;
-    private boolean shootExtraRings = true;
+   // private boolean shootExtraRings = true;
     private boolean parkClose;
     private boolean collectMoreRings;
     private boolean getSecondWobbleGoal;
@@ -188,7 +188,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
         b.addServo(S.ELEVATE_SHOOTER,S.START_FLYWHEEL,robotCfg.getElevation().getName(),ServoPresets.Elevation.SHOOTING,false);
         double minVelocityValue = 1020;
         int speedRepeatCount = 3;
-        b.add(S.START_FLYWHEEL,makeStartFlyWheelState(teamColor == TeamColor.RED?S.DRIVE_1:S.BLUE_DRIVE_1, minVelocityValue, speedRepeatCount));
+        b.add(S.START_FLYWHEEL,makeStartFlyWheelState(teamColor == TeamColor.RED?S.DRIVE_1:S.BLUE_DRIVE_1, minVelocityValue, 0));
         if (teamColor == TeamColor.RED) {
             if (startingPosition == StartingPosition.LEFT) {
                 b.addDrive(S.DRIVE_1, S.DRIVE_1B, Distance.fromFeet(1.5), 1.0, 275, 0);
@@ -222,20 +222,12 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     return S.DRIVE_RING_0;
                 } else {
                     if (collectMoreRings == true) {
-                        if (shootExtraRings) {
-                            if (ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
-                                returnDrive = ringDrive + slowDrive;
-                                return S.TURN_ON_COLLECTOR;
-                            }
-                            return S.BUMP_RING_STACK;
-                        }
                         if (ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
-                            return S.DRIVE_RING_1;
-                        } else {
-                            return S.DRIVE_RING_4;
+                            returnDrive = ringDrive + slowDrive;
+                            return S.TURN_ON_COLLECTOR;
                         }
-                    }
-                    else {
+                        return S.BUMP_RING_STACK;
+                    } else {
                         if (ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
                             return S.DRIVE_RING_1;
                         } else {
@@ -389,18 +381,11 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                     return S.BLUE_DRIVE_RING_0;
                 } else {
                     if (collectMoreRings == true) {
-                        if (shootExtraRings) {
-                            if (ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
-                                returnDrive = ringDrive + slowDrive;
-                                return S.BLUE_TURN_ON_COLLECTOR;
-                            }
-                            return S.BLUE_BUMP_RING_STACK;
-                        }
                         if (ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
-                            return S.BLUE_DRIVE_RING_1;
-                        } else {
-                            return S.BLUE_DRIVE_RING_4;
+                            returnDrive = ringDrive + slowDrive;
+                            return S.BLUE_TURN_ON_COLLECTOR;
                         }
+                        return S.BLUE_BUMP_RING_STACK;
                     }
                     else {
                         if (ringNumber == RingPipeline.RING_NUMBERS.ring_1) {
@@ -572,6 +557,7 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
 
     private State makeStartFlyWheelState(final StateName nextState, double minVelocityValue, int speedRepeatCount) {
 
+        // to turn on flywheeel imediatley set speedRepeatCount = 0
         EndCondition waitEC = EVEndConditions.timed(2500L);
         EndCondition spinUpEC = new EndCondition() {
             int count;
