@@ -17,6 +17,9 @@ public class WobbleGoalCollector {
 
     //positions
     private final double upPosition = 0.84;
+
+    private final double midPosition = 0.6; //me me big boi was here
+
     private final double downPosition = 0.3;
     private final double moreDownPosition = 0.2;
     private final double maxPosition = 0.9;
@@ -54,6 +57,10 @@ public class WobbleGoalCollector {
 
     public void moveArmUp() {
         targetPosition = upPosition;
+    }
+
+    public void moveArmMid() {
+        targetPosition = midPosition;
     }
 
     public void moveArmDown(){
