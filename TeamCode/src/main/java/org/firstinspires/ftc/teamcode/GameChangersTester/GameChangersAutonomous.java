@@ -338,14 +338,14 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 robotCfg.getWobbleGoalArm().moveArmUp();
                 return S.DRIVE_BACK;
             });
-            b.addDrive(S.DRIVE_BACK, S.DRIVE_BACK_2, Distance.fromFeet(1.1), 0.7, 0, 0);
-            b.addDrive(S.DRIVE_BACK_2, S.DRIVE_BACK_3, Distance.fromFeet(2.42), .7, 90, 0);
-            b.addDrive(S.DRIVE_BACK_3, S.MOVE_ARM_DOWN_7, Distance.fromFeet(.3), 1.0, 180, 0);
+            b.addDrive(S.DRIVE_BACK, S.DRIVE_BACK_2, Distance.fromFeet(.85), 0.7, 0, 0);
+            b.addDrive(S.DRIVE_BACK_2, S.MOVE_ARM_DOWN_7, Distance.fromFeet(2.5), .7, 90, 0);
             b.add(S.MOVE_ARM_DOWN_7, () -> {
                 robotCfg.getWobbleGoalArm().moveArmDown();
-                return S.WAIT_FOR_DROP_6;
+                return S.DRIVE_BACK_3;
             });
-            b.addWait(S.WAIT_FOR_DROP_6, S.PICKUP_WOBBLE, wobbleGoalWaitTime);
+            b.addDrive(S.DRIVE_BACK_3, S.STOP, Distance.fromFeet(.2), .3, 180, 0);
+//            b.addWait(S.WAIT_FOR_DROP_6, S.PICKUP_WOBBLE, wobbleGoalWaitTime);
             b.addServo(S.PICKUP_WOBBLE,S.DRIVE_BACK_5,robotCfg.getPincher().getName(), ServoPresets.WobblePincher.CLOSED,true);
             b.addDrive(S.DRIVE_BACK_5, S.DRIVE_FORWARD_1, Distance.fromFeet(.95), 0.7, 90, 0);
             b.addDrive(S.DRIVE_FORWARD_1, S.DRIVE_FORWARD_2, Distance.fromFeet(1.5), 1.0, 275, 0);
