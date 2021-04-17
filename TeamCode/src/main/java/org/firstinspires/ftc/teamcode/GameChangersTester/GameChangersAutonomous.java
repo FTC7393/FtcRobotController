@@ -334,13 +334,13 @@ public class GameChangersAutonomous extends AbstractAutoOp<GameChangersRobotCfg>
                 return S.WAIT_FOR_DROP_4;
             });
             b.addWait(S.WAIT_FOR_DROP_4, S.DROP_WOBBLE_GOAL_4, wobbleGoalWaitTime);
-            b.addServo(S.DROP_WOBBLE_GOAL_4, S.MOVE_ARM_UP_4, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, servoReleaseWaitTime,true); // need to be condensed using new method
-            b.addDrive(S.DRIVE_BACK, S.DRIVE_BACK_2, Distance.fromFeet(-1.55), 0.7, -255, 0);
-            b.addDrive(S.DRIVE_BACK_2, S.DRIVE_BACK_3, Distance.fromFeet(-.2), .7, -180, 0);
-            b.addDrive(S.DRIVE_BACK_3, S.WOBBLE_DRIVE, Distance.fromFeet(-1.5), 1.0, -270, 0);
+            b.addServo(S.DROP_WOBBLE_GOAL_4, S.DRIVE_BACK, robotCfg.getPincher().getName(), ServoPresets.WobblePincher.OPENED, servoReleaseWaitTime,true); // need to be condensed using new method
+            b.addDrive(S.DRIVE_BACK, S.DRIVE_BACK_2, Distance.fromFeet(1.55), 0.7, -255, 0);
+            b.addDrive(S.DRIVE_BACK_2, S.DRIVE_BACK_3, Distance.fromFeet(.2), .7, -180, 0);
+            b.addDrive(S.DRIVE_BACK_3, S.WOBBLE_DRIVE, Distance.fromFeet(1.5), 1.0, -270, 0);
             b.addDrive(S.WOBBLE_DRIVE, S.PICKUP_WOBBLE, Distance.fromFeet(.95), 0.7, -90, 0);
             b.addServo(S.PICKUP_WOBBLE,S.DRIVE_BACK_5,robotCfg.getPincher().getName(), ServoPresets.WobblePincher.CLOSED,true);
-            b.addDrive(S.DRIVE_BACK_5, S.DRIVE_FORWARD_1, Distance.fromFeet(.95), 0.7, -90, 0);
+            b.addDrive(S.DRIVE_BACK_5, S.DRIVE_FORWARD_1, Distance.fromFeet(.95), 0.7, 90, 0);
             b.addDrive(S.DRIVE_FORWARD_1, S.DRIVE_FORWARD_2, Distance.fromFeet(1.5), 1.0, 275, 0);
             b.addDrive(S.DRIVE_FORWARD_2, S.DRIVE_FORWARD_3, Distance.fromFeet(.32), 0.5, 180, 0);
             b.addDrive(S.DRIVE_FORWARD_3, S.WAIT_FOR_DROP_5, Distance.fromFeet(1.55), 0.7, 255, 0);
